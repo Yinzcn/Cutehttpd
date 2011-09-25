@@ -1,0 +1,42 @@
+  /*  Vs Tp ReqID ctLen pL Rv  -- (FCGI_Header)
+   * [01 01 00 01 00 08 00 00] FCGI_Header FCGI_BEGIN_REQUEST 01
+   *  Role_ Flags Reserved___  -- (RequestBody)
+   * [00 01 00 00 00 00 00 00] FCGI_BeginRequestBody
+   * [01 04 00 01 2d 2e 02 00] FCGI_Header FCGI_PARAMS        04
+   * [params_body ...]
+   * [01 04 00 01 00 00 00 00] FCGI_Header FCGI_PARAMS        04
+   * [01 05 00 01 00 00 00 00] FCGI_Header FCGI_STDIN         05
+   */
+
+  /*
+   *  Vs Tp ReqID ctLen pL Rv  -- (FCGI_Header)
+   * [01 07 00 01 XX XX 00 00] FCGI_Header FCGI_STDERR ?      07
+     [ STDERR DATA ...] ?
+   * [01 06 00 01 XX XX 00 00] FCGI_Header FCGI_STDOUT        06
+   * [ STDOUT DATA ...]
+   * [00 01 00 00 00 00 00 00] FCGI_Header FCGI_END_REQUEST   03
+   *  appStatusBx pS Reserved  -- (FCGI_EndRequestBody)
+   * [01 04 00 01 2d 2e 02 00] FCGI_EndRequestBody
+   *
+  */
+
+  Vs    = version
+  Tp    = type
+  ReqID = requestId
+  ctLen = contentLength
+  pL    = paddingLength
+  Rv    = reserved
+  pS    = protocolStatus
+
+
+FCGI_BEGIN_REQUEST     01
+FCGI_ABORT_REQUEST     02
+FCGI_END_REQUEST       03
+FCGI_PARAMS            04
+FCGI_STDIN             05
+FCGI_STDOUT            06
+FCGI_STDERR            07
+FCGI_DATA              08
+FCGI_GET_VALUES        09
+FCGI_GET_VALUES_RESULT 10
+FCGI_UNKNOWN_TYPE      11
