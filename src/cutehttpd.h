@@ -8,14 +8,6 @@
 #define CHTD_H
 
 
-#ifdef WIN32
-#include <windows.h>
-#include <process.h>
-#include <winsock.h>
-#include "pthread_w32.h"
-#endif
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -25,14 +17,30 @@
 #include <ctype.h>
 #include <limits.h>
 #include <stddef.h>
-#include <direct.h>
-#include <dirent.h>
 #include <locale.h>
-#include <io.h>
-#include <dir.h>
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <dirent.h>
+
+#ifdef WIN32
+#include <windows.h>
+#include <process.h>
+#include <winsock.h>
+#include "pthread_w32.h"
+#define SHUT_WR 1
+#define sleep(n) Sleep(n)
+#else
+#include <sys/wait.h>
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <pthread.h>
+#define SOCKET int
+#endif
+
 
 
 /*
@@ -162,7 +170,7 @@ struct htdx_t
     && s[5] == c5 && s[6] == c6 && s[7] == c7 )
 
 #define  strequ(str1, str2) ( strcmp(str1, str2) == 0)
-#define striequ(str1, str2) (stricmp(str1, str2) == 0)
+#define striequ(str1, str2) (strcasecmp(str1, str2) == 0)
 
 
 

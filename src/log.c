@@ -11,18 +11,18 @@
 int
 str_time(char *buff)
 {
+    time_t rawtime;
+    struct tm *tm;
+    rawtime = time(NULL);
+    tm = localtime(&rawtime);
+    return snprintf(buff, sizeof(buff) - 2, "[%04d-%02d-%02d %02d:%02d:%02d] ", tm->tm_year + 1900, tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
     /*
-      time_t rawtime;
-      struct tm *tm;
-      rawtime = time(NULL);
-      tm = localtime(&rawtime);
-      n = snprintf(buff, sizeof(buff) - 2, "[%04d-%02d-%02d %02d:%02d:%02d] ", tm->tm_year + 1900, tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
-    */
     SYSTEMTIME st;
     //GetSystemTime(&st);
     GetLocalTime(&st);
     return sprintf(buff, "%02d-%02d %02d:%02d:%02d", st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
     //return sprintf(buff, "%04d-%02d-%02d %02d:%02d:%02d.%04d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+    */
 }
 
 
@@ -53,7 +53,7 @@ chtd_log(struct htdx_t *htdx, char *f, ...)
 
     strcat(b, "\r\n");
 #ifdef DEBUG
-    printf(b);
+    printf("%s", b);
 #endif
     file_put("chtd.log", b, strlen(b));
 
@@ -67,7 +67,7 @@ chtd_cry_x(struct htdx_t *htdx, char *FILE, int LINE, char *f, ...)
     char B[1024];
     char F[1024];
 
-    sprintf(F, "err(%d):%s:%d : %s", (int)GetLastError(), FILE, LINE, f);
+    sprintf(F, "err(%d):%s:%d : %s", errno, FILE, LINE, f);
     va_list a;
     va_start(a, f);
     vsprintf(B, F, a);
@@ -86,7 +86,6 @@ chtd_cry_x(struct htdx_t *htdx, char *FILE, int LINE, char *f, ...)
         n += vsprintf(b + n, F, a);
 
         strcat(b, "\r\n");
-        printf(b);
         file_put("chtd_cry.log", b, strlen(b));
     }
 }

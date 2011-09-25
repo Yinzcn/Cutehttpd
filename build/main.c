@@ -4,7 +4,6 @@
 **/
 
 
-#include <windows.h>
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,8 +12,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stddef.h>
-#include <direct.h>
-#include <io.h>
+#include <dirent.h>
 
 
 #include "cutehttpd.h"
@@ -142,10 +140,6 @@ main(int argc, char *argv[])
         switch (ch)
         {
         case 'e':
-            /*
-              chtd_stop(chtd) 停止服务;
-              chtd_get_status(chtd) 检查服务状态, 0 为停止
-            */
             chtd_stop(chtd);
             chtd_delete(chtd);
             loop = 0;

@@ -168,7 +168,7 @@ send_http_header(struct reqs_t *http_reqs)
         }
     }
     bufx_put_str(bufx, "\r\n");
-    bufx_get_each(bufx, reqs_conn_send, http_reqs);
+    bufx_get_each(bufx, (void *(*)())reqs_conn_send, http_reqs);
     http_reqs->rp_header_sent = 1;
     bufx_del(bufx);
     return 1;
@@ -180,7 +180,7 @@ send_http_chunk(struct reqs_t *reqs, void *data, int size)
 {
     struct conn_t *conn = reqs->conn;
     char head[16];
-    itoa(size, head, 16);
+    sprintf(head, "%x", size);
     strcat(head, "\r\n");
     int n = 0;
     n += conn_send(conn, head, strlen(head));

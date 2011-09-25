@@ -20,11 +20,11 @@ http_send_file(struct reqs_t *http_reqs, char *file_path)
         {
             break;
         }
-        Sleep(1);
+        sleep(1);
     }
     if(!pFile)
     {
-        chtd_cry(http_reqs->htdx, "ERR(%d):[%s]", (int)GetLastError(), file_path);
+        chtd_cry(http_reqs->htdx, "http_send_file() -> fopen() failed! [%s]", file_path);
         reqs_throw_status(http_reqs, 404, "http_send_file() -> fopen() failed!");
         return 1;
     }

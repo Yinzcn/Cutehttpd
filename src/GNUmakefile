@@ -13,7 +13,6 @@ CFLAGS  = -Wall
 LDLIBS  = -L$(DEP) -lpcre -lws2_32
 OBJS    = buff.o \
           base.o \
-          pthread_w32.o \
           namevalue.o \
           parse_header.o \
           log.o \
@@ -31,6 +30,7 @@ OBJS    = buff.o \
           fcgi.o \
           status_info.o \
           cutehttpd.o \
+          debug.o \
           test_ext.o
 
 all:	chtd-static chtd-shared

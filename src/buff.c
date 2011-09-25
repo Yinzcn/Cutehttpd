@@ -189,7 +189,7 @@ bufx_get(struct bufx_t *bufx, char *buff, int need)
 
 
 void
-bufx_get_each(struct bufx_t *bufx, void *func, void *arg1)
+bufx_get_each(struct bufx_t *bufx, void *(*func)(), void *arg1)
 {
     if (bufx == NULL)
     {
@@ -203,7 +203,7 @@ bufx_get_each(struct bufx_t *bufx, void *func, void *arg1)
         while (1)
         {
             next = curr->next;
-            ((FARPROC)func)(arg1, curr->data, curr->used);
+            (void*)func(arg1, curr->data, curr->used);
             free(curr);
             if (curr == last)
             {

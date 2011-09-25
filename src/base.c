@@ -8,6 +8,21 @@
 #include "base.h"
 
 
+char *
+chd_strlwr(char *s)
+{
+    char *p;
+    for (p=s; *p; p++)
+    {
+        if (*p >= 'A' && *p <= 'Z')
+        {
+            *p = *p - 'A' + 'a';
+        }
+    }
+    return s;
+}
+
+
 int
 substr_count(char *str, char *sub)
 {
@@ -81,6 +96,7 @@ memdup(void *m, int n)
 }
 
 
+#ifdef WIN32
 char *
 strndup(char *s, int n)
 {
@@ -101,6 +117,7 @@ strndup(char *s, int n)
     memcpy(p, s, n);
     return p;
 }
+#endif
 
 
 int
@@ -433,6 +450,7 @@ file_put(char *filename, char *data, int size)
 int
 spawn_process(char *cmdl, char *wdir)
 {
+#ifdef WIN32
     STARTUPINFOA si;
     PROCESS_INFORMATION pi;
     memset(&si, 0, sizeof(si));
@@ -455,5 +473,6 @@ spawn_process(char *cmdl, char *wdir)
     {
         return 0;
     }
+#endif
     return 1;
 }

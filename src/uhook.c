@@ -197,7 +197,7 @@ chtd_uhook_match(struct reqs_t *http_reqs)
         while (1)
         {
             /* [ */
-            if (stricmp(curr->host, host) == 0 || stricmp(curr->host, "*") == 0)
+            if (strcasecmp(curr->host, host) == 0 || strcasecmp(curr->host, "*") == 0)
             {
                 #ifdef _PCRE_H
                 if (pcre_exec(curr->pPcre, NULL, http_reqs->uri, strlen(http_reqs->uri), 0, 0, NULL, 0) == 0)

@@ -174,11 +174,13 @@ int
 wker_wake(struct wker_t *wker)
 {
     wker->status = WK_HUNG;
+    chtd_cry(wker->htdx, "wker->birthtime = %d!", wker->birthtime);
     if (wker->birthtime == 0)
     {
         wker_create_thread(wker);
+    } else {
+        pthread_cond_signal(&wker->cv_wake);
     }
-    pthread_cond_signal(&wker->cv_wake);
     return 1;
 }
 

@@ -74,13 +74,13 @@ fcgi_conn_new(struct reqs_t *http_reqs)
 
     SOCKET fcgi_socket;
     fcgi_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (fcgi_socket == INVALID_SOCKET)
+    if (fcgi_socket == 0)
     {
         chtd_cry(htdx, "ERROR: fcgi_conn_new() -> socket() failed!%d");
         return NULL;
     }
 
-    if (connect(fcgi_socket, &fcgi_pmgr->rsa.u.sa, sizeof(fcgi_pmgr->rsa.u)) == SOCKET_ERROR)
+    if (connect(fcgi_socket, &fcgi_pmgr->rsa.u.sa, sizeof(fcgi_pmgr->rsa.u)) == -1)
     {
         chtd_cry(htdx, "ERROR: connect() to fastcgi server (%s:%s) failed!",
                  fcgi_pmgr->fcgid_addr, fcgi_pmgr->fcgid_port);
@@ -127,9 +127,9 @@ fcgi_conn_close(struct fcgi_conn_t *fcgi_conn)
     {
         return;
     }
-    if (fcgi_conn->sock.socket != INVALID_SOCKET)
+    if (fcgi_conn->sock.socket != 0)
     {
-        shutdown(fcgi_conn->sock.socket, SD_SEND);
+        shutdown(fcgi_conn->sock.socket, SHUT_WR);
         static char buff[1024];
         while (recv(fcgi_conn->sock.socket, buff, 1024, 0) > 0);
         #ifdef WIN32
@@ -137,7 +137,7 @@ fcgi_conn_close(struct fcgi_conn_t *fcgi_conn)
         #else
         close(fcgi_conn->sock.socket);
         #endif
-        fcgi_conn->sock.socket = INVALID_SOCKET;
+        fcgi_conn->sock.socket = 0;
     }
 }
 

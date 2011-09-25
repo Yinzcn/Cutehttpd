@@ -14,7 +14,7 @@ chtd_get_status_info(struct htdx_t *htdx, char *format)
     static char buff[20480];
 
     enum inf_fmt_t nfmt;
-    if (stricmp(format, "html") == 0)
+    if (strcasecmp(format, "html") == 0)
     {
         nfmt = FMT_HTML;
     }

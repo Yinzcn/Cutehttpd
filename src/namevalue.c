@@ -75,7 +75,7 @@ namevalues_get(struct namevalue_t **nvs, char *n)
     last = curr->prev;
     while (1)
     {
-        if (stricmp(curr->n, n) == 0)
+        if (strcasecmp(curr->n, n) == 0)
         {
             return curr;
         }

@@ -39,8 +39,10 @@ void *
 memndup(void *, int);
 
 
+#ifdef WIN32
 char *
 strndup(char *, int);
+#endif
 
 
 int

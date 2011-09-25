@@ -13,7 +13,7 @@ mime_types_add(struct htdx_t *htdx, char *ext_name, char *type)
 {
     char buff[16] = "\0";
     strncat(buff, ext_name, 15);
-    strlwr (buff);
+    chd_strlwr(buff);
     struct mime_type_t *mime_type;
     mime_type = calloc(1, sizeof(struct mime_type_t));
     mime_type->ext_name = strdup(buff);
@@ -80,7 +80,7 @@ mime_type_assign(struct htdx_t *htdx, char *ext_name, char *type)
         if (mime_type)   /* to update */
         {
             free(mime_type->type);
-            mime_type->type = strlwr(strdup(type));
+            mime_type->type = chd_strlwr(strdup(type));
             return 1;
         }
         else     /* new */
@@ -105,7 +105,7 @@ mime_types_get(struct htdx_t *htdx, char *ext_name)
     {
         char buff[16] = "\0";
         strncat(buff, ext_name, 15);
-        strlwr (buff);
+        chd_strlwr(buff);
         Last = Curr->prev;
         while (1)
         {

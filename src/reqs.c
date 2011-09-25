@@ -114,7 +114,7 @@ reqs_throw_status(struct reqs_t *reqs, int status_code, char *msg)
             len = strlen(msg);
         }
         char buf[32];
-        itoa(len, buf, 10);
+        sprintf(buf, "%d", len);
         set_http_status   (reqs, status_code);
         set_http_header   (reqs, "Content-Type",   "text/html");
         set_http_header   (reqs, "Content-Length", buf);
@@ -410,7 +410,7 @@ reqs_proc(struct conn_t *conn)
     if (uhook)
     {
         DEBUG_TRACE("uhook matched xuri:[%s] uri:[%s]", uhook->xuri, reqs->uri);
-        if (((FARPROC)uhook->func)(reqs))
+        if ((void*)uhook->func(reqs))
         {
             reqs_del(reqs);
             return 1;

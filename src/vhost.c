@@ -36,17 +36,17 @@ vhost_proc(struct reqs_t *http_reqs, struct vhost_t *vhost)
     }
     /* ] */
 
-    struct _stat buf;
-    if (_stat(reqs_real_path, &buf) == 0)
+    struct stat buf;
+    if (stat(reqs_real_path, &buf) == 0)
     {
-        if (_S_IFDIR & buf.st_mode)
+        if (S_IFDIR & buf.st_mode)
         {
             /* [ is a dir */
             http_list_dir(http_reqs, reqs_real_path);
             return 1;
             /* ] */
         }
-        else if (_S_IFREG & buf.st_mode)
+        else if (S_IFREG & buf.st_mode)
         {
             /* [ is a file */
             if (strequ(reqs_real_path + strlen(reqs_real_path) - strlen(".php"), ".php"))
@@ -166,7 +166,7 @@ chtd_get_vhost(struct htdx_t *htdx, char *szHost)
     Last = Curr->prev;
     while (1)
     {
-        if (stricmp(Curr->host, szHost) == 0)
+        if (strcasecmp(Curr->host, szHost) == 0)
         {
             return Curr;
         }
@@ -246,7 +246,7 @@ chtd_vhost_match(struct reqs_t *http_reqs)
     Last = Curr->prev;
     while (1)
     {
-        if (stricmp(Curr->host, Host) == 0)
+        if (strcasecmp(Curr->host, Host) == 0)
         {
             /* match host (xx.xx.xx.xx) */
             http_reqs->htdx->vhosts = Curr;

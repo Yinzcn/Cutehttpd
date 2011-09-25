@@ -17,7 +17,7 @@ conn_new(struct wker_t *wker)
         chtd_cry(NULL, "conn_new() -> calloc() failed!");
         return NULL;
     }
-    conn->sock.socket = INVALID_SOCKET;
+    conn->sock.socket = 0;
     conn->recvbufx = bufx_new(4096, 1024*1024);
     conn->wker = wker;
     conn->htdx = wker->htdx;
@@ -42,9 +42,9 @@ conn_del(struct conn_t *conn)
 void
 conn_close(struct conn_t *conn)
 {
-    if (conn->sock.socket != INVALID_SOCKET)
+    if (conn->sock.socket > 0)
     {
-        shutdown(conn->sock.socket, SD_SEND);
+        shutdown(conn->sock.socket, SHUT_WR);
         static char buff[1024];
         while (recv(conn->sock.socket, buff, 1024, 0) > 0);
         #ifdef WIN32
@@ -52,7 +52,7 @@ conn_close(struct conn_t *conn)
         #else
         close(conn->sock.socket);
         #endif
-        conn->sock.socket = INVALID_SOCKET;
+        conn->sock.socket = 0;
     }
 }
 
@@ -118,12 +118,12 @@ conn_parse_addr(struct conn_t *conn)
     struct sock_t *sock = &conn->sock;
 
     /* server_addr */
-    strcpy(conn->server_addr, inet_ntoa(sock->lsa.u.sin.sin_addr));
-    itoa(ntohs(sock->lsa.u.sin.sin_port), conn->server_port, 10);
+    strcpy (conn->server_addr,   inet_ntoa(sock->lsa.u.sin.sin_addr));
+    sprintf(conn->server_port, "%d", ntohs(sock->lsa.u.sin.sin_port));
 
     /* client_addr */
-    strcpy(conn->client_addr, inet_ntoa(sock->rsa.u.sin.sin_addr));
-    itoa(ntohs(sock->rsa.u.sin.sin_port), conn->client_port, 10);
+    strcpy (conn->client_addr,   inet_ntoa(sock->rsa.u.sin.sin_addr));
+    sprintf(conn->client_port, "%d", ntohs(sock->rsa.u.sin.sin_port));
 }
 
 
