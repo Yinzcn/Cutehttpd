@@ -124,7 +124,11 @@ listen_thread(struct htdx_t *htdx)
             {
                 memset(&sock, 0, sizeof(struct sock_t));
                 sock.rsa.len = sizeof(sock.rsa.u);
+<<<<<<< HEAD
                 sock.socket  = accept(htdx->sock.socket, &sock.rsa.u.sa, &sock.rsa.len);
+=======
+                sock.socket  = accept(htdx->sock.socket, &sock.rsa.u.sa, (void *)&sock.rsa.len);
+>>>>>>> f88a6d2ca9ca6f1d82a248d503ce347502f344f9
                 /* [ accept() error? */
                 if (sock.socket == -1)
                 {
@@ -134,7 +138,11 @@ listen_thread(struct htdx_t *htdx)
                 }
                 /* ] */
                 sock.lsa.len = sizeof(sock.lsa.u);
+<<<<<<< HEAD
                 getsockname(sock.socket, &sock.lsa.u.sa, &sock.lsa.len);
+=======
+                getsockname(sock.socket, &sock.lsa.u.sa, (void *)&sock.lsa.len);
+>>>>>>> f88a6d2ca9ca6f1d82a248d503ce347502f344f9
                 if (!squeue_put(htdx, &sock))
                 {
                     break;
