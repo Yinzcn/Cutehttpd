@@ -197,7 +197,7 @@ master_thread(struct htdx_t *htdx)
         }
 
         int bTrue = 1;
-        setsockopt(htdx->sock.socket, SOL_SOCKET, SO_REUSEADDR, &bTrue, sizeof(bTrue));
+        setsockopt(htdx->sock.socket, SOL_SOCKET, SO_REUSEADDR, (void *)&bTrue, sizeof(bTrue));
 
         /* bind() */
         struct usa_t *lsa = &htdx->sock.lsa;

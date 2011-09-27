@@ -27,13 +27,10 @@ struct sock_t
 };
 
 
-<<<<<<< HEAD
-=======
 char *
 chd_strlwr(char *);
 
 
->>>>>>> f88a6d2ca9ca6f1d82a248d503ce347502f344f9
 int
 substr_count(char *, char *);
 

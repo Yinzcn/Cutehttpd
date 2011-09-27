@@ -16,7 +16,6 @@ str_time(char *buff)
     rawtime = time(NULL);
     tm = localtime(&rawtime);
     return snprintf(buff, sizeof(buff) - 2, "[%04d-%02d-%02d %02d:%02d:%02d] ", tm->tm_year + 1900, tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
-<<<<<<< HEAD
     /*
     SYSTEMTIME st;
     //GetSystemTime(&st);
@@ -24,8 +23,6 @@ str_time(char *buff)
     return sprintf(buff, "%02d-%02d %02d:%02d:%02d", st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
     //return sprintf(buff, "%04d-%02d-%02d %02d:%02d:%02d.%04d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
     */
-=======
->>>>>>> f88a6d2ca9ca6f1d82a248d503ce347502f344f9
 }
 
 
