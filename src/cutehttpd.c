@@ -81,7 +81,6 @@ squeue_thread(struct htdx_t *htdx)
     struct wker_t *wker;
     while (htdx->status == CHTD_RUNNING)
     {
-        chtd_cry(htdx, "squeue_thread() -> while()!");
         if (!squeue_get(htdx, &sock))
         {
             chtd_cry(htdx, "squeue_thread() -> squeue_get() failed!");
@@ -243,7 +242,6 @@ master_thread(struct htdx_t *htdx)
         htdx->birthtime = time(NULL);
         while (htdx->status == CHTD_RUNNING)
         {
-            chtd_cry(htdx, "master_thread() -> while()!");
             wker_stat(htdx);
             sleep(100);
         }
