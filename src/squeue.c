@@ -54,67 +54,57 @@ free_squeue(struct htdx_t *htdx)
 
 
 int
-squeue_put(struct htdx_t *htdx, struct sock_t *i)
+squeue_put(struct htdx_t *htdx, struct sock_t **i)
 {
-    if (!i)
+    if (!*i)
     {
         chtd_cry(htdx, "called squeue_put() with NULL arg 2");
         return 0;
     }
     pthread_mutex_lock(&htdx->mx_sq);
-    struct sock_t *s;
-    if (htdx->squeue_a == NULL) /* is empty */
-    {
+    if (htdx->squeue_a == NULL)
+    {   /* is empty */
         htdx->squeue_a = htdx->squeue;
         htdx->squeue_z = htdx->squeue;
-        s = &htdx->squeue->sock;
+        htdx->squeue->sock = *i;
     }
     else
-    {
-        /* is full */
-        while (htdx->squeue_z->next == htdx->squeue_a
-                && htdx->status == CHTD_RUNNING)
-        {
+    {   /* not empty */
+        while (htdx->squeue_z->next == htdx->squeue_a)
+        {   /* is full */
             htdx->cv_sq_get_wait = 1;
-            if (pthread_cond_wait(&htdx->cv_sq_get, &htdx->mx_sq) != 0)
-            {
-                chtd_cry(htdx, "squeue_put() -> pthread_cond_wait(cv_sq_get) error!");
-            }
+            pthread_cond_wait(&htdx->cv_sq_get, &htdx->mx_sq);
             htdx->cv_sq_get_wait = 0;
+            if (htdx->status != CHTD_RUNNING)
+            {
+                pthread_mutex_unlock(&htdx->mx_sq);
+                return 0;
+            }
         }
         htdx->squeue_z = htdx->squeue_z->next;
-        s = &htdx->squeue_z->sock;
+        htdx->squeue_z->sock = *i;
     }
-    memcpy(s, i, sizeof(struct sock_t));
     pthread_mutex_unlock(&htdx->mx_sq);
     if (htdx->cv_sq_put_wait)
     {
-        if (pthread_cond_signal(&htdx->cv_sq_put) != 0)
-        {
-            chtd_cry(htdx, "squeue_put() -> pthread_cond_signal(cv_sq_put) error!");
-        }
+        pthread_cond_signal(&htdx->cv_sq_put);
     }
     return 1;
 }
 
 
 int
-squeue_get(struct htdx_t *htdx, struct sock_t *o)
+squeue_get(struct htdx_t *htdx, struct sock_t **o)
 {
-    if (!o)
+    if (!*o)
     {
         return 0;
     }
     pthread_mutex_lock(&htdx->mx_sq);
-    struct sock_t *s;
-    /* squeue is empty */
     while (htdx->squeue_a == NULL)
-    {
+    {   /* is empty */
         htdx->cv_sq_put_wait = 1;
-        if (pthread_cond_wait(&htdx->cv_sq_put, &htdx->mx_sq) != 0)
-        {
-            chtd_cry(htdx, "squeue_put() -> pthread_cond_wait(cv_sq_put) error!");
-        }
+        pthread_cond_wait(&htdx->cv_sq_put, &htdx->mx_sq);
         htdx->cv_sq_put_wait = 0;
         if (htdx->status != CHTD_RUNNING)
         {
@@ -122,9 +112,9 @@ squeue_get(struct htdx_t *htdx, struct sock_t *o)
             return 0;
         }
     }
-    s = &htdx->squeue_a->sock;
-    if (htdx->squeue_a == htdx->squeue_z) /* only one */
-    {
+    *o = htdx->squeue_a->sock;
+    if (htdx->squeue_a == htdx->squeue_z)
+    {   /* only one */
         htdx->squeue_a = NULL;
         htdx->squeue_z = NULL;
     }
@@ -132,14 +122,10 @@ squeue_get(struct htdx_t *htdx, struct sock_t *o)
     {
         htdx->squeue_a = htdx->squeue_a->next;
     }
-    memcpy(o, s, sizeof(struct sock_t));
     pthread_mutex_unlock(&htdx->mx_sq);
     if (htdx->cv_sq_get_wait)
     {
-        if (pthread_cond_signal(&htdx->cv_sq_get) != 0)
-        {
-            chtd_cry(htdx, "squeue_put() -> pthread_cond_signal(cv_sq_get) error!");
-        }
+        pthread_cond_signal(&htdx->cv_sq_get);
     }
     return 1;
 }

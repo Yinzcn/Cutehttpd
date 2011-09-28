@@ -17,10 +17,10 @@ conn_new(struct wker_t *wker)
         chtd_cry(NULL, "conn_new() -> calloc() failed!");
         return NULL;
     }
-    conn->sock.socket = 0;
     conn->recvbufx = bufx_new(4096, 1024*1024);
-    conn->wker = wker;
     conn->htdx = wker->htdx;
+    conn->wker = wker;
+    wker->conn = conn;
     return conn;
 }
 
@@ -34,6 +34,7 @@ conn_del(struct conn_t *conn)
     }
     conn_close(conn);
     bufx_del(conn->recvbufx);
+    free(conn->sock);
     free(conn->reqs_strs);
     free(conn);
 }
@@ -42,20 +43,24 @@ conn_del(struct conn_t *conn)
 void
 conn_close(struct conn_t *conn)
 {
-    if (conn->sock.socket > 0)
+    struct sock_t *sock = conn->sock;
+    if (!sock)
     {
-        shutdown(conn->sock.socket, SHUT_WR);
+      return;
+    }
+    if (sock->socket > 0)
+    {
+        shutdown(sock->socket, SHUT_WR);
         static char buff[1024];
-        while (recv(conn->sock.socket, buff, 1024, 0) > 0);
+        while (recv(sock->socket, buff, 1024, 0) > 0);
         #ifdef WIN32
-        closesocket(conn->sock.socket);
+        closesocket(sock->socket);
         #else
-        close(conn->sock.socket);
+        close(sock->socket);
         #endif
-        conn->sock.socket = 0;
+        sock->socket = 0;
     }
 }
-
 
 
 int
@@ -65,7 +70,7 @@ conn_send(struct conn_t *conn, void *data, int size)
     int retn;
     while (done < size)
     {
-        retn = send(conn->sock.socket, data + done, size - done, 0);
+        retn = send(conn->sock->socket, data + done, size - done, 0);
         if (retn > 0)
         {
             done += retn;
@@ -90,7 +95,7 @@ conn_recv(struct conn_t *conn, void *buff, int need)
     int retn;
     while (done < need)
     {
-        retn = recv(conn->sock.socket, buff + done, (left > 8192 ? 8192 : left), 0);
+        retn = recv(conn->sock->socket, buff + done, (left > 8192 ? 8192 : left), 0);
         if (retn > 0)
         {
             done += retn;
@@ -115,7 +120,7 @@ conn_parse_addr(struct conn_t *conn)
     {
         return;
     }
-    struct sock_t *sock = &conn->sock;
+    struct sock_t *sock = conn->sock;
 
     /* server_addr */
     strcpy (conn->server_addr,   inet_ntoa(sock->lsa.u.sin.sin_addr));
@@ -138,7 +143,7 @@ conn_read_until(struct conn_t *conn, char *need, char *buff, int buffsize)
     int sizerecv = 0;
     while (buffleft)
     {
-        int retn = recv(conn->sock.socket, buff + sizerecv, buffleft, 0);
+        int retn = recv(conn->sock->socket, buff + sizerecv, buffleft, 0);
         if (retn > 0)
         {
             sizerecv += retn;
@@ -175,6 +180,7 @@ conn_read_until(struct conn_t *conn, char *need, char *buff, int buffsize)
 int
 conn_recv_reqs_strs(struct conn_t *conn)
 {
+chtd_cry(conn->htdx, "worker_thread()!");
     if (conn->reqs_strs)
     {
         free(conn->reqs_strs);

@@ -43,16 +43,12 @@ void
 free_wkers(struct htdx_t *);
 
 
-struct wker_t *
-get_idel_wker(struct htdx_t *);
+int
+get_idel_wker(struct htdx_t *, struct wker_t **);
 
 
-void
-put_idel_wker(struct wker_t *);
-
-
-void
-put_wait_wker(struct wker_t *);
+int
+put_idel_wker(struct htdx_t *, struct wker_t **);
 
 
 int

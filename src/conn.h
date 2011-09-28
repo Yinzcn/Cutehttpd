@@ -10,7 +10,6 @@
 
 struct conn_t
 {
-    struct sock_t sock;
     char client_addr[40];
     char server_addr[40];
     char client_port[32];
@@ -22,6 +21,7 @@ struct conn_t
     int keep_alive;
     char *reqs_strs;
     struct bufx_t *recvbufx;
+    struct sock_t *sock;
     struct wker_t *wker;
     struct htdx_t *htdx;
 };

@@ -93,6 +93,7 @@ struct htdx_t
     int nReqs;
     int nBadReqs;
     int nIdelWkers;
+    int nWaitWkers;
     int lasterr;
     int n_squeue_thread;
     int n_listen_thread;

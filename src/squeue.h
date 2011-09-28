@@ -13,7 +13,7 @@
 
 struct squeue_t
 {
-    struct sock_t sock;
+    struct sock_t   *sock;
     struct squeue_t *prev;
     struct squeue_t *next;
 };
@@ -28,11 +28,11 @@ free_squeue(struct htdx_t *);
 
 
 int
-squeue_put(struct htdx_t *, struct sock_t *);
+squeue_put(struct htdx_t *, struct sock_t **);
 
 
 int
-squeue_get(struct htdx_t *, struct sock_t *);
+squeue_get(struct htdx_t *, struct sock_t **);
 
 
 #endif
