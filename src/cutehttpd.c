@@ -10,9 +10,9 @@
 int
 worker_thread(struct wker_t *wker)
 {
+    pthread_mutex_lock(&wker->mx_wake);
     while (1)
     {
-        pthread_mutex_lock(&wker->mx_wake);
         if (wker->birthtime == 0)
         {
             wker->birthtime = time(NULL);
@@ -22,20 +22,16 @@ worker_thread(struct wker_t *wker)
 
         wker->status = WK_BUSY;
 
-        chtd_cry(wker->htdx, "worker_thread()! %x", (int)wker->conn);
         struct htdx_t *htdx = wker->htdx;
         struct conn_t *conn = wker->conn;
-        chtd_cry(conn->htdx, "worker_thread()! %d", (int)conn);
 
         wker->nConn++;
         conn_parse_addr(conn);
 
         while (1)
         {
-            chtd_cry(conn->htdx, "worker_thread()!");
             if (conn_recv_reqs_strs(conn))
             {
-
                 reqs_proc(conn);
                 /* [ should keep alive? */
                 if (conn->keep_alive)
@@ -59,7 +55,6 @@ worker_thread(struct wker_t *wker)
         conn_del  (conn);
         wker->conn = NULL;
         put_idel_wker(htdx, &wker);
-        pthread_mutex_unlock(&wker->mx_wake);
         if (htdx->status != CHTD_RUNNING ||
             wker->status != WK_WAIT)
         {
@@ -67,6 +62,7 @@ worker_thread(struct wker_t *wker)
         }
     }
     wker->birthtime = 0;
+    pthread_mutex_unlock(&wker->mx_wake);
     return 0;
 }
 
@@ -85,7 +81,6 @@ squeue_thread(struct htdx_t *htdx)
             chtd_cry(htdx, "squeue_thread() -> squeue_get() failed!");
             break;
         }
-        chtd_cry(htdx, "squeue_thread()!");
         if (!get_idel_wker(htdx, &wker))
         {
             chtd_cry(htdx, "squeue_thread() -> get_idel_wker() failed!");
@@ -94,7 +89,6 @@ squeue_thread(struct htdx_t *htdx)
         conn = conn_new(wker);
         conn->sock = sock;
         wker_wake(wker);
-        chtd_cry(htdx, "squeue_thread()!");
     }
     htdx->n_squeue_thread = 0;
     return 0;

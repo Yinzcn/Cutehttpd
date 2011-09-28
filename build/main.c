@@ -83,7 +83,7 @@ main(int argc, char *argv[])
     */
     chtd_set_opt    (chtd, "addr", "0.0.0.0");      /* http 绑定服务地址 */
     chtd_set_opt    (chtd, "port", "8080");         /* http 绑定服务端口 */
-    chtd_set_opt    (chtd, "max_workers", "100");    /* 最大 wkers 数量, 决定最大并发数量 */
+    chtd_set_opt    (chtd, "max_workers", "1000");    /* 最大 wkers 数量, 决定最大并发数量 */
     chtd_set_opt    (chtd, "keep_alive", "15");     /* 设置 keep_alive 超时, 0 禁用 */
     chtd_set_opt    (chtd, "max_post_size", "128"); /* 最大 POST 数据, 单位 MB */
 

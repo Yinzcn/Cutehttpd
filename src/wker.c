@@ -39,6 +39,7 @@ init_wkers(struct htdx_t *htdx)
         }
     }
     htdx->nIdelWkers = htdx->max_workers;
+    htdx->nWaitWkers = 0;
 }
 
 
@@ -74,8 +75,7 @@ get_idel_wker(struct htdx_t *htdx, struct wker_t **wker)
     }
 
     pthread_mutex_lock(&htdx->mx_wk);
-    while (htdx->nWaitWkers == 0
-        && htdx->nIdelWkers == 0)
+    while (htdx->nWaitWkers == 0 && htdx->nIdelWkers == 0)
     {
         pthread_cond_wait(&htdx->cv_wk_idel, &htdx->mx_wk);
         if (htdx->status != CHTD_RUNNING)
@@ -133,6 +133,10 @@ int
 put_idel_wker(struct htdx_t *htdx, struct wker_t **wker)
 {
     pthread_mutex_lock(&htdx->mx_wk);
+    if (htdx->nWaitWkers == 0 && htdx->nIdelWkers == 0)
+    {
+        pthread_cond_signal(&htdx->cv_wk_idel);
+    }
     if (htdx->nWaitWkers < 10)
     {
         (*wker)->status = WK_WAIT;
@@ -140,9 +144,6 @@ put_idel_wker(struct htdx_t *htdx, struct wker_t **wker)
     }
     else
     {
-        if (htdx->nIdelWkers == 0) {
-            pthread_cond_signal(&htdx->cv_wk_idel);
-        }
         (*wker)->status = WK_IDEL;
         htdx->nIdelWkers++;
     }
@@ -167,13 +168,17 @@ wker_create_thread(struct wker_t *wker)
 int
 wker_wake(struct wker_t *wker)
 {
+    pthread_mutex_lock(&wker->mx_wake);
     wker->status = WK_HUNG;
     if (wker->birthtime == 0)
     {
         wker_create_thread(wker);
-    } else {
+    }
+    else
+    {
         pthread_cond_signal(&wker->cv_wake);
     }
+    pthread_mutex_unlock(&wker->mx_wake);
     return 1;
 }
 

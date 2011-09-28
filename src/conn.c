@@ -180,7 +180,6 @@ conn_read_until(struct conn_t *conn, char *need, char *buff, int buffsize)
 int
 conn_recv_reqs_strs(struct conn_t *conn)
 {
-chtd_cry(conn->htdx, "worker_thread()!");
     if (conn->reqs_strs)
     {
         free(conn->reqs_strs);
