@@ -81,6 +81,7 @@ squeue_thread(struct htdx_t *htdx)
     struct wker_t *wker;
     while (htdx->status == CHTD_RUNNING)
     {
+        chtd_cry(htdx, "squeue_thread() -> while()!");
         if (!squeue_get(htdx, &sock))
         {
             chtd_cry(htdx, "squeue_thread() -> squeue_get() failed!");
@@ -107,12 +108,12 @@ listen_thread(struct htdx_t *htdx)
     /* accept loop */
     struct sock_t *sock;
     struct timeval tv;
-    tv.tv_sec  = 0;
-    tv.tv_usec = 1000;
     fd_set readfds;
     int n;
     while (htdx->status == CHTD_RUNNING)
     {
+        tv.tv_sec  = 0;
+        tv.tv_usec = 1000 * 1000;
         FD_ZERO(&readfds);
         FD_SET (htdx->sock.socket, &readfds);
         n = select(htdx->sock.socket + 1, &readfds, NULL, NULL, &tv);
@@ -242,6 +243,7 @@ master_thread(struct htdx_t *htdx)
         htdx->birthtime = time(NULL);
         while (htdx->status == CHTD_RUNNING)
         {
+            chtd_cry(htdx, "master_thread() -> while()!");
             wker_stat(htdx);
             sleep(100);
         }
