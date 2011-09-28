@@ -10,6 +10,7 @@
 int
 worker_thread(struct wker_t *wker)
 {
+    wker->step = 'l';
     pthread_mutex_lock(&wker->mx_wake);
     while (1)
     {
@@ -17,6 +18,7 @@ worker_thread(struct wker_t *wker)
         {
             wker->birthtime = time(NULL);
         } else {
+            wker->step = 'w';
             pthread_cond_wait(&wker->cv_wake, &wker->mx_wake);
         }
 
@@ -54,7 +56,9 @@ worker_thread(struct wker_t *wker)
         conn_close(conn);
         conn_del  (conn);
         wker->conn = NULL;
+        wker->step = 'p';
         put_idel_wker(htdx, &wker);
+        wker->step = 'q';
         if (htdx->status != CHTD_RUNNING ||
             wker->status != WK_WAIT)
         {
@@ -63,6 +67,7 @@ worker_thread(struct wker_t *wker)
     }
     wker->birthtime = 0;
     pthread_mutex_unlock(&wker->mx_wake);
+    pthread_exit(NULL);
     return 0;
 }
 
@@ -166,11 +171,6 @@ master_thread(struct htdx_t *htdx)
         return 0;
     }
     #endif
-    #ifdef PTW32_STATIC_LIB
-    pthread_win32_process_attach_np();
-    pthread_win32_thread_attach_np ();
-    #endif
-    pthread_mutex_init  (&htdx->mutex,      NULL);
     pthread_mutex_init  (&htdx->mx_sq,      NULL);
     pthread_cond_init   (&htdx->cv_sq_get,  NULL);
     pthread_cond_init   (&htdx->cv_sq_put,  NULL);
@@ -284,16 +284,11 @@ master_thread(struct htdx_t *htdx)
     /* ] */
 
     /* [ Destroy */
-    pthread_mutex_destroy (&htdx->mutex);
     pthread_mutex_destroy (&htdx->mx_sq);
     pthread_cond_destroy  (&htdx->cv_sq_get);
     pthread_cond_destroy  (&htdx->cv_sq_put);
-    #ifdef PTW32_STATIC_LIB
-    pthread_win32_thread_detach_np ();
-    pthread_win32_process_detach_np();
     free_wkers  (htdx);
     free_squeue (htdx);
-    #endif
     #ifdef WIN32
     WSACleanup();
     #endif
@@ -318,6 +313,11 @@ chtd_create()
     htdx->squeue_size           = 1024;
     htdx->keep_alive_timeout    = 0;
     htdx->max_post_size         = 8*1024*1024;
+    #ifdef PTW32_STATIC_LIB
+    pthread_win32_process_attach_np();
+    pthread_win32_thread_attach_np ();
+    #endif
+    pthread_mutex_init(&htdx->mutex, NULL);
     return htdx;
 }
 
@@ -334,6 +334,11 @@ chtd_delete(struct htdx_t *htdx)
         free_uhooks (htdx);
         free  (htdx->addr);
         free  (htdx->port);
+        pthread_mutex_destroy (&htdx->mutex);
+        #ifdef PTW32_STATIC_LIB
+        pthread_win32_thread_detach_np ();
+        pthread_win32_process_detach_np();
+        #endif
         return 1;
     }
     return 0;
@@ -348,12 +353,15 @@ chtd_start(struct htdx_t *htdx)
 {
     htdx->status = CHTD_STARTUP;
     /* master_thread */
-    if (pthread_create(&htdx->master_tid, NULL, (void *)master_thread, htdx) != 0)
+    chtd_cry(htdx, "chtd_start!");
+    pthread_t ntid;
+    if (pthread_create(&ntid, NULL, (void *)master_thread, htdx) != 0)
     {
         chtd_cry(htdx, "create master_thread falied!");
         htdx->status = CHTD_STOPPED;
         return -1;
     }
+    chtd_cry(htdx, "chtd_start!");
     return 0;
 }
 

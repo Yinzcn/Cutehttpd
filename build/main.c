@@ -15,7 +15,7 @@
 #include <dirent.h>
 
 
-#include "cutehttpd.h"
+#include "../src/_onefile_.c"
 
 #include "assign_mime_types.c"
 
@@ -76,7 +76,6 @@ main(int argc, char *argv[])
     */
     void *chtd;
     chtd = chtd_create();
-
 
     /*
       ª˘±æ≈‰÷√
@@ -148,6 +147,7 @@ main(int argc, char *argv[])
         case 'p':
             break;
 
+        case 0xa:
         case 's':
             printf("%s", chtd_get_status_info(chtd, "text"));
             break;

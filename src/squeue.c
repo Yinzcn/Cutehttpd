@@ -56,7 +56,7 @@ free_squeue(struct htdx_t *htdx)
 int
 squeue_put(struct htdx_t *htdx, struct sock_t **i)
 {
-    if (!*i)
+    if (!i)
     {
         chtd_cry(htdx, "called squeue_put() with NULL arg 2");
         return 0;
@@ -96,8 +96,9 @@ squeue_put(struct htdx_t *htdx, struct sock_t **i)
 int
 squeue_get(struct htdx_t *htdx, struct sock_t **o)
 {
-    if (!*o)
+    if (!o)
     {
+        chtd_cry(htdx, "called squeue_get() with NULL arg 2");
         return 0;
     }
     pthread_mutex_lock(&htdx->mx_sq);

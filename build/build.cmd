@@ -12,8 +12,8 @@ popd
 
 copy /y ..\src\chtd.dll .
 
-set s_cmdl=gcc -DDEBUG main.c -o chtd-static.exe -s -Wall%C% -static -I. -I../src -I../dep -L../src -L../dep -lchtd -lpcre -lws2_32
-set d_cmdl=gcc -DDEBUG main.c -o chtd-shared.exe -s -Wall%C% -Wl,--subsystem,windows -I. -I../src -I../dep -L../src -L../dep -lchtd
+set s_cmdl=gcc -DDEBUG main.c -o chtd-static.exe -s -Wall%C% -static -I. -I../src -I../dep -L../src -L../dep -lchtd -lpthreadGC2s -lpcre -lws2_32
+rem set d_cmdl=gcc -DDEBUG main.c -o chtd-shared.exe -s -Wall%C% -Wl,--subsystem,windows -I. -I../src -I../dep -L../src -L../dep -lchtd
 
 if exist chtd-static.exe (del chtd-static.exe /q || goto :End)
 if exist chtd-shared.exe (del chtd-shared.exe /q || goto :End)
@@ -21,8 +21,8 @@ if exist chtd-shared.exe (del chtd-shared.exe /q || goto :End)
 echo %s_cmdl%
 %s_cmdl% || goto End
 
-echo %d_cmdl%
-%d_cmdl% || goto End
+rem echo %d_cmdl%
+rem %d_cmdl% || goto End
 
 goto End
 

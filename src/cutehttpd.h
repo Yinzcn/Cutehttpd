@@ -27,7 +27,8 @@
 #include <windows.h>
 #include <process.h>
 #include <winsock.h>
-#include "pthread_w32.h"
+#define PTW32_STATIC_LIB
+#include "pthreadGC2.h"
 #define SHUT_WR 1
 #define sleep(n) Sleep(n)
 #else
@@ -122,6 +123,7 @@ struct htdx_t
     pthread_cond_t  cv_sq_get;
     int cv_sq_put_wait;
     int cv_sq_get_wait;
+    int cv_wk_get_wait;
     struct wker_t  *wkers;
     struct uhook_t *uhooks;
     struct vhost_t *vhosts;

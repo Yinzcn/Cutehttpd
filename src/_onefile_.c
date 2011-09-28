@@ -1,7 +1,7 @@
 
 #include "cutehttpd.c"
 
-#include "pthread_w32.c"
+//#include "pthread_w32.c"
 
 #include "buff.c"
 #include "base.c"

@@ -63,18 +63,20 @@ chtd_get_status_info(struct htdx_t *htdx, char *format)
                 "  nConn: %d\n"
                 "  nReqs: %d\n"
                 "  nBadReqs: %d\n"
+                "  nIdelWkers: %d\n"
+                "  nWaitWkers: %d\n"
                 "\n"
                 "  [wkers Status]\n"
                 "  \"I\" = Idel\n"
-                "  \"B\" = Busy\n"
                 "  \"*\" = Waiting for Connection. Thread keepalive.\n"
+                "  \"B\" = Busy\n"
                 "  \"K\" = HTTP Keep-Alive\n"
                 "  \"H\" = Hung\n"
                 "  \"_\" = Thread keepalive.\n"
                 "\n"
-                "  wkers [", start_at, been_run, htdx->nConn, htdx->nReqs, htdx->nBadReqs);
+                "  wkers [", start_at, been_run, htdx->nConn, htdx->nReqs, htdx->nBadReqs, htdx->nIdelWkers, htdx->nWaitWkers);
     }
-    char status[] = "iwbkhu23456789abcdef";
+    char status[] = "I*BKHU123456789abcdef";
     int n = strlen(buff);
     int i = 0;
 
@@ -94,7 +96,7 @@ chtd_get_status_info(struct htdx_t *htdx, char *format)
                 n += sprintf(buff + n, "\n  ");
             }
         }
-        n += sprintf(buff + n, "%c", status[curr->status]);
+        n += sprintf(buff + n, "%c%c", status[curr->status], curr->step);
 
         if (curr == last)
             break;

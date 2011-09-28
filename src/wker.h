@@ -26,8 +26,10 @@ struct wker_t
         WK_WAIT, /* 空闲：线程已经创建 */
         WK_BUSY, /* 忙碌：正在处理请求 */
         WK_KEEP, /* 保持："Keep-Alive" */
-        WK_HUNG  /* 挂起：即刚刚被召唤 */
+        WK_HUNG,  /* 挂起：即刚刚被召唤 */
+        WK_UING  /* 挂起：即刚刚被召唤 */
     } status;
+    char step;
     struct conn_t *conn;
     struct htdx_t *htdx;
     struct wker_t *prev;
