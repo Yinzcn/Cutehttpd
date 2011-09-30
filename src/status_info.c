@@ -64,44 +64,44 @@ chtd_get_status_info(struct htdx_t *htdx, char *format)
                 "  nReqs: %d\n"
                 "  nBadReqs: %d\n"
                 "  nIdelWkers: %d\n"
-                "  nWaitWkers: %d\n"
                 "\n"
                 "  [wkers Status]\n"
                 "  \"I\" = Idel\n"
-                "  \"*\" = Waiting for Connection. Thread keepalive.\n"
+                "  \"H\" = Hung\n"
+                "  \"W\" = Wakeup\n"
                 "  \"B\" = Busy\n"
                 "  \"K\" = HTTP Keep-Alive\n"
-                "  \"H\" = Hung\n"
-                "  \"_\" = Thread keepalive.\n"
                 "\n"
-                "  wkers [", start_at, been_run, htdx->nConn, htdx->nReqs, htdx->nBadReqs, htdx->nIdelWkers, htdx->nWaitWkers);
+                "  wkers [", start_at, been_run, htdx->nConn, htdx->nReqs, htdx->nBadReqs, htdx->nIdelWkers);
     }
-    char status[] = "I*BKHU123456789abcdef";
     int n = strlen(buff);
-    int i = 0;
 
-    struct wker_t *curr, *last;
-    curr = htdx->wkers;
-    last = curr->prev;
-    while (1)
-    {
-        if (i % 50 == 0)
+    if (htdx->wkers) {
+        int i = 0;
+        char status[] = "DIHWBK1234567890";
+        struct wker_t *curr, *last;
+        curr = htdx->wkers;
+        last = curr->prev;
+        while (1)
         {
-            if (nfmt == FMT_HTML)
+            if (i % 50 == 0)
             {
-                n += sprintf(buff + n, "\r\n");
+                if (nfmt == FMT_HTML)
+                {
+                    n += sprintf(buff + n, "\r\n");
+                }
+                else
+                {
+                    n += sprintf(buff + n, "\n  ");
+                }
             }
-            else
-            {
-                n += sprintf(buff + n, "\n  ");
-            }
-        }
-        n += sprintf(buff + n, "%c%c", status[curr->status], curr->step);
+            n += sprintf(buff + n, "%c", status[curr->status]);
 
-        if (curr == last)
-            break;
-        curr = curr->next;
-        i++;
+            if (curr == last)
+                break;
+            curr = curr->next;
+            i++;
+        }
     }
 
     if (nfmt == FMT_HTML)

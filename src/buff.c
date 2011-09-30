@@ -62,6 +62,7 @@ bufx_put(struct bufx_t *bufx, char *data, int size)
     {
         return 0;
     }
+    int done = 0;
     if (bufx->blks)
     {
         struct bufx_blks_t *last;
@@ -75,22 +76,27 @@ bufx_put(struct bufx_t *bufx, char *data, int size)
             last->used += step;
             bufx->used += step;
             size       -= step;
+            done       += step;
             if (size == 0)
             {
-                return 1;
+                return done;
             }
             data += step;
         }
     }
-    int sizex = bufx->base;
-    while (sizex < size)
+    int sizx = bufx->base;
+    while (sizx < size)
     {
-        sizex *= 2;
+        sizx *= 2;
     }
     struct bufx_blks_t *blks;
-    blks = calloc(1, sizeof(struct bufx_blks_t) + sizex + 1);
+    blks = calloc(1, sizeof(struct bufx_blks_t) + sizx + 2);
+    if (blks == NULL)
+    {
+        return done;
+    }
     blks->data = (char *)blks + sizeof(struct bufx_blks_t);
-    blks->size = sizex;
+    blks->size = sizx;
     blks->used = size;
     memcpy(blks->data, data, size);
     bufx->used += size;
@@ -107,13 +113,17 @@ bufx_put(struct bufx_t *bufx, char *data, int size)
         blks->next = blks;
         bufx->blks = blks;
     }
-    return 1;
+    return done;
 }
 
 
 int
 bufx_put_str(struct bufx_t *bufx, char *s)
 {
+    if (bufx == NULL || s == NULL)
+    {
+        return 0;
+    }
     return bufx_put(bufx, s, strlen(s));
 }
 
@@ -135,7 +145,7 @@ bufx_get(struct bufx_t *bufx, char *buff, int need)
     }
     int left = need;
     int step;
-    char *bptr = buff;
+    char *bufp = buff;
     struct bufx_blks_t *curr, *next, *last;
     curr = bufx->blks;
     last = curr->prev;
@@ -145,18 +155,17 @@ bufx_get(struct bufx_t *bufx, char *buff, int need)
         if (curr->used < left)
         {
             step = curr->used;
-            memcpy(bptr, curr->data, step);
+            memcpy(bufp, curr->data, step);
             left -= step;
-            bptr += step;
+            bufp += step;
             free(curr);
             curr = next;
             continue;
         }
-        else
-        if (curr->used > left)
+        else if (curr->used > left)
         {
             step = left;
-            memcpy(bptr, curr->data, step);
+            memcpy(bufp, curr->data, step);
             int blk_left = curr->used - step;
             memcpy(curr->data, curr->data + step, blk_left);
             curr->size = blk_left;
@@ -168,7 +177,7 @@ bufx_get(struct bufx_t *bufx, char *buff, int need)
         }
         else
         {
-            memcpy(bptr, curr->data, left);
+            memcpy(bufp, curr->data, left);
             if (curr == last)
             {
                 bufx->blks = NULL;
@@ -232,6 +241,10 @@ bufx_link(struct bufx_t *bufx)
     }
     struct bufx_blks_t *blks;
     blks = calloc(1, sizeof(struct bufx_blks_t) + size);
+    if (blks == NULL)
+    {
+        return NULL;
+    }
     blks->data = (char *)blks + sizeof(struct bufx_blks_t);
     blks->size = size;
     blks->used = size;
@@ -245,37 +258,9 @@ bufx_link(struct bufx_t *bufx)
 int
 bufx_get_used(struct bufx_t *bufx)
 {
-    if (!bufx)
+    if (bufx == NULL)
     {
         return 0;
     }
     return bufx->used;
 }
-
-
-#ifdef DEBUG
-void
-bufx_debug(struct bufx_t *bufx)
-{
-    if (bufx == 0)
-    {
-        return;
-    }
-    printf("bufx->used=%d\n", bufx->used);
-    struct bufx_blks_t *curr, *last;
-    curr = bufx->blks;
-    if (curr)
-    {
-        last = curr->prev;
-        while (1)
-        {
-            printf("curr: size=%d used=%d data=[%s]\n", curr->size, curr->used, curr->data);
-            if (curr == last)
-            {
-                break;
-            }
-            curr = curr->next;
-        }
-    }
-}
-#endif

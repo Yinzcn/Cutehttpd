@@ -461,15 +461,15 @@ spawn_process(char *cmdl, char *wdir)
     si.wShowWindow = SW_HIDE;
 
     if (!CreateProcessA(NULL,
-        cmdl,
-        NULL,
-        NULL,
-        TRUE,
-        CREATE_NEW_PROCESS_GROUP,
-        NULL,
-        wdir,
-        &si,
-        &pi))
+                        cmdl,
+                        NULL,
+                        NULL,
+                        TRUE,
+                        CREATE_NEW_PROCESS_GROUP,
+                        NULL,
+                        wdir,
+                        &si,
+                        &pi))
     {
         return 0;
     }

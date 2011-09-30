@@ -46,18 +46,24 @@ conn_close(struct conn_t *conn)
     struct sock_t *sock = conn->sock;
     if (!sock)
     {
-      return;
+        return;
     }
     if (sock->socket > 0)
     {
+        struct linger l;
+        l.l_onoff  = 1;
+        l.l_linger = 1;
+        setsockopt(sock->socket, SOL_SOCKET, SO_LINGER, (void *)&l, sizeof(l));
         shutdown(sock->socket, SHUT_WR);
+        unsigned long u = 1;
+        ioctlsocket(sock->socket, FIONBIO, &u);
         static char buff[1024];
         while (recv(sock->socket, buff, 1024, 0) > 0);
-        #ifdef WIN32
+#ifdef WIN32
         closesocket(sock->socket);
-        #else
+#else
         close(sock->socket);
-        #endif
+#endif
         sock->socket = 0;
     }
 }
@@ -110,6 +116,36 @@ conn_recv(struct conn_t *conn, void *buff, int need)
         }
     }
     return done;
+}
+
+
+void
+conn_set_recv_timeout(struct conn_t *conn, int msec)
+{
+#ifdef WIN32
+    int tv = msec;
+    setsockopt(conn->sock->socket, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, sizeof(tv));
+#else
+    struct timeval tv;
+    tv.tv_sec  = 0;
+    tv.tv_usec = msec * 1000;
+    setsockopt(conn->sock->socket, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, sizeof(tv));
+#endif
+}
+
+
+void
+conn_set_send_timeout(struct conn_t *conn, int msec)
+{
+#ifdef WIN32
+    int tv = msec;
+    setsockopt(conn->sock->socket, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, sizeof(tv));
+#else
+    struct timeval tv;
+    tv.tv_sec  = 0;
+    tv.tv_usec = msec * 1000;
+    setsockopt(conn->sock->socket, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, sizeof(tv));
+#endif
 }
 
 

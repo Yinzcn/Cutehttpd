@@ -17,7 +17,11 @@ namevalues_add(struct namevalue_t **nvs, char *n, int nl, char *v, int vl)
     }
     struct namevalue_t *nv;
     nv = calloc(1, sizeof(struct namevalue_t) + nl + 1 + vl + 1);
-    nv->n  = (char *)nv + sizeof(struct namevalue_t);
+    if (nv == NULL)
+    {
+        return 0;
+    }
+    nv->n = (char *)nv + sizeof(struct namevalue_t);
     nv->v = nv->n + nl + 1;
     memcpy(nv->n, n, nl);
     memcpy(nv->v, v, vl);
@@ -97,7 +101,7 @@ namevalues_get_value(struct namevalue_t **nvs, char *n)
         return NULL;
     }
     struct namevalue_t *nv = namevalues_get(nvs, n);
-    if (!nv)
+    if (nv == NULL)
     {
         return NULL;
     }

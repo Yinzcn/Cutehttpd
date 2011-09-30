@@ -29,7 +29,9 @@
 #include <winsock.h>
 #define PTW32_STATIC_LIB
 #include "pthreadGC2.h"
-#define SHUT_WR 1
+#define SHUT_RD   0 /* == Win32 SD_RECEIVE */
+#define SHUT_WR   1 /* == Win32 SD_SEND    */
+#define SHUT_RDWR 2 /* == Win32 SD_BOTH    */
 #define sleep(n) Sleep(n)
 #else
 #include <sys/wait.h>
@@ -94,7 +96,6 @@ struct htdx_t
     int nReqs;
     int nBadReqs;
     int nIdelWkers;
-    int nWaitWkers;
     int lasterr;
     int n_squeue_thread;
     int n_listen_thread;
@@ -102,7 +103,6 @@ struct htdx_t
     char *log_file;
     char *log_buff;
     time_t birthtime;
-    time_t last_wkers_busy_time;
     char *SERVER_PROTOCOL;
     char *SERVER_SOFTWARE;
     char *addr;
@@ -118,12 +118,12 @@ struct htdx_t
     pthread_mutex_t mutex;
     pthread_mutex_t mx_wk;
     pthread_cond_t  cv_wk_idel;
+    int cv_wk_get_wait;
     pthread_mutex_t mx_sq;
     pthread_cond_t  cv_sq_put;
     pthread_cond_t  cv_sq_get;
     int cv_sq_put_wait;
     int cv_sq_get_wait;
-    int cv_wk_get_wait;
     struct wker_t  *wkers;
     struct uhook_t *uhooks;
     struct vhost_t *vhosts;

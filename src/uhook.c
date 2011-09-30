@@ -133,7 +133,7 @@ chtd_set_uhook(struct htdx_t *htdx, char *host, char *xuri, void *func)
     {
         /* [ pcre */
         void *pPcre = NULL;
-        #ifdef _PCRE_H
+#ifdef _PCRE_H
         int nOffset = -1;
         const char *pErrMsg = NULL;
         pPcre = pcre_compile(xuri, 0, &pErrMsg, &nOffset, NULL);
@@ -142,7 +142,7 @@ chtd_set_uhook(struct htdx_t *htdx, char *host, char *xuri, void *func)
             chtd_cry(htdx, "set_uhook: pcre_compile() retn: ErrMsg=%s, Offset=%d xuri[%s]", pErrMsg, nOffset, xuri);
             return 0;
         }
-        #endif
+#endif
         /* ] */
         uhook = uhooks_get(htdx->uhooks, host, xuri);
         if (uhook)   /* already exists */
@@ -199,16 +199,16 @@ chtd_uhook_match(struct reqs_t *http_reqs)
             /* [ */
             if (strcasecmp(curr->host, host) == 0 || strcasecmp(curr->host, "*") == 0)
             {
-                #ifdef _PCRE_H
+#ifdef _PCRE_H
                 if (pcre_exec(curr->pPcre, NULL, http_reqs->uri, strlen(http_reqs->uri), 0, 0, NULL, 0) == 0)
                 {
                     free(host);
                     return curr;
                 }
-                #else
+#else
                 free(host);
                 return curr
-                #endif
+#endif
             }
             /* ] */
             if (curr == last)

@@ -15,21 +15,19 @@ struct wker_t
 {
     int w_id;       /* wker id */
     pthread_t t_id; /* thread id */
-    pthread_mutex_t mx_wake;
+    pthread_mutex_t mx_wker;
     pthread_cond_t  cv_wake;
     int nConn;
     int nReqs;
-    time_t birthtime;
     enum
     {
-        WK_IDEL, /* 空闲：线程没有创建 */
-        WK_WAIT, /* 空闲：线程已经创建 */
+        WK_DEAD, /* 死亡：线程没有创建 */
+        WK_IDEL, /* 空闲：线程已经创建 */
+        WK_HUNG, /* 挂起：即刚刚被召唤 */
+        WK_WKUP, /* 唤醒：处于唤醒状态 */
         WK_BUSY, /* 忙碌：正在处理请求 */
-        WK_KEEP, /* 保持："Keep-Alive" */
-        WK_HUNG,  /* 挂起：即刚刚被召唤 */
-        WK_UING  /* 挂起：即刚刚被召唤 */
+        WK_KEEP  /* 保持："Keep-Alive" */
     } status;
-    char step;
     struct conn_t *conn;
     struct htdx_t *htdx;
     struct wker_t *prev;
@@ -37,11 +35,11 @@ struct wker_t
 };
 
 
-void
+int
 init_wkers(struct htdx_t *);
 
 
-void
+int
 free_wkers(struct htdx_t *);
 
 
@@ -58,7 +56,7 @@ wker_create_thread(struct wker_t *);
 
 
 int
-wker_wake(struct wker_t *);
+wker_wakeup(struct wker_t *);
 
 
 int

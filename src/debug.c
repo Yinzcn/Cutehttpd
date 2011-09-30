@@ -62,4 +62,28 @@ chtd_print_vhosts(struct htdx_t *htdx)
 }
 
 
+void
+bufx_debug(struct bufx_t *bufx)
+{
+    if (bufx == NULL)
+    {
+        return;
+    }
+    printf("bufx->used=%d\n", bufx->used);
+    struct bufx_blks_t *curr, *last;
+    curr = bufx->blks;
+    if (curr)
+    {
+        last = curr->prev;
+        while (1)
+        {
+            printf("curr: size=%d used=%d data=[%s]\n", curr->size, curr->used, curr->data);
+            if (curr == last)
+            {
+                break;
+            }
+            curr = curr->next;
+        }
+    }
+}
 #endif

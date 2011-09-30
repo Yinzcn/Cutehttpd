@@ -84,11 +84,11 @@ fcgi_conn_new(struct reqs_t *http_reqs)
     {
         chtd_cry(htdx, "ERROR: connect() to fastcgi server (%s:%s) failed!",
                  fcgi_pmgr->fcgid_addr, fcgi_pmgr->fcgid_port);
-        #ifdef WIN32
+#ifdef WIN32
         closesocket(fcgi_socket);
-        #else
+#else
         close(fcgi_socket);
-        #endif
+#endif
         return NULL;
     }
 
@@ -132,11 +132,11 @@ fcgi_conn_close(struct fcgi_conn_t *fcgi_conn)
         shutdown(fcgi_conn->sock.socket, SHUT_WR);
         static char buff[1024];
         while (recv(fcgi_conn->sock.socket, buff, 1024, 0) > 0);
-        #ifdef WIN32
+#ifdef WIN32
         closesocket(fcgi_conn->sock.socket);
-        #else
+#else
         close(fcgi_conn->sock.socket);
-        #endif
+#endif
         fcgi_conn->sock.socket = 0;
     }
 }

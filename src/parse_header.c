@@ -19,8 +19,7 @@ User-Agent: Firefox
 
 
 #define isvalidnamechar(c) \
-  ( (c == '-') || (c == '_') \
-  || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ) \
+  ( (c == '-') || (c == '_') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') )
  
 
 int
@@ -43,8 +42,8 @@ parse_header(struct namevalue_t **nvs, char *header_str)
     char *n_z;    /*  name end         */
     char *v_a;    /*  value start      */
     char *v_z;    /*  value end        */
-    int n_l = 0;  /*  length of name   */
-    int v_l = 0;  /*  length of value  */
+    int n_l;  /*  length of name   */
+    int v_l;  /*  length of value  */
 
     char *p = header_str;
     int loop = 1;

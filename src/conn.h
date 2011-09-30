@@ -14,7 +14,6 @@ struct conn_t
     char server_addr[40];
     char client_port[32];
     char server_port[32];
-    time_t birthtime;
     int nRecv;
     int nSent;
     int nReqs;
@@ -45,6 +44,14 @@ conn_send(struct conn_t *, void *, int);
 
 int
 conn_recv(struct conn_t *, void *, int);
+
+
+void
+conn_set_recv_timeout(struct conn_t *, int);
+
+
+void
+conn_set_send_timeout(struct conn_t *, int);
 
 
 void
