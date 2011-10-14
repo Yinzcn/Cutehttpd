@@ -18,13 +18,16 @@ struct usa_t   /* unified socket address */
     } u;
 };
 
-
 struct sock_t
 {
     SOCKET socket;
     struct usa_t lsa;
     struct usa_t rsa;
 };
+
+
+static char *
+nowstr(void);
 
 
 char *

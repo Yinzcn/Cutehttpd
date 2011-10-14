@@ -5,7 +5,7 @@
 
 
 #ifdef DEBUG
-#include "cutehttpd.h"
+#include "chtd.h"
 
 
 int
@@ -14,15 +14,12 @@ chtd_print_uhooks(struct htdx_t *htdx)
     int n = 0;
     struct uhook_t *curr, *last;
     curr = htdx->uhooks;
-    if (curr)
-    {
+    if (curr) {
         last = curr->prev;
-        while (1)
-        {
+        while (1) {
             printf("uhook#%d host:%s uri:%s\n", n, curr->host, curr->xuri);
             n++;
-            if (curr == last)
-            {
+            if (curr == last) {
                 break;
             }
             curr = curr->next;
@@ -38,24 +35,19 @@ chtd_print_vhosts(struct htdx_t *htdx)
     int n = 0;
     struct vhost_t *Curr, *Last;
     Curr = htdx->vhosts;
-    if (Curr)
-    {
+    if (Curr) {
         Last = Curr->prev;
-        while (1)
-        {
+        while (1) {
             /* [ */
             printf("vhost#%d host:%s root:%s conf:%s real_root:%s\n", n, Curr->host, Curr->root, Curr->conf, Curr->real_root);
             n++;
             /* ] */
-            if (Curr == Last)
-            {
+            if (Curr == Last) {
                 break;
             }
             Curr = Curr->next;
         }
-    }
-    else
-    {
+    } else {
         printf("no vhost\n");
     }
     return n;
@@ -65,21 +57,17 @@ chtd_print_vhosts(struct htdx_t *htdx)
 void
 bufx_debug(struct bufx_t *bufx)
 {
-    if (bufx == NULL)
-    {
+    struct bufx_blks_t *curr, *last;
+    if (bufx == NULL) {
         return;
     }
     printf("bufx->used=%d\n", bufx->used);
-    struct bufx_blks_t *curr, *last;
     curr = bufx->blks;
-    if (curr)
-    {
+    if (curr) {
         last = curr->prev;
-        while (1)
-        {
+        while (1) {
             printf("curr: size=%d used=%d data=[%s]\n", curr->size, curr->used, curr->data);
-            if (curr == last)
-            {
+            if (curr == last) {
                 break;
             }
             curr = curr->next;

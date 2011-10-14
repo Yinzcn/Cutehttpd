@@ -9,7 +9,7 @@
 #define CHTD_DEBUG_H
 
 
-#include "cutehttpd.h"
+#include "chtd.h"
 
 
 int

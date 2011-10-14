@@ -4,7 +4,7 @@
 **/
 
 
-#include "cutehttpd.h"
+#include "chtd.h"
 #include "wker.h"
 
 
@@ -16,8 +16,7 @@ init_wkers(struct htdx_t *htdx)
     struct wker_t *wkers = calloc(n, sizeof(struct wker_t));
     struct wker_t *wker;
     htdx->nIdelWkers = htdx->max_workers;
-    for (i = 0; i < n; i++)
-    {
+    for (i = 0; i < n; i++) {
         wker = &wkers[i];
         wker->w_id      = i;
         wker->conn      = NULL;
@@ -30,15 +29,12 @@ init_wkers(struct htdx_t *htdx)
             chtd_cry(htdx, "wker_create_thread() failed!");
             wker->status = WK_DEAD;
         }
-        if (htdx->wkers)
-        {
+        if (htdx->wkers) {
             wker->prev = htdx->wkers->prev;
             wker->next = htdx->wkers;
             wker->prev->next = wker;
             wker->next->prev = wker;
-        }
-        else
-        {
+        } else {
             wker->prev  = wker;
             wker->next  = wker;
             htdx->wkers = wker;
@@ -51,22 +47,18 @@ init_wkers(struct htdx_t *htdx)
 int
 free_wkers(struct htdx_t *htdx)
 {
-    if (htdx->wkers)
-    {
-        if (htdx->nIdelWkers != htdx->max_workers)
-        {
+    if (htdx->wkers) {
+        struct wker_t *curr, *last;
+        if (htdx->nIdelWkers != htdx->max_workers) {
             return -1;
         }
-        struct wker_t *curr, *last;
         curr = htdx->wkers;
         last = curr->prev;
-        while (1)
-        {
+        while (1) {
             conn_del(curr->conn);
             pthread_mutex_destroy(&curr->mx_wker);
             pthread_cond_destroy (&curr->cv_wake);
-            if (curr == last)
-            {
+            if (curr == last) {
                 break;
             }
             curr = curr->next;
@@ -81,41 +73,35 @@ free_wkers(struct htdx_t *htdx)
 int
 get_idel_wker(struct htdx_t *htdx, struct wker_t **wker)
 {
-    if (!htdx || !htdx->wkers)
-    {
+    struct wker_t *curr, *last;
+    if (!htdx || !htdx->wkers) {
         chtd_cry(htdx, "get_idel_wker() -> (!htdx || !htdx->wkers)");
         return 0;
     }
 
     pthread_mutex_lock(&htdx->mx_wk);
-    while (htdx->nIdelWkers == 0)
-    {
+    while (htdx->nIdelWkers == 0) {
         htdx->cv_wk_get_wait = 1;
         pthread_cond_wait(&htdx->cv_wk_idel, &htdx->mx_wk);
         htdx->cv_wk_get_wait = 0;
-        if (htdx->status != CHTD_RUNNING)
-        {
+        if (htdx->status != CHTD_RUNNING) {
             chtd_cry(htdx, "get_idel_wker() htdx->status != CHTD_RUNNING");
             pthread_mutex_unlock(&htdx->mx_wk);
             return 0;
         }
     }
 
-    struct wker_t *curr, *last;
     curr = htdx->wkers;
     last = curr->prev;
-    while (1)
-    {
-        if (curr->status == WK_IDEL)
-        {
+    while (1) {
+        if (curr->status == WK_IDEL) {
             curr->status = WK_HUNG;
             htdx->nIdelWkers--;
             pthread_mutex_unlock(&htdx->mx_wk);
             *wker = curr;
             return 1;
         }
-        if (curr == last)
-        {
+        if (curr == last) {
             chtd_cry(htdx, "get_idel_wker() htdx->nIdelWkers = %d, but failed!", htdx->nIdelWkers);
             break;
         }
@@ -132,8 +118,7 @@ put_idel_wker(struct htdx_t *htdx, struct wker_t **wker)
     pthread_mutex_lock(&htdx->mx_wk);
     (*wker)->status = WK_IDEL;
     htdx->nIdelWkers++;
-    if (htdx->cv_wk_get_wait)
-    {
+    if (htdx->cv_wk_get_wait) {
         pthread_cond_signal(&htdx->cv_wk_idel);
     }
     pthread_mutex_unlock(&htdx->mx_wk);
@@ -146,10 +131,8 @@ wker_create_thread(struct wker_t *wker)
 {
     pthread_t t_id;
     int maxtry = 10;
-    while (maxtry--)
-    {
-        if (pthread_create(&t_id, NULL, (void *)worker_thread, wker) == 0)
-        {
+    while (maxtry--) {
+        if (pthread_create(&t_id, NULL, (void *)worker_thread, wker) == 0) {
             wker->t_id = t_id;
             return 0;
         }
@@ -186,12 +169,10 @@ wker_stat(struct htdx_t *htdx)
     struct wker_t *curr, *last;
     curr = htdx->wkers;
     last = curr->prev;
-    while (1)
-    {
+    while (1) {
         nConn += curr->nConn;
         nReqs += curr->nReqs;
-        if (curr == last)
-        {
+        if (curr == last) {
             break;
         }
         curr = curr->next;

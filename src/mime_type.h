@@ -8,7 +8,7 @@
 #define CHTD_MIME_TYPE_H
 
 
-#include "cutehttpd.h"
+#include "chtd.h"
 
 
 struct mime_type_t

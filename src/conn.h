@@ -39,11 +39,11 @@ conn_close(struct conn_t *);
 
 
 int
-conn_send(struct conn_t *, void *, int);
+conn_send(struct conn_t *, char *, int);
 
 
 int
-conn_recv(struct conn_t *, void *, int);
+conn_recv(struct conn_t *, char *, int);
 
 
 void

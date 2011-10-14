@@ -8,7 +8,7 @@
 #define CHTD_REQS_H
 
 
-#include "cutehttpd.h"
+#include "chtd.h"
 
 
 enum http_method_t

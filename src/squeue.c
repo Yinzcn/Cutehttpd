@@ -4,7 +4,7 @@
 **/
 
 
-#include "cutehttpd.h"
+#include "chtd.h"
 #include "squeue.h"
 
 
@@ -13,24 +13,19 @@ init_squeue(struct htdx_t *htdx)
 {
     int n = htdx->squeue_size;
     struct squeue_t *squeue = calloc(n, sizeof(struct squeue_t));
-    if (!squeue)
-    {
-        return 0;
-    }
     struct squeue_t *q;
     int i;
-    for (i = 0; i < n; i++)
-    {
+    if (!squeue) {
+        return 0;
+    }
+    for (i = 0; i < n; i++) {
         q = &squeue[i];
-        if (htdx->squeue)
-        {
+        if (htdx->squeue) {
             q->prev = htdx->squeue->prev;
             q->next = htdx->squeue;
             q->prev->next = q;
             q->next->prev = q;
-        }
-        else
-        {
+        } else {
             q->prev  = q;
             q->next  = q;
             htdx->squeue = q;
@@ -45,8 +40,7 @@ init_squeue(struct htdx_t *htdx)
 void
 free_squeue(struct htdx_t *htdx)
 {
-    if (htdx)
-    {
+    if (htdx) {
         free(htdx->squeue);
         htdx->squeue = NULL;
     }
@@ -54,39 +48,35 @@ free_squeue(struct htdx_t *htdx)
 
 
 int
-squeue_put(struct htdx_t *htdx, struct sock_t **i)
+squeue_put(struct htdx_t *htdx, struct sock_t *i)
 {
-    if (!i)
-    {
+    if (!i) {
         chtd_cry(htdx, "called squeue_put() with NULL arg 2");
         return 0;
     }
     pthread_mutex_lock(&htdx->mx_sq);
-    if (htdx->squeue_a == NULL)
-    {   /* is empty */
+    if (htdx->squeue_a == NULL) {
+        /* is empty */
         htdx->squeue_a = htdx->squeue;
         htdx->squeue_z = htdx->squeue;
-        htdx->squeue->sock = *i;
-    }
-    else
-    {   /* not empty */
-        while (htdx->squeue_z->next == htdx->squeue_a)
-        {   /* is full */
+        memcpy(&htdx->squeue->sock, i, sizeof(struct sock_t));
+    } else {
+        /* not empty */
+        while (htdx->squeue_z->next == htdx->squeue_a) {
+            /* is full */
             htdx->cv_sq_get_wait = 1;
             pthread_cond_wait(&htdx->cv_sq_get, &htdx->mx_sq);
             htdx->cv_sq_get_wait = 0;
-            if (htdx->status != CHTD_RUNNING)
-            {
+            if (htdx->status != CHTD_RUNNING) {
                 pthread_mutex_unlock(&htdx->mx_sq);
                 return 0;
             }
         }
         htdx->squeue_z = htdx->squeue_z->next;
-        htdx->squeue_z->sock = *i;
+        memcpy(&htdx->squeue_z->sock, i, sizeof(struct sock_t));
     }
     pthread_mutex_unlock(&htdx->mx_sq);
-    if (htdx->cv_sq_put_wait)
-    {
+    if (htdx->cv_sq_put_wait) {
         pthread_cond_signal(&htdx->cv_sq_put);
     }
     return 1;
@@ -94,38 +84,33 @@ squeue_put(struct htdx_t *htdx, struct sock_t **i)
 
 
 int
-squeue_get(struct htdx_t *htdx, struct sock_t **o)
+squeue_get(struct htdx_t *htdx, struct sock_t *o)
 {
-    if (!o)
-    {
+    if (!o) {
         chtd_cry(htdx, "called squeue_get() with NULL arg 2");
         return 0;
     }
     pthread_mutex_lock(&htdx->mx_sq);
-    while (htdx->squeue_a == NULL)
-    {   /* is empty */
+    while (htdx->squeue_a == NULL) {
+        /* is empty */
         htdx->cv_sq_put_wait = 1;
         pthread_cond_wait(&htdx->cv_sq_put, &htdx->mx_sq);
         htdx->cv_sq_put_wait = 0;
-        if (htdx->status != CHTD_RUNNING)
-        {
+        if (htdx->status != CHTD_RUNNING) {
             pthread_mutex_unlock(&htdx->mx_sq);
             return 0;
         }
     }
-    *o = htdx->squeue_a->sock;
-    if (htdx->squeue_a == htdx->squeue_z)
-    {   /* only one */
+    memcpy(o, &htdx->squeue_a->sock, sizeof(struct sock_t));
+    if (htdx->squeue_a == htdx->squeue_z) {
+        /* only one */
         htdx->squeue_a = NULL;
         htdx->squeue_z = NULL;
-    }
-    else
-    {
+    } else {
         htdx->squeue_a = htdx->squeue_a->next;
     }
     pthread_mutex_unlock(&htdx->mx_sq);
-    if (htdx->cv_sq_get_wait)
-    {
+    if (htdx->cv_sq_get_wait) {
         pthread_cond_signal(&htdx->cv_sq_get);
     }
     return 1;

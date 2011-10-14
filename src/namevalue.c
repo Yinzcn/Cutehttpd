@@ -4,36 +4,31 @@
 **/
 
 
-#include "cutehttpd.h"
+#include "chtd.h"
 #include "namevalue.h"
 
 
 int
 namevalues_add(struct namevalue_t **nvs, char *n, int nl, char *v, int vl)
 {
-    if (n == NULL || v == NULL || nl <= 0 || vl <= 0)
-    {
+    struct namevalue_t *nv;
+    if (n == NULL || v == NULL || nl <= 0 || vl <= 0) {
         return 0;
     }
-    struct namevalue_t *nv;
     nv = calloc(1, sizeof(struct namevalue_t) + nl + 1 + vl + 1);
-    if (nv == NULL)
-    {
+    if (nv == NULL) {
         return 0;
     }
     nv->n = (char *)nv + sizeof(struct namevalue_t);
     nv->v = nv->n + nl + 1;
     memcpy(nv->n, n, nl);
     memcpy(nv->v, v, vl);
-    if (*nvs)
-    {
+    if (*nvs) {
         nv->prev = (*nvs)->prev;
         nv->next = (*nvs);
         nv->prev->next = nv;
         nv->next->prev = nv;
-    }
-    else
-    {
+    } else {
         nv->prev = nv;
         nv->next = nv;
         *nvs = nv;
@@ -45,18 +40,13 @@ namevalues_add(struct namevalue_t **nvs, char *n, int nl, char *v, int vl)
 int
 namevalues_del(struct namevalue_t **nvs, struct namevalue_t *nv)
 {
-    if (*nvs == NULL || nv == NULL)
-    {
+    if (*nvs == NULL || nv == NULL) {
         return 0;
     }
-    if (nv->next == nv)   /* only one */
-    {
+    if (nv->next == nv) { /* only one */
         *nvs = NULL;
-    }
-    else
-    {
-        if (nv == *nvs)   /* the first */
-        {
+    } else {
+        if (nv == *nvs) { /* the first */
             *nvs = nv->next;
         }
         nv->prev->next = nv->next;
@@ -68,23 +58,18 @@ namevalues_del(struct namevalue_t **nvs, struct namevalue_t *nv)
 
 
 struct namevalue_t *
-namevalues_get(struct namevalue_t **nvs, char *n)
-{
-    if (*nvs == NULL)
-    {
+namevalues_get(struct namevalue_t **nvs, char *n) {
+    struct namevalue_t *curr, *last;
+    if (*nvs == NULL) {
         return NULL;
     }
-    struct namevalue_t *curr, *last;
     curr = *nvs;
     last = curr->prev;
-    while (1)
-    {
-        if (strcasecmp(curr->n, n) == 0)
-        {
+    while (1) {
+        if (strcasecmp(curr->n, n) == 0) {
             return curr;
         }
-        if (curr == last)
-        {
+        if (curr == last) {
             return NULL;
         }
         curr = curr->next;
@@ -96,13 +81,12 @@ namevalues_get(struct namevalue_t **nvs, char *n)
 char *
 namevalues_get_value(struct namevalue_t **nvs, char *n)
 {
-    if (*nvs == NULL)
-    {
+    struct namevalue_t *nv;
+    if (*nvs == NULL) {
         return NULL;
     }
-    struct namevalue_t *nv = namevalues_get(nvs, n);
-    if (nv == NULL)
-    {
+    nv = namevalues_get(nvs, n);
+    if (nv == NULL) {
         return NULL;
     }
     return nv->v;
@@ -112,19 +96,16 @@ namevalues_get_value(struct namevalue_t **nvs, char *n)
 void
 namevalues_destroy(struct namevalue_t **nvs)
 {
-    if (*nvs == NULL)
-    {
+    struct namevalue_t *curr, *next, *last;
+    if (*nvs == NULL) {
         return;
     }
-    struct namevalue_t *curr, *next, *last;
     curr = *nvs;
     last = curr->prev;
-    while (1)
-    {
+    while (1) {
         next = curr->next;
         free(curr);
-        if (curr == last)
-        {
+        if (curr == last) {
             return;
         }
         curr = next;

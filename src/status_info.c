@@ -4,7 +4,7 @@
 **/
 
 
-#include "cutehttpd.h"
+#include "chtd.h"
 #include "status_info.h"
 
 
@@ -12,22 +12,20 @@ char *
 chtd_get_status_info(struct htdx_t *htdx, char *format)
 {
     static char buff[20480];
+    char start_at[32] = "";
+    char been_run[32] = "";
+    int n;
+    time_t t_been_run;
+    int run_day, run_hour, run_min, run_sec;
 
     enum inf_fmt_t nfmt;
-    if (strcasecmp(format, "html") == 0)
-    {
+    if (strcasecmp(format, "html") == 0) {
         nfmt = FMT_HTML;
-    }
-    else
-    {
+    } else {
         nfmt = FMT_TEXT;
     }
 
-    char start_at[32] = "";
-    char been_run[32] = "";
-    time_t t_been_run;
-    t_been_run = difftime(time(NULL), htdx->birthtime);
-    int run_day, run_hour, run_min, run_sec;
+    t_been_run = (time_t)difftime(time(NULL), htdx->birthtime);
     run_day  = (t_been_run / 86400);
     run_hour = (t_been_run % 86400) / 3600;
     run_min  = (t_been_run %  3600) /   60;
@@ -35,8 +33,7 @@ chtd_get_status_info(struct htdx_t *htdx, char *format)
     strftime(start_at, sizeof(start_at) - 1, "%Y-%m-%d %H:%M:%S", localtime(&htdx->birthtime));
     snprintf(been_run, sizeof(been_run) - 1, "%d days %02d:%02d:%02d", run_day, run_hour, run_min, run_sec);
 
-    if (nfmt == FMT_HTML)
-    {
+    if (nfmt == FMT_HTML) {
         sprintf(buff, "<br />\r\n"
                 "<b>Server Status</b><br />\r\n"
                 "Server started at: %s<br />\r\n"
@@ -54,9 +51,7 @@ chtd_get_status_info(struct htdx_t *htdx, char *format)
                 "\"H\" = Hung<br />"
                 "\"<u> </u>\" = Thread keepalive.<br />\r\n"
                 "<pre>", start_at, been_run, htdx->nConn, htdx->nReqs, htdx->nBadReqs, htdx->nIdelWkers);
-    }
-    else
-    {
+    } else {
         sprintf(buff, "  [Server Status] \n"
                 "  Server started at: %s\n"
                 "  Server has been run: %s\n"
@@ -74,7 +69,7 @@ chtd_get_status_info(struct htdx_t *htdx, char *format)
                 "\n"
                 "  wkers [", start_at, been_run, htdx->nConn, htdx->nReqs, htdx->nBadReqs, htdx->nIdelWkers);
     }
-    int n = strlen(buff);
+    n = strlen(buff);
 
     if (htdx->wkers) {
         int i = 0;
@@ -82,16 +77,11 @@ chtd_get_status_info(struct htdx_t *htdx, char *format)
         struct wker_t *curr, *last;
         curr = htdx->wkers;
         last = curr->prev;
-        while (1)
-        {
-            if (i % 50 == 0)
-            {
-                if (nfmt == FMT_HTML)
-                {
+        while (1) {
+            if (i % 50 == 0) {
+                if (nfmt == FMT_HTML) {
                     n += sprintf(buff + n, "\r\n");
-                }
-                else
-                {
+                } else {
                     n += sprintf(buff + n, "\n  ");
                 }
             }
@@ -104,12 +94,9 @@ chtd_get_status_info(struct htdx_t *htdx, char *format)
         }
     }
 
-    if (nfmt == FMT_HTML)
-    {
+    if (nfmt == FMT_HTML) {
         n += sprintf(buff + n, "</pre>");
-    }
-    else
-    {
+    } else {
         n += sprintf(buff + n, "\n  ]\n");
     }
     return buff;

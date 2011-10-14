@@ -7,8 +7,7 @@
 #include "http_status_lines.h"
 
 
-static char *http_status_lines_1xx[] =
-{
+static char *http_status_lines_1xx[] = {
     "100 Continue",
     "101 Switching Protocols",
     "102 Processing"
@@ -16,8 +15,7 @@ static char *http_status_lines_1xx[] =
 #define http_status_lines_1xx_max 102
 
 
-static char *http_status_lines_2xx[] =
-{
+static char *http_status_lines_2xx[] = {
     "200 OK",
     "201 Created",
     "202 Accepted",
@@ -30,8 +28,7 @@ static char *http_status_lines_2xx[] =
 #define http_status_lines_2xx_max 207
 
 
-static char *http_status_lines_3xx[] =
-{
+static char *http_status_lines_3xx[] = {
     "300 Multiple Choices",
     "301 Moved Permanently",
     "302 Moved Temporarily",
@@ -44,8 +41,7 @@ static char *http_status_lines_3xx[] =
 #define http_status_lines_3xx_max 307
 
 
-static char *http_status_lines_4xx[] =
-{
+static char *http_status_lines_4xx[] = {
     "400 Bad Request",
     "401 Unauthorized",
     "402 Payment Required",
@@ -75,8 +71,7 @@ static char *http_status_lines_4xx[] =
 #define http_status_lines_4xx_max 424
 
 
-static char *http_status_lines_5xx[] =
-{
+static char *http_status_lines_5xx[] = {
     "500 Internal Server Error",
     "501 Method Not Implemented",
     "502 Bad Gateway",
@@ -96,39 +91,33 @@ char *
 http_status_lines_get(int code)
 {
     static char *unknown = "500 Unknown Status Code";
-    switch (code/100)
-    {
+    switch (code/100) {
     case 1: /* 1xx */
-        if (code > http_status_lines_1xx_max)
-        {
+        if (code > http_status_lines_1xx_max) {
             return unknown;
         }
         return http_status_lines_1xx[code - 100];
 
     case 2: /* 2xx */
-        if (code > http_status_lines_2xx_max)
-        {
+        if (code > http_status_lines_2xx_max) {
             return unknown;
         }
         return http_status_lines_2xx[code - 200];
 
     case 3: /* 3xx */
-        if (code > http_status_lines_3xx_max)
-        {
+        if (code > http_status_lines_3xx_max) {
             return unknown;
         }
         return http_status_lines_3xx[code - 300];
 
     case 4: /* 4xx */
-        if (code > http_status_lines_4xx_max)
-        {
+        if (code > http_status_lines_4xx_max) {
             return unknown;
         }
         return http_status_lines_4xx[code - 400];
 
     case 5: /* 5xx */
-        if (code > http_status_lines_5xx_max)
-        {
+        if (code > http_status_lines_5xx_max) {
             return unknown;
         }
         return http_status_lines_5xx[code - 500];

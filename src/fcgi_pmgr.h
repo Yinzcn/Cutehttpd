@@ -8,7 +8,7 @@
 #define CHTD_FCGI_H
 
 
-#include "cutehttpd.h"
+#include "chtd.h"
 #include "fastcgi.h"
 
 

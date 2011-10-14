@@ -4,7 +4,7 @@
 **/
 
 
-#include "cutehttpd.h"
+#include "chtd.h"
 #include "namevalue.h"
 #include "parse_header.h"
 
@@ -20,15 +20,14 @@ User-Agent: Firefox
 
 #define isvalidnamechar(c) \
   ( (c == '-') || (c == '_') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') )
- 
+
 
 int
 parse_header(struct namevalue_t **nvs, char *header_str)
 {
     int count = 0;
 
-    enum
-    {
+    enum {
         sw_name_start = 0,
         sw_name_end,
         sw_value_start,
@@ -42,52 +41,41 @@ parse_header(struct namevalue_t **nvs, char *header_str)
     char *n_z;    /*  name end         */
     char *v_a;    /*  value start      */
     char *v_z;    /*  value end        */
-    int n_l;  /*  length of name   */
-    int v_l;  /*  length of value  */
+    int   n_l;    /*  length of name   */
+    int   v_l;    /*  length of value  */
 
     char *p = header_str;
     int loop = 1;
 
-    while (loop)
-    {
-        switch (state)
-        {
+    while (loop) {
+        switch (state) {
             /* name start */
         case sw_name_start:
-            if (*p == LF || *p == CR)
-            {
+            if (*p == LF || *p == CR) {
                 loop = 0;
                 break;
             }
-            if (isvalidnamechar(*p))
-            {
+            if (isvalidnamechar(*p)) {
                 n_a = p;
                 state = sw_name_end;
-            }
-            else
-            {
+            } else {
                 state = sw_goto_next_line;
             }
             break;
 
             /* name end */
         case sw_name_end:
-            while (isvalidnamechar(*p))
-            {
+            while (isvalidnamechar(*p)) {
                 p++;
             }
             n_z = p;
             /* space after name*/
-            while (*p == SP || *p == HT)
-            {
+            while (*p == SP || *p == HT) {
                 p++;
             }
-            if (*p == ':')
-            {
+            if (*p == ':') {
                 state = sw_value_start;
-            }
-            else
-            {
+            } else {
                 state = sw_goto_next_line;
             }
             p++;
@@ -96,8 +84,7 @@ parse_header(struct namevalue_t **nvs, char *header_str)
             /* value start */
         case sw_value_start:
             /* space before value */
-            while (*p == SP || *p == HT)
-            {
+            while (*p == SP || *p == HT) {
                 p++;
             }
             v_a = p;
@@ -106,27 +93,22 @@ parse_header(struct namevalue_t **nvs, char *header_str)
 
             /* value end */
         case sw_value_end:
-            while (*p != LF && *p)
-            {
+            while (*p != LF && *p) {
                 p++;
             }
             v_z = p;
             /* space after value */
-            do
-            {
+            do {
                 v_z--;
-            }
-            while (*v_z == SP || *v_z == HT || *v_z == CR);
+            } while (*v_z == SP || *v_z == HT || *v_z == CR);
             v_z++;
             state = sw_check_next_line;
             break;
 
         case sw_check_next_line:
             state = sw_field_done;
-            if (p[0] == LF)
-            {
-                if (p[1] == SP || p[1] == HT)
-                {
+            if (p[0] == LF) {
+                if (p[1] == SP || p[1] == HT) {
                     p++;
                     /* multi lines value */
                     state = sw_value_end;
@@ -137,8 +119,7 @@ parse_header(struct namevalue_t **nvs, char *header_str)
         case sw_field_done:
             n_l = n_z - n_a;
             v_l = v_z - v_a;
-            if (n_l > 0 && v_l > 0)
-            {
+            if (n_l > 0 && v_l > 0) {
                 namevalues_add(nvs, n_a, n_l, v_a, v_l);
                 count++;
             }
@@ -146,14 +127,11 @@ parse_header(struct namevalue_t **nvs, char *header_str)
             break;
 
         case sw_goto_next_line:
-            while (*p != LF && *p)
-            {
+            while (*p != LF && *p) {
                 p++;
             }
-            if (p[0] == LF)
-            {
-                if (p[1])
-                {
+            if (p[0] == LF) {
+                if (p[1]) {
                     p++;
                     state = sw_name_start;
                     break;

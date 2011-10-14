@@ -8,7 +8,7 @@
 #define CHTD_VHOST_H
 
 
-#include "cutehttpd.h"
+#include "chtd.h"
 
 
 struct vhost_t

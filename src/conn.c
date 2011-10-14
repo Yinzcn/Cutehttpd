@@ -4,16 +4,14 @@
 **/
 
 
-#include "cutehttpd.h"
+#include "chtd.h"
 #include "conn.h"
 
 
 struct conn_t *
-conn_new(struct wker_t *wker)
-{
+conn_new(struct wker_t *wker) {
     struct conn_t *conn = calloc(1, sizeof(struct conn_t));
-    if (!conn)
-    {
+    if (!conn) {
         chtd_cry(NULL, "conn_new() -> calloc() failed!");
         return NULL;
     }
@@ -28,8 +26,7 @@ conn_new(struct wker_t *wker)
 void
 conn_del(struct conn_t *conn)
 {
-    if (!conn)
-    {
+    if (!conn) {
         return;
     }
     conn_close(conn);
@@ -44,20 +41,18 @@ void
 conn_close(struct conn_t *conn)
 {
     struct sock_t *sock = conn->sock;
-    if (!sock)
-    {
+    if (!sock) {
         return;
     }
-    if (sock->socket > 0)
-    {
+    if (sock->socket > 0) {
+        static char buff[1024];
+        unsigned long u = 1;
         struct linger l;
         l.l_onoff  = 1;
         l.l_linger = 1;
         setsockopt(sock->socket, SOL_SOCKET, SO_LINGER, (void *)&l, sizeof(l));
         shutdown(sock->socket, SHUT_WR);
-        unsigned long u = 1;
         ioctlsocket(sock->socket, FIONBIO, &u);
-        static char buff[1024];
         while (recv(sock->socket, buff, 1024, 0) > 0);
 #ifdef WIN32
         closesocket(sock->socket);
@@ -70,19 +65,15 @@ conn_close(struct conn_t *conn)
 
 
 int
-conn_send(struct conn_t *conn, void *data, int size)
+conn_send(struct conn_t *conn, char *data, int size)
 {
     int done = 0;
     int retn;
-    while (done < size)
-    {
+    while (done < size) {
         retn = send(conn->sock->socket, data + done, size - done, 0);
-        if (retn > 0)
-        {
+        if (retn > 0) {
             done += retn;
-        }
-        else
-        {
+        } else {
             /* */
             return 0;
         }
@@ -94,21 +85,17 @@ conn_send(struct conn_t *conn, void *data, int size)
 
 
 int
-conn_recv(struct conn_t *conn, void *buff, int need)
+conn_recv(struct conn_t *conn, char *buff, int need)
 {
     int done = bufx_get(conn->recvbufx, buff, need);
     int left = need - done;
     int retn;
-    while (done < need)
-    {
+    while (done < need) {
         retn = recv(conn->sock->socket, buff + done, (left > 8192 ? 8192 : left), 0);
-        if (retn > 0)
-        {
+        if (retn > 0) {
             done += retn;
             left -= retn;
-        }
-        else
-        {
+        } else {
             /* */
             chtd_cry(conn->htdx, "conn_recv() -> recv() return %d", retn);
             bufx_put(conn->recvbufx, buff, done);
@@ -152,11 +139,11 @@ conn_set_send_timeout(struct conn_t *conn, int msec)
 void
 conn_parse_addr(struct conn_t *conn)
 {
-    if (!conn)
-    {
+    struct sock_t *sock;
+    if (!conn) {
         return;
     }
-    struct sock_t *sock = conn->sock;
+    sock = conn->sock;
 
     /* server_addr */
     strcpy (conn->server_addr,   inet_ntoa(sock->lsa.u.sin.sin_addr));
@@ -171,40 +158,37 @@ conn_parse_addr(struct conn_t *conn)
 int
 conn_read_until(struct conn_t *conn, char *need, char *buff, int buffsize)
 {
-    if (!conn || !need || !buff || buffsize < 2)
-    {
+    int buffleft;
+    int sizerecv;
+    if (!conn || !need || !buff || buffsize < 2) {
         return 0;
     }
-    int buffleft = buffsize - 1;
-    int sizerecv = 0;
-    while (buffleft)
-    {
-        int retn = recv(conn->sock->socket, buff + sizerecv, buffleft, 0);
-        if (retn > 0)
-        {
+    buffleft = buffsize - 1;
+    sizerecv = bufx_get(conn->recvbufx, buff, buffleft);
+    chtd_cry(conn->htdx, "conn_read_until() -> bufx_get %d", sizerecv);
+    buffleft -= sizerecv;
+    while (buffleft) {
+        int retn;
+        char *endp = strstr(buff, need);
+        if (endp) {
+            int size_get;
+            int size_ext;
+            endp += strlen(need);
+            size_get = endp - buff;
+            size_ext = sizerecv - size_get;
+            if (size_ext) { /* put back to bufx */
+                chtd_cry(conn->htdx, "conn_read_until() -> bufx_put %d", size_ext);
+                bufx_put(conn->recvbufx, endp, size_ext);
+            }
+            *endp = '\0';
+            return size_get;
+        }
+        retn = recv(conn->sock->socket, buff + sizerecv, buffleft, 0);
+        if (retn > 0) {
             sizerecv += retn;
             buffleft -= retn;
             buff[sizerecv] = '\0';
-            char *endp = strstr(buff, need);
-            if (endp)
-            {
-                endp += strlen(need);
-                int size_get = endp - buff;
-                int size_ext = sizerecv - size_get;
-                if (size_ext) /* put back to bufx */
-                {
-                    bufx_put(conn->recvbufx, endp, size_ext);
-                }
-                *endp = '\0';
-                return size_get;
-            }
-            else
-            {
-                continue;
-            }
-        }
-        else
-        {
+        } else {
             break;
         }
     }
@@ -216,15 +200,14 @@ conn_read_until(struct conn_t *conn, char *need, char *buff, int buffsize)
 int
 conn_recv_reqs_strs(struct conn_t *conn)
 {
-    if (conn->reqs_strs)
-    {
+    int buffsize = 4096;
+    int retn;
+    if (conn->reqs_strs) {
         free(conn->reqs_strs);
     }
-    int buffsize = 4096;
     conn->reqs_strs = calloc(buffsize, sizeof(char));
-    int retn = conn_read_until(conn, "\r\n\r\n", conn->reqs_strs, buffsize);
-    if (retn)
-    {
+    retn = conn_read_until(conn, "\r\n\r\n", conn->reqs_strs, buffsize);
+    if (retn) {
         return retn;
     }
     free(conn->reqs_strs);

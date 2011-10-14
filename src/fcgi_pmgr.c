@@ -4,13 +4,12 @@
 **/
 
 
-#include "cutehttpd.h"
+#include "chtd.h"
 #include "fcgi.h"
 
 
 struct fcgi_pmgr_t *
-fcgi_pmgr_new(struct htdx_t *htdx, char *extname, char *sz_addr, char *sz_port, char *sz_cmdl)
-{
+fcgi_pmgr_new(struct htdx_t *htdx, char *extname, char *sz_addr, char *sz_port, char *sz_cmdl) {
     struct fcgi_pmgr_t *fcgi_pmgr = calloc(1, sizeof(struct fcgi_pmgr_t));
 
     fcgi_pmgr->n_conn_max = 64;
@@ -32,8 +31,7 @@ fcgi_pmgr_new(struct htdx_t *htdx, char *extname, char *sz_addr, char *sz_port, 
 void
 fcgi_pmgr_del(struct fcgi_pmgr_t *fcgi_pmgr)
 {
-    if (!fcgi_pmgr)
-    {
+    if (!fcgi_pmgr) {
         return;
     }
     fcgi_pmgr->htdx->fcgi_pmgr = NULL;
@@ -46,13 +44,11 @@ chtd_set_fcgi(struct htdx_t *htdx, char *extname, char *sz_addr, char *sz_port, 
 {
     int port = atoi(sz_port);
 
-    if (port > 65535 || port < 1)
-    {
+    if (port > 65535 || port < 1) {
         sz_port = "9000";
     }
 
-    if (strlen(sz_addr) == 0)
-    {
+    if (strlen(sz_addr) == 0) {
         sz_addr = "0.0.0.0";
     }
 

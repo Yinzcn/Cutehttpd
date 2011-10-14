@@ -7,8 +7,11 @@
 #ifndef CHTD_LOG_H
 #define CHTD_LOG_H
 
-
-#define chtd_cry(x,a...) chtd_cry_x(x,__FILE__,__LINE__,##a)
+#ifdef _MSC_VER
+#define chtd_cry(x,f,...) chtd_cry_x(x, __FILE__, __LINE__, f, __VA_ARGS__)
+#else
+#define chtd_cry(x,vf...) chtd_cry_x(x, __FILE__, __LINE__, ##vf)
+#endif
 
 
 int

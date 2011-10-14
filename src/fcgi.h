@@ -8,7 +8,7 @@
 #define CHTD_FCGI_H
 
 
-#include "cutehttpd.h"
+#include "chtd.h"
 #include "fastcgi.h"
 
 
@@ -81,11 +81,11 @@ fcgi_conn_close(struct fcgi_conn_t *);
 
 
 int
-fcgi_conn_send(struct fcgi_conn_t *, void *, int);
+fcgi_conn_send(struct fcgi_conn_t *, char *, int);
 
 
 int
-fcgi_conn_recv(struct fcgi_conn_t *, void *, int);
+fcgi_conn_recv(struct fcgi_conn_t *, char *, int);
 
 
 struct fcgi_reqs_t *

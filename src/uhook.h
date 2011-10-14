@@ -8,7 +8,7 @@
 #define CHTD_UHOOK_H
 
 
-#include "cutehttpd.h"
+#include "chtd.h"
 
 
 struct uhook_t

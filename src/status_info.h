@@ -8,7 +8,7 @@
 #define CHTD_STATUS_INFO_H
 
 
-#include "cutehttpd.h"
+#include "chtd.h"
 
 
 enum inf_fmt_t
