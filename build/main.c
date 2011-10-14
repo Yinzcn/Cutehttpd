@@ -12,10 +12,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <stddef.h>
-#include <dirent.h>
 
 
-#include "../src/_onefile_.c"
+#include "../src/cutehttpd.c"
 
 #include "assign_mime_types.c"
 
@@ -43,10 +42,10 @@ int
 server_status(void *reqs)
 {
     /* response body */
+    char *wkinfo;
     char *body = malloc(20480);
     memset(body, 0, 20480);
 
-    char *wkinfo;
     wkinfo = chtd_get_status_info(reqs_get_htdx(reqs), "html");
     snprintf(body, 20480, "<html><head><title>Cutehttpd Server Status Hook</title></head><body><br />Your wker ID: %d<br />\r\n%s</body></html>", wker_get_id(reqs_get_wker(reqs)), wkinfo);
     /*free(wkinfo);*/
@@ -74,6 +73,7 @@ main(int argc, char *argv[])
         创建一个服务器对象 chtd
         可用 void * 或者 int 保存，其他语言或许可以用一个整数类型
     */
+    char ch;
     void *chtd;
     chtd = chtd_create();
 
@@ -125,51 +125,45 @@ main(int argc, char *argv[])
         chtd_start() 启动 Cutehttpd 服务
         Cutehttpd 将会在内部创建线程运行
     */
-    if (chtd_start(chtd) == 0) /* 成功返回 0，失败返回 -1 */
-    {
+    if (chtd_start(chtd) == 0) { /* 成功返回 0，失败返回 -1 */
         chtd_log(chtd, "Cutehttpd 启动成功!");
-    }
-    else
-    {
+    } else {
         chtd_log(chtd, "Cutehttpd 启动失败!");
     }
 
-    char ch;
-    while (chtd_get_status(chtd) != CHTD_STOPPED)
-    {
+    while (chtd_get_status(chtd) != CHTD_STOPPED) {
         ch = getchar();
-        switch (ch)
-        {
-            case 's':
-                chtd_stop(chtd);
-                break;
-/*
-            case 'd':
-                if (chtd_delete(chtd) == 0) {
-                }
-                break;
-*/
-            case 'p':
-                break;
+        switch (ch) {
+        case 's':
+            chtd_stop(chtd);
+            break;
+            /*
+                        case 'd':
+                            if (chtd_delete(chtd) == 0) {
+                            }
+                            break;
+            */
+        case 'p':
+            break;
 
-            case 0xa:
-                printf("%s", chtd_get_status_info(chtd, "text"));
-                break;
+        case 0xa:
+            printf("%s", chtd_get_status_info(chtd, "text"));
+            break;
 
-            case 'h':
-                #ifdef DEBUG
-                chtd_print_uhooks(chtd);
-                #endif
-                break;
+        case 'h':
+#ifdef DEBUG
+            chtd_print_uhooks(chtd);
+#endif
+            break;
 
-            case 'v':
-                #ifdef DEBUG
-                chtd_print_vhosts(chtd);
-                #endif
-                break;
+        case 'v':
+#ifdef DEBUG
+            chtd_print_vhosts(chtd);
+#endif
+            break;
 
-            default:
-                break;
+        default:
+            break;
         }
     }
     chtd_delete(chtd);

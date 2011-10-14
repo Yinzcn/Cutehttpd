@@ -7,8 +7,7 @@
 void
 assign_mime_types(struct htdx_t *htdx)
 {
-    if (!htdx)
-    {
+    if (!htdx) {
         return;
     }
     mime_type_assign(htdx, ".pdf"     , "application/pdf");
