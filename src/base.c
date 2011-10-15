@@ -14,7 +14,7 @@ nowstr(void)
     static char buff[20];
     time_t rawtime;
     rawtime = time(NULL);
-    strftime(buff, 20 - 1, "%Y-%m-%d %H:%M:%S", localtime(&rawtime));
+    strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&rawtime));
     return buff;
 }
 
