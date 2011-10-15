@@ -52,11 +52,12 @@ conn_close(struct conn_t *conn)
         l.l_linger = 1;
         setsockopt(sock->socket, SOL_SOCKET, SO_LINGER, (void *)&l, sizeof(l));
         shutdown(sock->socket, SHUT_WR);
+#ifdef WIN32
         ioctlsocket(sock->socket, FIONBIO, &u);
         while (recv(sock->socket, buff, 1024, 0) > 0);
-#ifdef WIN32
         closesocket(sock->socket);
 #else
+        while (recv(sock->socket, buff, 1024, 0) > 0);
         close(sock->socket);
 #endif
         sock->socket = 0;
