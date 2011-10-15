@@ -45,6 +45,7 @@ conn_close(struct conn_t *conn)
         return;
     }
     if (sock->socket > 0) {
+#ifdef WIN32
         static char buff[1024];
         unsigned long u = 1;
         struct linger l;
@@ -52,15 +53,21 @@ conn_close(struct conn_t *conn)
         l.l_linger = 1;
         setsockopt(sock->socket, SOL_SOCKET, SO_LINGER, (void *)&l, sizeof(l));
         shutdown(sock->socket, SHUT_WR);
-#ifdef WIN32
         ioctlsocket(sock->socket, FIONBIO, &u);
         while (recv(sock->socket, buff, 1024, 0) > 0);
         closesocket(sock->socket);
+        sock->socket = 0;
 #else
+        static char buff[1024];
+        struct linger l;
+        l.l_onoff  = 1;
+        l.l_linger = 1;
+        setsockopt(sock->socket, SOL_SOCKET, SO_LINGER, (void *)&l, sizeof(l));
+        shutdown(sock->socket, SHUT_WR);
         while (recv(sock->socket, buff, 1024, 0) > 0);
         close(sock->socket);
-#endif
         sock->socket = 0;
+#endif
     }
 }
 
