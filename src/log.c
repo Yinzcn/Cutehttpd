@@ -14,7 +14,7 @@ chtd_log(struct htdx_t *htdx, char *f, ...)
     char b[1024];
     int n;
     va_list a;
-    n = sprintf(b, "[%s] ", nowstr());
+    n = sprintf(b, "[%s] ", x_nowstr());
     va_start(a, f);
     n += vsprintf(b + n, f, a);
     va_end(a);
@@ -37,14 +37,14 @@ chtd_cry_x(struct htdx_t *htdx, char *FILE, int LINE, char *f, ...)
     char F[1024];
     va_list a;
     va_start(a, f);
-    sprintf(F, "err(%d):%s:%d : %s", errno, FILE, LINE, f);
+    sprintf(F, "err(%d):%s:%d : %s", errno, x_basename(FILE), LINE, f);
     if (htdx) {
         vsprintf(B, F, a);
         chtd_log(htdx, B, a);
     } else {
         char b[1024];
         int n;
-        n = sprintf(b, "[%s] ", nowstr());
+        n = sprintf(b, "[%s] ", x_nowstr());
         n += vsprintf(b + n, F, a);
         strcat(b, "\r\n");
 #ifdef DEBUG

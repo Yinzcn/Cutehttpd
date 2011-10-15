@@ -9,21 +9,34 @@
 
 
 char *
-nowstr(void)
+x_basename(char *path)
+{
+    char *s1 = strrchr(path, '/' );
+    char *s2 = strrchr(path, '\\');
+    char *s3 = (s1 > s2) ? s1 : s2;
+    if (s3) {
+        path = s3 + 1;
+    }
+    return path;
+}
+
+
+char *
+x_nowstr(void)
 {
     static char buff[20];
     time_t rawtime;
     rawtime = time(NULL);
-    strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&rawtime));
+    strftime(buff, sizeof(buff), "%Y-%m-%d %H:%M:%S", localtime(&rawtime));
     return buff;
 }
 
 
 char *
-chd_strlwr(char *s)
+x_strlwr(char *s)
 {
     char *p;
-    for (p=s; *p; p++) {
+    for (p = s; *p; p++) {
         if (*p >= 'A' && *p <= 'Z') {
             *p = *p - 'A' + 'a';
         }
@@ -61,7 +74,7 @@ str_replace(char *f, char *r, char *s)
     int rl = strlen(r);
     int sl = strlen(s);
     int n  = substr_count(s, f);
-    char *bf = calloc(sl + (rl - fl) * n + 1, sizeof(char));
+    char *bf = calloc(sl + n * (rl - fl) + 1, sizeof(char));
     if (bf) {
         char *p1, *p2;
         char *p3 = bf;

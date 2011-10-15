@@ -12,11 +12,11 @@ char *
 chtd_get_status_info(struct htdx_t *htdx, char *format)
 {
     static char buff[20480];
-    char start_at[32] = "";
-    char been_run[32] = "";
-    int n;
-    time_t t_been_run;
+    char start_at[32];
+    char been_run[32];
+    time_t run_time;
     int run_day, run_hour, run_min, run_sec;
+    int n;
 
     enum inf_fmt_t nfmt;
     if (strcasecmp(format, "html") == 0) {
@@ -25,13 +25,13 @@ chtd_get_status_info(struct htdx_t *htdx, char *format)
         nfmt = FMT_TEXT;
     }
 
-    t_been_run = (time_t)difftime(time(NULL), htdx->birthtime);
-    run_day  = (t_been_run / 86400);
-    run_hour = (t_been_run % 86400) / 3600;
-    run_min  = (t_been_run %  3600) /   60;
-    run_sec  = (t_been_run %    60);
-    strftime(start_at, sizeof(start_at) - 1, "%Y-%m-%d %H:%M:%S", localtime(&htdx->birthtime));
-    snprintf(been_run, sizeof(been_run) - 1, "%d days %02d:%02d:%02d", run_day, run_hour, run_min, run_sec);
+    run_time = (time_t)difftime(time(NULL), htdx->birthtime);
+    run_day  = (run_time / 86400);
+    run_hour = (run_time % 86400) / 3600;
+    run_min  = (run_time %  3600) /   60;
+    run_sec  = (run_time %    60);
+    strftime(start_at, sizeof(start_at), "%Y-%m-%d %H:%M:%S", localtime(&htdx->birthtime));
+    snprintf(been_run, sizeof(been_run), "%d days %02d:%02d:%02d", run_day, run_hour, run_min, run_sec);
 
     if (nfmt == FMT_HTML) {
         sprintf(buff, "<br />\r\n"

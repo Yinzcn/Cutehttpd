@@ -27,11 +27,15 @@ struct sock_t
 
 
 char *
-nowstr(void);
+x_basename(char *);
 
 
 char *
-chd_strlwr(char *);
+x_nowstr(void);
+
+
+char *
+x_strlwr(char *);
 
 
 int
