@@ -8,7 +8,7 @@
 #include "base.h"
 
 
-static char *
+char *
 nowstr(void)
 {
     static char buff[20];

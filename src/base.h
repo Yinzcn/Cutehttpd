@@ -26,7 +26,7 @@ struct sock_t
 };
 
 
-static char *
+char *
 nowstr(void);
 
 
