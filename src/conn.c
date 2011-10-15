@@ -154,11 +154,11 @@ conn_parse_addr(struct conn_t *conn)
     sock = conn->sock;
 
     /* server_addr */
-    strcpy (conn->server_addr,   inet_ntoa(sock->lsa.u.sin.sin_addr));
+    strcpy (conn->server_addr,  inet_ntoa (sock->lsa.u.sin.sin_addr));
     sprintf(conn->server_port, "%d", ntohs(sock->lsa.u.sin.sin_port));
 
     /* client_addr */
-    strcpy (conn->client_addr,   inet_ntoa(sock->rsa.u.sin.sin_addr));
+    strcpy (conn->client_addr,  inet_ntoa (sock->rsa.u.sin.sin_addr));
     sprintf(conn->client_port, "%d", ntohs(sock->rsa.u.sin.sin_port));
 }
 

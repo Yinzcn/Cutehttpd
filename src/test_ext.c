@@ -20,13 +20,19 @@ test_ext(struct reqs_t *http_reqs)
              "request_path: [%s]\r\n"
              "real_path: [%s]\r\n"
              "query_string: [%s]\r\n"
+             "server_addr: [%s:%s]\r\n"
+             "client_addr: [%s:%s]\r\n"
              "</pre>",
              http_reqs->method_name,
              http_reqs->uri,
              http_reqs->http_version_name,
              http_reqs->request_path,
              http_reqs->real_path,
-             http_reqs->query_string);
+             http_reqs->query_string,
+             http_reqs->conn->server_addr,
+             http_reqs->conn->server_port,
+             http_reqs->conn->client_addr,
+             http_reqs->conn->client_port);
 
     set_http_status  (http_reqs, 200); /* "200 OK" */
     set_http_header  (http_reqs, "Content-Type", "text/html");
