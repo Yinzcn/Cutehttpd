@@ -20,7 +20,6 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <direct.h>
 
 #if defined(_WIN32) && !defined(WIN32)
 #define WIN32
@@ -28,6 +27,7 @@
 
 #ifdef WIN32
 /* [ WIN32 */
+#include <direct.h>
 #include <process.h>
 #include <winsock2.h>
 #define SHUT_RD   SD_RECEIVE
