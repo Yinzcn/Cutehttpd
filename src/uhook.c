@@ -5,9 +5,10 @@
 
 
 #include "chtd.h"
-#include "pcre.h"
 #include "uhook.h"
-
+#ifdef HAVE_PCRE
+#include "pcre.h"
+#endif
 
 struct uhook_t *
 uhooks_add(struct htdx_t *htdx, char *host, char *xuri, void *func, void *pPcre) {
@@ -111,9 +112,9 @@ chtd_set_uhook(struct htdx_t *htdx, char *host, char *xuri, void *func)
 {
     struct uhook_t *uhook;
     if (func) {
-        /* [ pcre */
         void *pPcre = NULL;
-#ifdef _PCRE_H
+#ifdef HAVE_PCRE
+        /* [ pcre */
         int nOffset = -1;
         const char *pErrMsg = NULL;
         pPcre = pcre_compile(xuri, 0, &pErrMsg, &nOffset, NULL);
@@ -121,8 +122,8 @@ chtd_set_uhook(struct htdx_t *htdx, char *host, char *xuri, void *func)
             chtd_cry(htdx, "set_uhook: pcre_compile() retn: ErrMsg=%s, Offset=%d xuri[%s]", pErrMsg, nOffset, xuri);
             return 0;
         }
-#endif
         /* ] */
+#endif
         uhook = uhooks_get(htdx->uhooks, host, xuri);
         if (uhook) { /* already exists */
             /* [ update it */
@@ -165,14 +166,16 @@ chtd_uhook_match(struct reqs_t *http_reqs) {
         while (1) {
             /* [ */
             if (strcasecmp(curr->host, host) == 0 || strcasecmp(curr->host, "*") == 0) {
-#ifdef _PCRE_H
+#ifdef HAVE_PCRE
                 if (pcre_exec(curr->pPcre, NULL, http_reqs->uri, strlen(http_reqs->uri), 0, 0, NULL, 0) == 0) {
                     free(host);
                     return curr;
                 }
 #else
-                free(host);
-                return curr
+                if (strcmp(curr->xuri, http_reqs->uri) == 0) {
+                    free(host);
+                    return curr;
+                }
 #endif
             }
             /* ] */
