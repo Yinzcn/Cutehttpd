@@ -151,11 +151,11 @@ int
 reqs_parse(struct reqs_t *reqs)
 {
     register char *a, *z, *p;
+    char *reqs_strs = reqs->conn->reqs_strs;
     char *reqs_line;
     /*
     [ take reqs_line
     */
-    char *reqs_strs = reqs->conn->reqs_strs;
     a = reqs_strs;
     while (*a == LF || *a == CR || *a == SP || *a == HT) {
         a++;
