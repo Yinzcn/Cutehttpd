@@ -18,7 +18,7 @@ struct conn_t
     int nSent;
     int nReqs;
     int keep_alive;
-    char *reqs_strs;
+    char *reqs_head;
     struct bufx_t *recvbufx;
     struct sock_t *sock;
     struct wker_t *wker;
@@ -63,7 +63,7 @@ conn_read_until(struct conn_t *, char *, char *, int);
 
 
 int
-conn_recv_reqs_strs(struct conn_t *);
+conn_recv_reqs_head(struct conn_t *);
 
 
 #endif

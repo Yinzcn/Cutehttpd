@@ -25,7 +25,7 @@ worker_thread(struct wker_t *wker)
         conn_parse_addr(conn);
 
         while (1) {
-            if (conn_recv_reqs_strs(conn)) {
+            if (conn_recv_reqs_head(conn)) {
                 reqs_proc(conn);
                 /* [ should keep alive? */
                 if (conn->keep_alive) {
