@@ -119,13 +119,12 @@ conn_set_recv_timeout(struct conn_t *conn, int msec)
 {
 #ifdef WIN32
     int tv = msec;
-    setsockopt(conn->sock->socket, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, sizeof(tv));
 #else
     struct timeval tv;
     tv.tv_sec  = 0;
     tv.tv_usec = msec * 1000;
-    setsockopt(conn->sock->socket, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, sizeof(tv));
 #endif
+    setsockopt(conn->sock->socket, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, sizeof(tv));
 }
 
 
@@ -134,13 +133,12 @@ conn_set_send_timeout(struct conn_t *conn, int msec)
 {
 #ifdef WIN32
     int tv = msec;
-    setsockopt(conn->sock->socket, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, sizeof(tv));
 #else
     struct timeval tv;
     tv.tv_sec  = 0;
     tv.tv_usec = msec * 1000;
-    setsockopt(conn->sock->socket, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, sizeof(tv));
 #endif
+    setsockopt(conn->sock->socket, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, sizeof(tv));
 }
 
 
@@ -164,11 +162,11 @@ conn_parse_addr(struct conn_t *conn)
 
 
 int
-conn_read_until(struct conn_t *conn, char *need, char *buff, int buffsize)
+conn_read_until(struct conn_t *conn, char *endw, char *buff, int buffsize)
 {
     int buffleft;
     int sizerecv;
-    if (!conn || !need || !buff || buffsize < 2) {
+    if (!conn || !endw || !buff || buffsize < 2) {
         return 0;
     }
     buffleft = buffsize - 1;
@@ -177,11 +175,11 @@ conn_read_until(struct conn_t *conn, char *need, char *buff, int buffsize)
     buffleft -= sizerecv;
     while (buffleft) {
         int retn;
-        char *endp = strstr(buff, need);
+        char *endp = strstr(buff, endw);
         if (endp) {
             int size_get;
             int size_ext;
-            endp += strlen(need);
+            endp += strlen(endw);
             size_get = endp - buff;
             size_ext = sizerecv - size_get;
             if (size_ext) { /* put back to bufx */
