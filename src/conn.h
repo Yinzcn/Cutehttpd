@@ -59,10 +59,6 @@ conn_parse_addr(struct conn_t *);
 
 
 int
-conn_read_until(struct conn_t *, char *, char *, int);
-
-
-int
 conn_recv_reqs_head(struct conn_t *);
 
 

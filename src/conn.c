@@ -162,61 +162,66 @@ conn_parse_addr(struct conn_t *conn)
 
 
 int
-conn_read_until(struct conn_t *conn, char *endw, char *buff, int buffsize)
-{
-    int buffleft;
-    int sizerecv;
-    if (!conn || !endw || !buff || buffsize < 2) {
-        return 0;
-    }
-    buffleft = buffsize - 1;
-    sizerecv = bufx_get(conn->recvbufx, buff, buffleft);
-    chtd_cry(conn->htdx, "conn_read_until() -> bufx_get %d", sizerecv);
-    buffleft -= sizerecv;
-    while (buffleft) {
-        int retn;
-        char *endp = strstr(buff, endw);
-        if (endp) {
-            int size_get;
-            int size_ext;
-            endp += strlen(endw);
-            size_get = endp - buff;
-            size_ext = sizerecv - size_get;
-            if (size_ext) { /* put back to bufx */
-                chtd_cry(conn->htdx, "conn_read_until() -> bufx_put %d", size_ext);
-                bufx_put(conn->recvbufx, endp, size_ext);
-            }
-            *endp = '\0';
-            return size_get;
-        }
-        retn = recv(conn->sock->socket, buff + sizerecv, buffleft, 0);
-        if (retn > 0) {
-            sizerecv += retn;
-            buffleft -= retn;
-            buff[sizerecv] = '\0';
-        } else {
-            break;
-        }
-    }
-    bufx_put(conn->recvbufx, buff, sizerecv);
-    return 0;
-}
-
-
-int
 conn_recv_reqs_head(struct conn_t *conn)
 {
     int buffsize = 4096;
-    int retn;
+    int buffleft = buffsize - 1;
+    char *buff = NULL;
+    int sizerecv = 0;
     if (conn->reqs_head) {
         free(conn->reqs_head);
     }
-    conn->reqs_head = calloc(buffsize, sizeof(char));
-    retn = conn_read_until(conn, "\r\n\r\n", conn->reqs_head, buffsize);
-    if (retn) {
-        return retn;
+    buff = calloc(buffsize, sizeof(char));
+    conn->reqs_head = buff;
+
+    sizerecv = bufx_get(conn->recvbufx, buff, buffleft);
+    buffleft -= sizerecv;
+
+    while (1) {
+        char *endp = strstr(buff, "\r\n\r\n");
+        if (endp) {
+            char *bufp = buff;
+            while (*bufp == '\r' || *bufp == '\n') {
+                bufp++;
+            }
+            if (bufp != buff) {
+                strcpy(buff, bufp);
+                sizerecv -= bufp - buff;
+                buffleft += bufp - buff;
+                continue;
+            } else {
+                int size_get;
+                int size_ext;
+                endp += 4; /* equal to strlen("\r\n\r\n") */
+                size_get = endp - buff;
+                size_ext = sizerecv - size_get;
+                if (size_ext) { /* push to bufx */
+                    chtd_cry(conn->htdx, "conn_recv_reqs_head() -> bufx_put %d", size_ext);
+                    bufx_put(conn->recvbufx, endp, size_ext);
+                }
+                *endp = '\0';
+                return size_get;
+            }
+        }
+        else if (buffleft == 0) {
+            chtd_cry(conn->htdx, "conn_recv_reqs_head() -> sizerecv %d", sizerecv);
+            break;
+        }
+        else {
+            int retn = recv(conn->sock->socket, buff + sizerecv, buffleft, 0);
+            if (retn > 0) {
+                sizerecv += retn;
+                buffleft -= retn;
+                buff[sizerecv] = '\0';
+            } else {
+                break;
+            }
+        }
     }
-    free(conn->reqs_head);
+
+    bufx_put(conn->recvbufx, buff, sizerecv);
+
+    free(buff);
     conn->reqs_head = NULL;
     return 0;
 }
