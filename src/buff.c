@@ -117,13 +117,14 @@ bufx_get(struct bufx_t *bufx, char *buff, int need)
         return 0;
     }
     if (bufx->used > 0) {
-        int left = need;
+        int left;
         int step;
-        struct bufx_blks_t *curr, *next, *last;
         char *bufp = buff;
+        struct bufx_blks_t *curr, *next, *last;
         if (need > bufx->used) {
             need = bufx->used;
         }
+        left = need;
         curr = bufx->blks;
         last = curr->prev;
         while (1) {
@@ -178,7 +179,7 @@ bufx_get_each(struct bufx_t *bufx, void *(*func)(), void *arg1)
             last = curr->prev;
             while (1) {
                 next = curr->next;
-                (void*)func(arg1, curr->data, curr->used);
+                (void*) func(arg1, curr->data, curr->used);
                 free(curr);
                 if (curr == last) {
                     break;
