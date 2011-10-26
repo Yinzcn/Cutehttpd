@@ -617,7 +617,6 @@ fcgi_trans_stdout(struct fcgi_reqs_t *fcgi_reqs)
             contleft -= sizerecv;
 
             if (buffleft == 0) {
-                DEBUG_TRACE("buffused=%d", buffused);
                 send_http_chunk(http_reqs, buffdata, buffused);
                 buffused = 0;
                 buffleft = buffsize;

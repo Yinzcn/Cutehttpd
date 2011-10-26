@@ -119,13 +119,12 @@ conn_set_recv_timeout(struct conn_t *conn, int msec)
 {
 #ifdef WIN32
     int tv = msec;
-    setsockopt(conn->sock->socket, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, sizeof(tv));
 #else
     struct timeval tv;
     tv.tv_sec  = 0;
     tv.tv_usec = msec * 1000;
-    setsockopt(conn->sock->socket, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, sizeof(tv));
 #endif
+    setsockopt(conn->sock->socket, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, sizeof(tv));
 }
 
 
@@ -163,47 +162,66 @@ conn_parse_addr(struct conn_t *conn)
 
 
 int
-conn_read_until(struct conn_t *conn, char *need, char *buff, int buffsize)
+conn_recv_reqs_head(struct conn_t *conn)
 {
-    int buffleft;
-    int sizerecv;
-    if (!conn || !need || !buff || buffsize < 2) {
-        return 0;
+    int buffsize = 4096;
+    int buffleft = buffsize - 1;
+    char *buff = NULL;
+    int sizerecv = 0;
+    if (conn->reqs_head) {
+        free(conn->reqs_head);
     }
-    buffleft = buffsize - 1;
+    buff = calloc(buffsize, sizeof(char));
+    conn->reqs_head = buff;
+
     sizerecv = bufx_get(conn->recvbufx, buff, buffleft);
-    chtd_cry(conn->htdx, "conn_read_until() -> bufx_get %d", sizerecv);
     buffleft -= sizerecv;
-    while (buffleft) {
-        int retn;
-        char *endp = strstr(buff, need);
+
+    while (1) {
+        char *endp = strstr(buff, "\r\n\r\n");
         if (endp) {
-            int size_get;
-            int size_ext;
-            endp += strlen(need);
-            size_get = endp - buff;
-            size_ext = sizerecv - size_get;
-            if (size_ext) { /* put back to bufx */
-                chtd_cry(conn->htdx, "conn_read_until() -> bufx_put %d", size_ext);
-                bufx_put(conn->recvbufx, endp, size_ext);
+            char *bufp = buff;
+            while (*bufp == '\r' || *bufp == '\n') {
+                bufp++;
             }
-            *endp = '\0';
-            return size_get;
+            if (bufp != buff) {
+                strcpy(buff, bufp);
+                sizerecv -= bufp - buff;
+                buffleft += bufp - buff;
+                continue;
+            } else {
+                int size_get;
+                int size_ext;
+                endp += 4; /* equal to strlen("\r\n\r\n") */
+                size_get = endp - buff;
+                size_ext = sizerecv - size_get;
+                if (size_ext) { /* push to bufx */
+                    chtd_cry(conn->htdx, "conn_recv_reqs_head() -> bufx_put %d", size_ext);
+                    bufx_put(conn->recvbufx, endp, size_ext);
+                }
+                *endp = '\0';
+                return size_get;
+            }
         }
-        retn = recv(conn->sock->socket, buff + sizerecv, buffleft, 0);
-        if (retn > 0) {
-            sizerecv += retn;
-            buffleft -= retn;
-            buff[sizerecv] = '\0';
-        } else {
+        else if (buffleft == 0) {
+            chtd_cry(conn->htdx, "conn_recv_reqs_head() -> sizerecv %d", sizerecv);
             break;
         }
+        else {
+            int retn = recv(conn->sock->socket, buff + sizerecv, buffleft, 0);
+            if (retn > 0) {
+                sizerecv += retn;
+                buffleft -= retn;
+                buff[sizerecv] = '\0';
+            } else {
+                break;
+            }
+        }
     }
+
     bufx_put(conn->recvbufx, buff, sizerecv);
-    return 0;
-}
 
-
+<<<<<<< HEAD
 int
 conn_recv_reqs_head(struct conn_t *conn)
 {
@@ -218,6 +236,9 @@ conn_recv_reqs_head(struct conn_t *conn)
         return retn;
     }
     free(conn->reqs_head);
+=======
+    free(buff);
+>>>>>>> 0704017f1910a30b68eb65c80b3f6cb561c50ec0
     conn->reqs_head = NULL;
     return 0;
 }

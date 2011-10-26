@@ -59,10 +59,13 @@ conn_parse_addr(struct conn_t *);
 
 
 int
+<<<<<<< HEAD
 conn_read_until(struct conn_t *, char *, char *, int);
 
 
 int
+=======
+>>>>>>> 0704017f1910a30b68eb65c80b3f6cb561c50ec0
 conn_recv_reqs_head(struct conn_t *);
 
 
