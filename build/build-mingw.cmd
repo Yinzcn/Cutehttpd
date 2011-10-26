@@ -1,8 +1,8 @@
 @echo off
 setlocal enableextensions
 
-mingw32-make -v >nul 2>nul || call :Set_MinGW
-mingw32-make -v >nul 2>nul || goto End
+mingw32-make -v >nul 2>&1 || call :Set_MinGW
+mingw32-make -v >nul 2>&1 || goto No_MinGW
 
 if "%*" == "" (set C= ) else (set C= %* )
 

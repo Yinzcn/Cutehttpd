@@ -151,12 +151,13 @@ int
 reqs_parse(struct reqs_t *reqs)
 {
     register char *a, *z, *p;
-    char *reqs_strs = reqs->conn->reqs_strs;
+    char *reqs_head = reqs->conn->reqs_head;
     char *reqs_line;
+
     /*
     [ take reqs_line
     */
-    a = reqs_strs;
+    a = reqs_head;
     while (*a == LF || *a == CR || *a == SP || *a == HT) {
         a++;
     }
@@ -326,7 +327,7 @@ reqs_parse(struct reqs_t *reqs)
     /*
     [ http headers
     */
-    parse_header(&reqs->re_headers, strchr(reqs_strs, LF) + 1);
+    parse_header(&reqs->re_headers, strchr(reqs_head, LF) + 1);
     /*
     ]
     */

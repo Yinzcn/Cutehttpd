@@ -32,7 +32,7 @@ conn_del(struct conn_t *conn)
     conn_close(conn);
     bufx_del(conn->recvbufx);
     free(conn->sock);
-    free(conn->reqs_strs);
+    free(conn->reqs_head);
     free(conn);
 }
 
@@ -134,13 +134,12 @@ conn_set_send_timeout(struct conn_t *conn, int msec)
 {
 #ifdef WIN32
     int tv = msec;
-    setsockopt(conn->sock->socket, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, sizeof(tv));
 #else
     struct timeval tv;
     tv.tv_sec  = 0;
     tv.tv_usec = msec * 1000;
-    setsockopt(conn->sock->socket, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, sizeof(tv));
 #endif
+    setsockopt(conn->sock->socket, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, sizeof(tv));
 }
 
 
@@ -206,19 +205,19 @@ conn_read_until(struct conn_t *conn, char *need, char *buff, int buffsize)
 
 
 int
-conn_recv_reqs_strs(struct conn_t *conn)
+conn_recv_reqs_head(struct conn_t *conn)
 {
     int buffsize = 4096;
     int retn;
-    if (conn->reqs_strs) {
-        free(conn->reqs_strs);
+    if (conn->reqs_head) {
+        free(conn->reqs_head);
     }
-    conn->reqs_strs = calloc(buffsize, sizeof(char));
-    retn = conn_read_until(conn, "\r\n\r\n", conn->reqs_strs, buffsize);
+    conn->reqs_head = calloc(buffsize, sizeof(char));
+    retn = conn_read_until(conn, "\r\n\r\n", conn->reqs_head, buffsize);
     if (retn) {
         return retn;
     }
-    free(conn->reqs_strs);
-    conn->reqs_strs = NULL;
+    free(conn->reqs_head);
+    conn->reqs_head = NULL;
     return 0;
 }
