@@ -221,24 +221,6 @@ conn_recv_reqs_head(struct conn_t *conn)
 
     bufx_put(conn->recvbufx, buff, sizerecv);
 
-<<<<<<< HEAD
-int
-conn_recv_reqs_head(struct conn_t *conn)
-{
-    int buffsize = 4096;
-    int retn;
-    if (conn->reqs_head) {
-        free(conn->reqs_head);
-    }
-    conn->reqs_head = calloc(buffsize, sizeof(char));
-    retn = conn_read_until(conn, "\r\n\r\n", conn->reqs_head, buffsize);
-    if (retn) {
-        return retn;
-    }
-    free(conn->reqs_head);
-=======
-    free(buff);
->>>>>>> 0704017f1910a30b68eb65c80b3f6cb561c50ec0
     conn->reqs_head = NULL;
     return 0;
 }
