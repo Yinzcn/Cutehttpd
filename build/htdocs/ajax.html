@@ -1,0 +1,63 @@
+<html>
+<head>
+<script type="text/JavaScript">
+function CreateXMLHttp()
+{
+    var XMLHttp;
+    try {
+        XMLHttp = new XMLHttpRequest();
+    } catch (e) {
+        try {
+            XMLHttp = new ActiveXObject("Msxml2.XMLHTTP"); 
+        } catch (e) {
+            try {
+                XMLHttp = new ActiveXObject("Microsoft.XMLHTTP");
+            } catch (e) {
+                XMLHttp = false;
+            }
+        }
+    }
+    return XMLHttp;
+}
+
+function $(id) {
+    return document.getElementById(id);
+}
+
+function ajax_get(e, uri)
+{
+    var XMLHttp;
+    e.innerHTML = "";
+    XMLHttp = CreateXMLHttp();
+    XMLHttp.onreadystatechange = function()
+    {
+        if(XMLHttp.readyState == 4) {
+            var r = XMLHttp.responseText;
+            e.innerHTML = r;
+        }
+    }
+    XMLHttp.open("GET", uri, true);
+    XMLHttp.send(null);
+}
+
+function GET()
+{
+    ajax_get($('div_1'), '1.txt');
+    ajax_get($('div_2'), '2.txt');
+    ajax_get($('div_3'), '3.txt');
+    ajax_get($('div_4'), '4.txt');
+}
+</script>
+</head>
+<body onload="">
+<input type="button" value="GET" onclick="GET();" />
+<br />
+<div id="div_1"></div>
+<br />
+<div id="div_2"></div>
+<br />
+<div id="div_3"></div>
+<br />
+<div id="div_4"></div>
+</body>
+</html>
