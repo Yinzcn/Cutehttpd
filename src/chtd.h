@@ -131,22 +131,20 @@ struct htdx_t
     char *addr;
     char *port;
     struct sock_t sock;
+
+    /* [ squeue */
     int    squeue_size;
     struct squeue_t *squeue;
     struct squeue_t *squeue_a;
     struct squeue_t *squeue_z;
-    pthread_t master_tid;
-    pthread_t listen_tid;
-    pthread_t squeue_tid;
-    pthread_mutex_t mutex;
-    pthread_mutex_t mx_wk;
-    pthread_cond_t  cv_wk_idel;
-    int cv_wk_get_wait;
     pthread_mutex_t mx_sq;
     pthread_cond_t  cv_sq_put;
     pthread_cond_t  cv_sq_get;
-    int cv_sq_put_wait;
-    int cv_sq_get_wait;
+    /* ] */
+
+    pthread_t master_tid;
+    pthread_t listen_tid;
+    pthread_mutex_t mutex;
     struct wker_t  *wkers;
     struct uhook_t *uhooks;
     struct vhost_t *vhosts;

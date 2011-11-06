@@ -12,11 +12,18 @@ worker_thread(struct wker_t *wker)
 {
     struct htdx_t *htdx = wker->htdx;
     struct conn_t *conn;
-    pthread_mutex_lock(&wker->mx_wker);
+    struct sock_t *sock;
     while (1) {
-        pthread_cond_wait(&wker->cv_wake, &wker->mx_wker);
-        wker->status = WK_BUSY;
+        sock = calloc(1, sizeof(struct sock_t));
+        if (!squeue_get(htdx, sock)) {
+            chtd_cry(htdx, "squeue_thread() -> squeue_get() failed!");
+            free(sock);
+            break;
+        }
 
+        wker->status = WK_BUSY;
+        conn = conn_new(wker);
+        conn->sock = sock;
         conn = wker->conn;
 
         wker->nConn++;
@@ -43,40 +50,11 @@ worker_thread(struct wker_t *wker)
         conn_close(conn);
         conn_del  (conn);
         wker->conn = NULL;
-        put_idel_wker(htdx, &wker);
         if (htdx->status != CHTD_RUNNING) {
             break;
         }
     }
-    pthread_mutex_unlock(&wker->mx_wker);
     pthread_exit(NULL);
-    return 0;
-}
-
-
-int
-squeue_thread(struct htdx_t *htdx)
-{
-    struct sock_t *sock;
-    struct conn_t *conn;
-    struct wker_t *wker;
-    htdx->n_squeue_thread = 1;
-    while (htdx->status == CHTD_RUNNING) {
-        sock = calloc(1, sizeof(struct sock_t));
-        if (!squeue_get(htdx, sock)) {
-            chtd_cry(htdx, "squeue_thread() -> squeue_get() failed!");
-            break;
-        }
-        if (!get_idel_wker(htdx, &wker)) {
-            chtd_cry(htdx, "squeue_thread() -> get_idel_wker() failed!");
-            break;
-        }
-        conn = conn_new(wker);
-        conn->sock = sock;
-        wker_wakeup(wker);
-    }
-    htdx->n_squeue_thread = 0;
-    chtd_cry(htdx, "squeue_thread() end!");
     return 0;
 }
 
@@ -144,11 +122,6 @@ master_thread(struct htdx_t *htdx)
 
     htdx->status = CHTD_STARTUP;
 
-    pthread_mutex_init(&htdx->mx_sq,      NULL);
-    pthread_cond_init (&htdx->cv_sq_get,  NULL);
-    pthread_cond_init (&htdx->cv_sq_put,  NULL);
-    pthread_mutex_init(&htdx->mx_wk,      NULL);
-    pthread_cond_init (&htdx->cv_wk_idel, NULL);
     init_squeue(htdx);
     init_wkers (htdx);
     /* ] */
@@ -193,15 +166,8 @@ master_thread(struct htdx_t *htdx)
             break;
         }
 
-        /* squeue_thread() */
-        if (pthread_create(&htdx->squeue_tid, NULL, (void *)squeue_thread, htdx) != 0) {
-            chtd_cry(htdx, "create squeue_thread falied!");
-            htdx->status = CHTD_STOPPED;
-            break;
-        }
     } while (0);
     /* ] */
-
 
     if (htdx->status == CHTD_RUNNING) {
         htdx->birthtime = time(NULL);
@@ -221,22 +187,10 @@ master_thread(struct htdx_t *htdx)
     }
 
     /* tell listen_thread exit */
-    if (htdx->cv_sq_put_wait) {
-        pthread_cond_signal(&htdx->cv_sq_put);
-    }
-
-    /* tell squeue_thread exit */
-    if (htdx->cv_sq_get_wait) {
-        pthread_cond_signal(&htdx->cv_sq_get);
-    }
+    pthread_cond_signal(&htdx->cv_sq_put);
 
     /* wait until listen_thread exit */
     while (htdx->n_listen_thread) {
-        sleep(100);
-    }
-
-    /* wait until squeue_thread exit */
-    while (htdx->n_squeue_thread) {
         sleep(100);
     }
 
@@ -246,11 +200,7 @@ master_thread(struct htdx_t *htdx)
     /* ] */
 
     /* [ Destroy */
-    pthread_mutex_destroy(&htdx->mx_sq);
-    pthread_cond_destroy (&htdx->cv_sq_get);
-    pthread_cond_destroy (&htdx->cv_sq_put);
     free_wkers (htdx);
-    chtd_cry   (htdx, "master_thread() end!");
     free_squeue(htdx);
 #ifdef WIN32
     WSACleanup();

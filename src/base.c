@@ -328,7 +328,7 @@ url_encode(char *s, char *d, int max)
         c = *s++;
         /*
         if (c == ' ') {
-        	*d++ = '+';
+            *d++ = '+';
         max--;
         } else
         */

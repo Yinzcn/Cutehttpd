@@ -1,10 +1,5 @@
-<<<<<<< HEAD
+ANSI
 
-中文内容 ANSI
+PHPnow 绿色 PHP 套件包 - 零配置瞬间搭建
 
-=======
-
-中文内容 ANSI
-
->>>>>>> f88a6d2ca9ca6f1d82a248d503ce347502f344f9
 EOF

@@ -33,6 +33,9 @@ init_squeue(struct htdx_t *htdx)
     }
     htdx->squeue_a = NULL;
     htdx->squeue_z = NULL;
+    pthread_mutex_init(&htdx->mx_sq,     NULL);
+    pthread_cond_init (&htdx->cv_sq_get, NULL);
+    pthread_cond_init (&htdx->cv_sq_put, NULL);
     return 1;
 }
 
@@ -40,6 +43,9 @@ init_squeue(struct htdx_t *htdx)
 void
 free_squeue(struct htdx_t *htdx)
 {
+    pthread_mutex_destroy(&htdx->mx_sq);
+    pthread_cond_destroy (&htdx->cv_sq_get);
+    pthread_cond_destroy (&htdx->cv_sq_put);
     if (htdx) {
         free(htdx->squeue);
         htdx->squeue = NULL;
@@ -64,9 +70,7 @@ squeue_put(struct htdx_t *htdx, struct sock_t *i)
         /* not empty */
         while (htdx->squeue_z->next == htdx->squeue_a) {
             /* is full */
-            htdx->cv_sq_get_wait = 1;
             pthread_cond_wait(&htdx->cv_sq_get, &htdx->mx_sq);
-            htdx->cv_sq_get_wait = 0;
             if (htdx->status != CHTD_RUNNING) {
                 pthread_mutex_unlock(&htdx->mx_sq);
                 return 0;
@@ -75,10 +79,8 @@ squeue_put(struct htdx_t *htdx, struct sock_t *i)
         htdx->squeue_z = htdx->squeue_z->next;
         memcpy(&htdx->squeue_z->sock, i, sizeof(struct sock_t));
     }
+    pthread_cond_signal(&htdx->cv_sq_put);
     pthread_mutex_unlock(&htdx->mx_sq);
-    if (htdx->cv_sq_put_wait) {
-        pthread_cond_signal(&htdx->cv_sq_put);
-    }
     return 1;
 }
 
@@ -93,9 +95,7 @@ squeue_get(struct htdx_t *htdx, struct sock_t *o)
     pthread_mutex_lock(&htdx->mx_sq);
     while (htdx->squeue_a == NULL) {
         /* is empty */
-        htdx->cv_sq_put_wait = 1;
         pthread_cond_wait(&htdx->cv_sq_put, &htdx->mx_sq);
-        htdx->cv_sq_put_wait = 0;
         if (htdx->status != CHTD_RUNNING) {
             pthread_mutex_unlock(&htdx->mx_sq);
             return 0;
@@ -109,9 +109,7 @@ squeue_get(struct htdx_t *htdx, struct sock_t *o)
     } else {
         htdx->squeue_a = htdx->squeue_a->next;
     }
+    pthread_cond_signal(&htdx->cv_sq_get);
     pthread_mutex_unlock(&htdx->mx_sq);
-    if (htdx->cv_sq_get_wait) {
-        pthread_cond_signal(&htdx->cv_sq_get);
-    }
     return 1;
 }

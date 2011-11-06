@@ -15,8 +15,6 @@ struct wker_t
 {
     int w_id;       /* wker id */
     pthread_t t_id; /* thread id */
-    pthread_mutex_t mx_wker;
-    pthread_cond_t  cv_wake;
     int nConn;
     int nReqs;
     enum
@@ -44,19 +42,7 @@ free_wkers(struct htdx_t *);
 
 
 int
-get_idel_wker(struct htdx_t *, struct wker_t **);
-
-
-int
-put_idel_wker(struct htdx_t *, struct wker_t **);
-
-
-int
 wker_create_thread(struct wker_t *);
-
-
-int
-wker_wakeup(struct wker_t *);
 
 
 int

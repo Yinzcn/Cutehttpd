@@ -1,8 +1,7 @@
 <html>
 <head>
 <script type="text/JavaScript">
-function CreateXMLHttp()
-{
+function CreateXMLHttp() {
     var XMLHttp;
     try {
         XMLHttp = new XMLHttpRequest();
@@ -24,24 +23,21 @@ function $(id) {
     return document.getElementById(id);
 }
 
-function ajax_get(e, uri)
-{
+function ajax_get(e, u) {
     var XMLHttp;
     e.innerHTML = "";
     XMLHttp = CreateXMLHttp();
-    XMLHttp.onreadystatechange = function()
-    {
+    XMLHttp.onreadystatechange = function() {
         if(XMLHttp.readyState == 4) {
             var r = XMLHttp.responseText;
             e.innerHTML = r;
         }
     }
-    XMLHttp.open("GET", uri, true);
+    XMLHttp.open("GET", u, true);
     XMLHttp.send(null);
 }
 
-function GET()
-{
+function GET() {
     ajax_get($('div_1'), '1.txt');
     ajax_get($('div_2'), '2.txt');
     ajax_get($('div_3'), '3.txt');
@@ -49,9 +45,9 @@ function GET()
 }
 </script>
 </head>
-<body onload="">
+<body>
 <input type="button" value="GET" onclick="GET();" />
-<br />
+<hr />
 <div id="div_1"></div>
 <br />
 <div id="div_2"></div>
