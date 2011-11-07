@@ -8,7 +8,11 @@ if (count($_FILES)) {
   $name = $_FILES["f"]["name"];
   move_uploaded_file($tmp_name, "$name");
 }
-if (isset($_POST)) {
-  var_dump($_POST);
+?>
+<pre>
+<?php
+if (isset($_FILES)) {
+  var_dump($_FILES);
 }
 ?>
+</pre>

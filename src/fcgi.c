@@ -237,7 +237,7 @@ fcgi_recv_header(struct fcgi_reqs_t *fcgi_reqs)
 int
 fcgi_send_padding(struct fcgi_reqs_t *fcgi_reqs, int padl)
 {
-    static char buff[8] = "\0\0\0\0\0\0\0\0";
+    static char buff[8] = { 0 };
     int left = padl;
     int step;
     int retn;
@@ -247,8 +247,6 @@ fcgi_send_padding(struct fcgi_reqs_t *fcgi_reqs, int padl)
     while (left > 0) {
         step = left > 8 ? 8 : left;
         retn = fcgi_conn_send(fcgi_reqs->fcgi_conn, buff, step);
-        DEBUG_TRACE("fcgi_send_padding() -> fcgi_conn_send() = %d", retn);
-
         if (retn > 0) {
             left -= retn;
         } else {
@@ -314,8 +312,8 @@ fcgi_add_params(struct fcgi_reqs_t *fcgi_reqs, char *n, char *v)
 {
     int needsize;
     int newbsize;
-    int   buffsize;
-    int   datasize;
+    int buffsize;
+    int datasize;
     char *databody;
     char *p;
     int nl;
