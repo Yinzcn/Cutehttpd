@@ -118,9 +118,9 @@ struct htdx_t
     int nConn;
     int nReqs;
     int nBadReqs;
-    int nIdelWkers;
     int lasterr;
     int n_listen_thread;
+    int n_worker_thread;
     char *log_file;
     char *log_buff;
     time_t birthtime;

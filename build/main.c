@@ -166,7 +166,6 @@ main(int argc, char *argv[])
             break;
         }
     }
-    chtd_delete(chtd);
-    sleep(1000*60);
+    printf("%d", chtd_delete(chtd));
     return 0;
 }

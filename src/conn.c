@@ -31,7 +31,6 @@ conn_del(struct conn_t *conn)
     }
     conn_close(conn);
     bufx_del(conn->recvbufx);
-    free(conn->sock);
     free(conn->reqs_head);
     free(conn);
 }

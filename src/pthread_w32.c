@@ -20,15 +20,15 @@ pthread_self(void)
 int
 pthread_create(pthread_t *tid, void *attr, void (*start)(void *), void *arg)
 {
-    _beginthread(start, 0, arg);
-    return 0;
+    return _beginthread(start, 0, arg) == -1L ? -1 : 0;
 }
 
 
-int
+void
 pthread_exit(void *unused)
 {
-    return 0;
+    unused = NULL;
+    _endthread();
 }
 
 
@@ -37,14 +37,14 @@ pthread_mutex_init(pthread_mutex_t *mutex, void *unused)
 {
     unused = NULL;
     *mutex = CreateMutex(NULL, FALSE, NULL);
-    return *mutex == NULL ? -1 : 0;
+    return *mutex ? 0 : -1;
 }
 
 
 int
 pthread_mutex_destroy(pthread_mutex_t *mutex)
 {
-    return CloseHandle(*mutex) == 0 ? -1 : 0;
+    return CloseHandle(*mutex) ? 0 : -1;
 }
 
 
@@ -58,7 +58,7 @@ pthread_mutex_lock(pthread_mutex_t *mutex)
 int
 pthread_mutex_unlock(pthread_mutex_t *mutex)
 {
-    return ReleaseMutex(*mutex) == 0 ? -1 : 0;
+    return ReleaseMutex(*mutex) ? 0 : -1;
 }
 
 
@@ -85,14 +85,14 @@ pthread_cond_wait(pthread_cond_t *cv, pthread_mutex_t *mutex)
 int
 pthread_cond_signal(pthread_cond_t *cv)
 {
-    return SetEvent(cv->signal) == 0 ? -1 : 0;
+    return SetEvent(cv->signal) ? 0 : -1;
 }
 
 
 int
 pthread_cond_broadcast(pthread_cond_t *cv)
 {
-    return PulseEvent(cv->broadcast) == 0 ? -1 : 0;
+    return PulseEvent(cv->broadcast) ? 0 : -1;
 }
 
 

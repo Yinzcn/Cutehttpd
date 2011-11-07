@@ -21,8 +21,6 @@ struct wker_t
     {
         WK_DEAD, /* 死亡：线程没有创建 */
         WK_IDEL, /* 空闲：线程已经创建 */
-        WK_HUNG, /* 挂起：即刚刚被召唤 */
-        WK_WKUP, /* 唤醒：处于唤醒状态 */
         WK_BUSY, /* 忙碌：正在处理请求 */
         WK_KEEP  /* 保持："Keep-Alive" */
     } status;

@@ -15,7 +15,6 @@ init_wkers(struct htdx_t *htdx)
     int i;
     struct wker_t *wkers = calloc(n, sizeof(struct wker_t));
     struct wker_t *wker;
-    htdx->nIdelWkers = htdx->max_workers;
     for (i = 0; i < n; i++) {
         wker = &wkers[i];
         wker->w_id      = i;
@@ -47,7 +46,7 @@ free_wkers(struct htdx_t *htdx)
 {
     if (htdx->wkers) {
         struct wker_t *curr, *last;
-        if (htdx->nIdelWkers != htdx->max_workers) {
+        if (htdx->n_worker_thread) {
             return -1;
         }
         curr = htdx->wkers;

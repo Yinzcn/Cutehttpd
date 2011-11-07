@@ -41,16 +41,13 @@ chtd_get_status_info(struct htdx_t *htdx, char *format)
                 "nConn: %d<br />\r\n"
                 "nReqs: %d<br />\r\n"
                 "nBadReqs: %d<br />\r\n"
-                "nIdelWkers: %d<br />\r\n"
                 "<br />\r\n"
                 "<b>wkers status</b><br />\r\n"
+                "\"D\" = Dead<br />\r\n"
                 "\"I\" = Idel<br />\r\n"
                 "\"B\" = Busy<br />\r\n"
-                "\"<u>*</u>\" = Waiting for Connection. Thread keepalive.<br />\r\n"
                 "\"K\" = HTTP Keep-Alive<br />\r\n"
-                "\"H\" = Hung<br />"
-                "\"<u> </u>\" = Thread keepalive.<br />\r\n"
-                "<pre>", start_at, been_run, htdx->nConn, htdx->nReqs, htdx->nBadReqs, htdx->nIdelWkers);
+                "<pre>", start_at, been_run, htdx->nConn, htdx->nReqs, htdx->nBadReqs);
     } else {
         sprintf(buff, "  [Server Status] \n"
                 "  Server started at: %s\n"
@@ -58,22 +55,20 @@ chtd_get_status_info(struct htdx_t *htdx, char *format)
                 "  nConn: %d\n"
                 "  nReqs: %d\n"
                 "  nBadReqs: %d\n"
-                "  nIdelWkers: %d\n"
                 "\n"
                 "  [wkers Status]\n"
+                "  \"D\" = Dead\n"
                 "  \"I\" = Idel\n"
-                "  \"H\" = Hung\n"
-                "  \"W\" = Wakeup\n"
                 "  \"B\" = Busy\n"
                 "  \"K\" = HTTP Keep-Alive\n"
                 "\n"
-                "  wkers [", start_at, been_run, htdx->nConn, htdx->nReqs, htdx->nBadReqs, htdx->nIdelWkers);
+                "  wkers [", start_at, been_run, htdx->nConn, htdx->nReqs, htdx->nBadReqs);
     }
     n = strlen(buff);
 
     if (htdx->wkers) {
         int i = 0;
-        char status[] = "DIHWBK1234567890";
+        char status[] = "DIBK0123456789_";
         struct wker_t *curr, *last;
         curr = htdx->wkers;
         last = curr->prev;

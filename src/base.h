@@ -11,8 +11,7 @@
 struct usa_t   /* unified socket address */
 {
     int len;
-    union
-    {
+    union {
         struct sockaddr sa;
         struct sockaddr_in sin;
     } u;

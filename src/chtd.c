@@ -13,18 +13,23 @@ worker_thread(struct wker_t *wker)
     struct htdx_t *htdx = wker->htdx;
     struct conn_t *conn;
     struct sock_t *sock;
+    pthread_mutex_lock(&htdx->mutex);
+    htdx->n_worker_thread++;
+    pthread_mutex_unlock(&htdx->mutex);
+    sock = calloc(1, sizeof(struct sock_t));
     while (1) {
-        sock = calloc(1, sizeof(struct sock_t));
+        wker->status = WK_IDEL;
         if (!squeue_get(htdx, sock)) {
-            chtd_cry(htdx, "squeue_thread() -> squeue_get() failed!");
-            free(sock);
+            if (htdx->status == CHTD_RUNNING) {
+                chtd_cry(htdx, "worker_thread() -> squeue_get() failed!");
+            }
             break;
         }
 
         wker->status = WK_BUSY;
         conn = conn_new(wker);
-        conn->sock = sock;
         conn = wker->conn;
+        conn->sock = sock;
 
         wker->nConn++;
         conn_set_recv_timeout(conn, 20 * 1000);
@@ -48,12 +53,18 @@ worker_thread(struct wker_t *wker)
         }
 
         conn_close(conn);
-        conn_del  (conn);
+        conn_del(conn);
         wker->conn = NULL;
         if (htdx->status != CHTD_RUNNING) {
             break;
         }
     }
+    free(sock);
+    pthread_mutex_lock(&htdx->mutex);
+    htdx->n_worker_thread--;
+    pthread_mutex_unlock(&htdx->mutex);
+    wker->status = WK_DEAD;
+    chtd_cry(htdx, "worker_thread() end!");
     pthread_exit(NULL);
     return 0;
 }
@@ -77,7 +88,7 @@ listen_thread(struct htdx_t *htdx)
         if (n > 0) {
             if (FD_ISSET(htdx->sock.socket, &readfds)) {
                 sock.rsa.len = sizeof(sock.rsa.u);
-                sock.socket  = accept(htdx->sock.socket, &sock.rsa.u.sa, (void *)&sock.rsa.len);
+                sock.socket = accept(htdx->sock.socket, &sock.rsa.u.sa, (void *)&sock.rsa.len);
                 if (sock.socket <= 0) {
                     htdx->status = CHTD_SUSPEND;
                     chtd_cry(htdx, "accept() return 0 OR -1!");
@@ -130,7 +141,7 @@ master_thread(struct htdx_t *htdx)
         htdx->sock.socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (htdx->sock.socket == -1) {
             chtd_cry(htdx, "master_thread() -> socket() error!");
-            htdx->status = CHTD_STOPPED;
+            htdx->status = CHTD_SUSPEND;
             break;
         }
 
@@ -144,14 +155,14 @@ master_thread(struct htdx_t *htdx)
         lsa->len = sizeof(lsa->u);
         if (bind(htdx->sock.socket, &lsa->u.sa, lsa->len) == -1) {
             chtd_cry(htdx, "bind() to %s:%s error!", htdx->addr, htdx->port);
-            htdx->status = CHTD_STOPPED;
+            htdx->status = CHTD_SUSPEND;
             break;
         }
 
         /* listen() */
         if (listen(htdx->sock.socket, SOMAXCONN) == -1) {
             chtd_cry(htdx, "listen() on %s:%s error!", htdx->addr, htdx->port);
-            htdx->status = CHTD_STOPPED;
+            htdx->status = CHTD_SUSPEND;
             break;
         }
 
@@ -160,7 +171,7 @@ master_thread(struct htdx_t *htdx)
         /* listen_thread() */
         if (pthread_create(&htdx->listen_tid, NULL, (void *)listen_thread, htdx) != 0) {
             chtd_cry(htdx, "create listen_thread falied!");
-            htdx->status = CHTD_STOPPED;
+            htdx->status = CHTD_SUSPEND;
             break;
         }
 
@@ -184,15 +195,12 @@ master_thread(struct htdx_t *htdx)
 #endif
     }
 
-    /* signal listen_thread to exit */
-    pthread_cond_signal(&htdx->cv_sq_put);
+    /* broadcast all worker_thread to exit */
+    pthread_cond_broadcast(&htdx->cv_sq_put);
 
-    /* wait until listen_thread exit */
-    while (htdx->n_listen_thread) {
-        sleep(100);
-    }
-
-    while (htdx->nIdelWkers != htdx->max_workers) {
+    /* wait until listen_thread() & worker_thread() exit */
+    while (htdx->n_listen_thread
+        || htdx->n_worker_thread) {
         sleep(100);
     }
     /* ] */
@@ -204,6 +212,7 @@ master_thread(struct htdx_t *htdx)
     WSACleanup();
 #endif
     /* ] */
+    chtd_cry(htdx, "master_thread() end!");
     htdx->status = CHTD_STOPPED;
     return 0;
 }
