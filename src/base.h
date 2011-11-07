@@ -18,6 +18,7 @@ struct usa_t   /* unified socket address */
     } u;
 };
 
+
 struct sock_t
 {
     SOCKET socket;

@@ -32,10 +32,24 @@ http_list_dir(struct reqs_t *http_reqs, char *path)
     char *request_path_decoded = calloc(strlen(request_path) + 1, sizeof(char));
     url_decode(request_path, request_path_decoded);
     if (request_path[strlen(request_path) - 1] != '/') {
+        buff = calloc(8192, sizeof(char));
+        snprintf(buff, 8192,
+            "<html>\r\n"
+            "<head>\r\n"
+            "<title>301 Moved Permanently</title>\r\n"
+            "</head>\r\n"
+            "<body>\r\n"
+            "<h1>Moved Permanently</h1>\r\n"
+            "<p>The document has moved <a href=\"%s/\">here</a>.</p>\r\n"
+            "<hr />\r\n"
+            "<address>%s</address>\r\n"
+            "</body>\r\n"
+            "</html>", request_path, http_reqs->htdx->SERVER_SOFTWARE);
         set_http_status  (http_reqs, 301);
-        set_http_header  (http_reqs, "Content-Length", "0");
+        set_http_header_x(http_reqs, "Content-Length", "%d", strlen(buff));
         set_http_header_x(http_reqs, "Location", "%s/", request_path);
         send_http_header (http_reqs);
+        reqs_conn_send   (http_reqs, buff, strlen(buff));
         free(request_path_decoded);
         return 1;
     }

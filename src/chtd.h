@@ -120,9 +120,7 @@ struct htdx_t
     int nBadReqs;
     int nIdelWkers;
     int lasterr;
-    int n_squeue_thread;
     int n_listen_thread;
-    int log_buff_size;
     char *log_file;
     char *log_buff;
     time_t birthtime;
@@ -150,8 +148,7 @@ struct htdx_t
     struct vhost_t *vhosts;
     struct mime_type_t *mime_types;
     struct fcgi_pmgr_t *fcgi_pmgr;
-    enum
-    {
+    enum {
         CHTD_STOPPED = 0,
         CHTD_STARTUP,
         CHTD_SUSPEND,

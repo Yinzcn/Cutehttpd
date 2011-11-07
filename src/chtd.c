@@ -78,13 +78,11 @@ listen_thread(struct htdx_t *htdx)
             if (FD_ISSET(htdx->sock.socket, &readfds)) {
                 sock.rsa.len = sizeof(sock.rsa.u);
                 sock.socket  = accept(htdx->sock.socket, &sock.rsa.u.sa, (void *)&sock.rsa.len);
-                /* [ accept() error? */
                 if (sock.socket <= 0) {
                     htdx->status = CHTD_SUSPEND;
                     chtd_cry(htdx, "accept() return 0 OR -1!");
                     break;
                 }
-                /* ] */
                 sock.lsa.len = sizeof(sock.lsa.u);
                 getsockname(sock.socket, &sock.lsa.u.sa, (void *)&sock.lsa.len);
                 if (!squeue_put(htdx, &sock)) {
@@ -186,7 +184,7 @@ master_thread(struct htdx_t *htdx)
 #endif
     }
 
-    /* tell listen_thread exit */
+    /* signal listen_thread to exit */
     pthread_cond_signal(&htdx->cv_sq_put);
 
     /* wait until listen_thread exit */
@@ -218,13 +216,14 @@ chtd_create() {
     htdx->addr                  = strdup("0.0.0.0");
     htdx->port                  = strdup("8080");
     htdx->SERVER_SOFTWARE       = "Cutehttpd/"CHTD_VERSION" (Built: "BUILDTIME")";
+    htdx->SERVER_PROTOCOL       = "HTTP/1.1";
     htdx->max_workers           = 32;
     htdx->squeue_size           = 1024;
     htdx->keep_alive_timeout    = 0;
     htdx->max_post_size         = 8*1024*1024;
 #ifdef PTW32_STATIC_LIB
     pthread_win32_process_attach_np();
-    pthread_win32_thread_attach_np ();
+    pthread_win32_thread_attach_np();
 #endif
     pthread_mutex_init(&htdx->mutex, NULL);
     return htdx;
@@ -253,10 +252,10 @@ chtd_delete(struct htdx_t *htdx)
 int
 chtd_start(struct htdx_t *htdx)
 {
-    pthread_t ntid;
+    pthread_t ptid;
     htdx->status = CHTD_STARTUP;
     /* master_thread */
-    if (pthread_create(&ntid, NULL, (void *)master_thread, htdx) != 0) {
+    if (pthread_create(&ptid, NULL, (void *)master_thread, htdx) != 0) {
         chtd_cry(htdx, "create master_thread falied!");
         htdx->status = CHTD_STOPPED;
         return -1;
@@ -310,8 +309,8 @@ chtd_set_opt(struct htdx_t *htdx, char *opt, char *value)
         if (n > 1000) {
             n = 1000;
         }
-        if (n <    1) {
-            n =    1;
+        if (n < 1) {
+            n = 1;
         }
         htdx->max_workers = n;
         return 1;
@@ -322,8 +321,8 @@ chtd_set_opt(struct htdx_t *htdx, char *opt, char *value)
         if (n > 60) {
             n = 60;
         }
-        if (n <  1) {
-            n =  1;
+        if (n < 1) {
+            n = 1;
         }
         htdx->keep_alive_timeout = n;
         return 1;
