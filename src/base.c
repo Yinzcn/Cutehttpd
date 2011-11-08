@@ -14,10 +14,22 @@ x_basename(char *path)
     char *s1 = strrchr(path, '/' );
     char *s2 = strrchr(path, '\\');
     char *s3 = (s1 > s2) ? s1 : s2;
-    if (s3) {
-        path = s3 + 1;
+    return s3 ? (s3 + 1) : path;
+}
+
+
+char *
+x_ext_name(char *name)
+{
+    char *p;
+    if (!name) {
+        return "";
     }
-    return path;
+    p = strrchr(name, '.');
+    if (p) {
+        return p++;
+    }
+    return "";
 }
 
 
@@ -347,21 +359,6 @@ url_encode(char *s, char *d, int max)
         }
     }
     *d = *s;
-}
-
-
-char *
-get_file_extname(char *filename)
-{
-    char *p;
-    if (!filename) {
-        return "";
-    }
-    p = strrchr(filename, '.');
-    if (p) {
-        return p++;
-    }
-    return "";
 }
 
 

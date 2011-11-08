@@ -101,7 +101,8 @@ listen_thread(struct htdx_t *htdx)
                     break;
                 }
             }
-        } else if (n < 0) {
+        } else
+        if (n < 0) {
             chtd_cry(htdx, "select() return SOCKET_ERROR!");
             htdx->status = CHTD_SUSPEND;
         } else {
@@ -118,9 +119,6 @@ int
 master_thread(struct htdx_t *htdx)
 {
     /* [ Init */
-    int bTrue = 1;
-    struct usa_t *lsa;
-
 #ifdef _WIN32
     WSADATA wsadata;
     if (WSAStartup(MAKEWORD(2, 0), &wsadata)) {
@@ -137,6 +135,9 @@ master_thread(struct htdx_t *htdx)
 
     /* [ Startup */
     do {
+        int bTrue = 1;
+        struct usa_t *lsa;
+
         /* socket() */
         htdx->sock.socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (htdx->sock.socket == -1) {
@@ -146,6 +147,7 @@ master_thread(struct htdx_t *htdx)
         }
 
         setsockopt(htdx->sock.socket, SOL_SOCKET, SO_REUSEADDR, (void *)&bTrue, sizeof(bTrue));
+        setsockopt(htdx->sock.socket, SOL_SOCKET, SO_KEEPALIVE, (void *)&bTrue, sizeof(bTrue));
 
         /* bind() */
         lsa = &htdx->sock.lsa;

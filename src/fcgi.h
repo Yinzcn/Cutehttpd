@@ -47,7 +47,7 @@ struct fcgi_reqs_t
 
 struct fcgi_conn_t
 {
-    struct sock_t       sock;
+    struct sock_t        sock;
     struct bufx_t       *recvbufx;
     struct fcgi_reqs_t  *fcgi_reqs;
     struct reqs_t       *http_reqs;

@@ -31,6 +31,10 @@ x_basename(char *);
 
 
 char *
+x_ext_name(char *);
+
+
+char *
 x_nowstr(void);
 
 
@@ -82,10 +86,6 @@ url_decode(char *, char *);
 
 void
 url_encode(char *, char *, int);
-
-
-char *
-get_file_extname(char *);
 
 
 int

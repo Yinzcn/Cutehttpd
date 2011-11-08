@@ -147,7 +147,7 @@ struct htdx_t
     struct uhook_t *uhooks;
     struct vhost_t *vhosts;
     struct mime_type_t *mime_types;
-    struct fcgi_pmgr_t *fcgi_pmgr;
+    struct fcgi_pmgr_t *fcgi_pmgrs;
     enum {
         CHTD_STOPPED = 0,
         CHTD_STARTUP,

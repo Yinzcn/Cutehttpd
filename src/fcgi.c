@@ -67,25 +67,6 @@ struct fcgi_conn_t *
 fcgi_conn_new(struct reqs_t *http_reqs) {
     struct htdx_t *htdx = http_reqs->htdx;
     struct fcgi_conn_t *fcgi_conn;
-    struct fcgi_pmgr_t *fcgi_pmgr = htdx->fcgi_pmgr;
-
-    SOCKET fcgi_socket;
-    fcgi_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (fcgi_socket == 0) {
-        chtd_cry(htdx, "ERROR: fcgi_conn_new() -> socket() failed!%d");
-        return NULL;
-    }
-
-    if (connect(fcgi_socket, &fcgi_pmgr->rsa.u.sa, sizeof(fcgi_pmgr->rsa.u)) == -1) {
-        chtd_cry(htdx, "ERROR: connect() to fastcgi server (%s:%s) failed!",
-                 fcgi_pmgr->fcgid_addr, fcgi_pmgr->fcgid_port);
-#ifdef WIN32
-        closesocket(fcgi_socket);
-#else
-        close(fcgi_socket);
-#endif
-        return NULL;
-    }
 
     fcgi_conn = calloc(1, sizeof(struct fcgi_conn_t));
     if (!fcgi_conn) {
@@ -94,7 +75,6 @@ fcgi_conn_new(struct reqs_t *http_reqs) {
     fcgi_conn->sock.socket  = fcgi_socket;
     fcgi_conn->http_reqs    = http_reqs;
     fcgi_conn->fcgi_reqs    = NULL;
-    fcgi_conn->fcgi_pmgr    = fcgi_pmgr;
     fcgi_conn->htdx         = htdx;
     fcgi_conn->recvbufx     = bufx_new(4096, 1024*1024*8);
     return fcgi_conn;
@@ -703,15 +683,18 @@ fcgi_reqs_done(struct fcgi_reqs_t *fcgi_reqs)
 
 
 int
-fcgi_reqs_proc(struct reqs_t *http_reqs, struct vhost_t *vhost)
+fcgi_reqs_proc(struct fcgi_pmgr_t *fcgi_pmgr, struct reqs_t *http_reqs)
 {
     struct conn_t *http_conn = http_reqs->conn;
     struct fcgi_reqs_t *fcgi_reqs = fcgi_reqs_new(http_reqs);
+    struct fcgi_conn_t *fcgi_conn = fcgi_conn_new(fcgi_reqs);
     int loop = 1;
 
-    if (!fcgi_reqs) {
+    if (fcgi_pmgr_conn(fcgi_pmgr, fcgi_conn) == -1) {
         set_keep_alive(http_reqs, 0);
         reqs_throw_status(http_reqs, 504, "connect to fastcgi server failed!");
+        fcgi_conn_free(fcgi_conn);
+        fcgi_reqs_free(fcgi_reqs);
         return 1;
     }
 
