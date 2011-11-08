@@ -20,9 +20,9 @@
 
 
 void *
-uhook_test_1(void *data)
+uhook_time(void *reqs)
 {
-    printf("%s(\"%s\")\n", __FUNCTION__, (char *)data);
+    reqs_throw_status(reqs, 200, x_nowstr());
     return (void *)1;
 }
 
@@ -30,7 +30,7 @@ uhook_test_1(void *data)
 void *
 uhook_test_2(void *data)
 {
-    printf("%s(\"%s\")\n", __FUNCTION__, (char *)data);
+    printf("%s(\"0x%08x\")\n", __FUNCTION__, (int)data);
     return (void *)2;
 }
 
@@ -82,7 +82,7 @@ main(int argc, char *argv[])
     */
     chtd_set_opt(chtd, "addr", "0.0.0.0");      /* http 绑定服务地址 */
     chtd_set_opt(chtd, "port", "8080");         /* http 绑定服务端口 */
-    chtd_set_opt(chtd, "max_workers", "100");    /* 最大 wkers 数量, 决定最大并发数量 */
+    chtd_set_opt(chtd, "max_workers", "100");   /* 最大 wkers 数量, 决定最大并发数量 */
     chtd_set_opt(chtd, "keep_alive", "15");     /* 设置 keep_alive 超时, 0 禁用 */
     chtd_set_opt(chtd, "max_post_size", "128"); /* 最大 POST 数据, 单位 MB */
 
@@ -113,9 +113,8 @@ main(int argc, char *argv[])
         注意: uri 使用正则表达式, 而主机名直接完整匹配。
         host 可用 * 匹配所有主机。
     */
-    chtd_set_uhook(chtd, "127.0.0.1", "/any/.*",   uhook_test_1);
-    chtd_set_uhook(chtd, "127.0.0.1", "/uhook2-2", uhook_test_2);
-    chtd_set_uhook(chtd, "*", "/server-status",   server_status);
+    chtd_set_uhook(chtd, "*", "/uhook/time", uhook_time);
+    chtd_set_uhook(chtd, "*", "/server-status", server_status);
     /*
         "*" 匹配任意主机
     */
@@ -139,12 +138,6 @@ main(int argc, char *argv[])
         case 's':
             chtd_stop(chtd);
             break;
-            /*
-                        case 'd':
-                            if (chtd_delete(chtd) == 0) {
-                            }
-                            break;
-            */
         case 'p':
             break;
 

@@ -47,8 +47,9 @@ struct reqs_t
     char *docs_root;
     char *post_data;
     int   post_size;
-    char *rp_status_line;
+    int   post_read_flag;
     int   rp_header_sent;
+    char *rp_status_line;
     struct namevalue_t *re_headers; /* Request  headers */
     struct namevalue_t *rp_headers; /* Response headers */
     struct conn_t *conn;

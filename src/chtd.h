@@ -70,7 +70,6 @@
 /*
 [ PCRE
 */
-//#define HAVE_PCRE
 #ifdef HAVE_PCRE
 #define PCRE_STATIC
 #include "pcre.h"

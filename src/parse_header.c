@@ -37,12 +37,12 @@ parse_header(struct namevalue_t **nvs, char *header_str)
         sw_goto_next_line,
     } state = sw_name_start;
 
-    char *n_a;    /*  name start       */
-    char *n_z;    /*  name end         */
-    char *v_a;    /*  value start      */
-    char *v_z;    /*  value end        */
-    int   n_l;    /*  length of name   */
-    int   v_l;    /*  length of value  */
+    char *n_a = NULL;   /*  name start       */
+    char *n_z = NULL;   /*  name end         */
+    char *v_a = NULL;   /*  value start      */
+    char *v_z = NULL;   /*  value end        */
+    int   n_l;          /*  length of name   */
+    int   v_l;          /*  length of value  */
 
     char *p = header_str;
     int loop = 1;

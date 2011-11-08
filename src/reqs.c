@@ -143,7 +143,20 @@ reqs_read_post(struct reqs_t *reqs)
     }
     reqs->post_size = post_size;
     reqs->post_data = post_data;
+    reqs->post_read_flag = 1;
     return 1;
+}
+
+
+void
+reqs_skip_post(struct reqs_t *reqs)
+{
+    char static buff[1024];
+    int size = atoi(get_http_header(reqs, "Content-Length"));
+    while (size) {
+        size -= conn_recv(reqs->conn, buff, size > 1024 ? 1024 : size);
+    }
+    reqs->post_read_flag = 1;
 }
 
 
@@ -233,7 +246,7 @@ reqs_parse(struct reqs_t *reqs)
     reqs->method_name = http_method_names[reqs->method];
     if (reqs->method == HTTP_METHOD_UNKNOWN) {
         reqs_throw_status(reqs, 501, ""); /* "501 Method Not Implemented" */
-        chtd_cry(reqs->htdx, "Method Not Implemented: [%s]", reqs->method_name);
+        chtd_cry(reqs->htdx, "Method Not Implemented: [%s]", a);
         return 0;
     }
     /*
@@ -243,7 +256,7 @@ reqs_parse(struct reqs_t *reqs)
     /*
     [ URI
     */
-#define is_valid_uri_char(c) ((c > 32) && (c != 127) && (c != 255))
+    #define is_valid_uri_char(c) ((c > 32) && (c != 127) && (c != 255))
     a = z;
     while (*a == SP) {
         a++;
@@ -363,8 +376,13 @@ reqs_proc(struct conn_t *conn)
     /* [ match uhook */
     uhook = chtd_uhook_match(reqs);
     if (uhook) {
-        DEBUG_TRACE("uhook matched xuri:[%s] uri:[%s]", uhook->xuri, reqs->uri);
-        if ((void*)uhook->func(reqs)) {
+        if (uhook->func(reqs)) {
+            if (reqs->rp_header_sent == 0) {
+                reqs_throw_status(reqs, 400, ""); /* "400 Bad Request" */
+            }
+            if (reqs->post_read_flag == 0) {
+                reqs_skip_post(reqs);
+            }
             reqs_del(reqs);
             return 1;
         }

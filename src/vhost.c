@@ -57,7 +57,7 @@ vhost_proc(struct reqs_t *http_reqs, struct vhost_t *vhost)
         }
     }
 
-    reqs_throw_status(http_reqs, 404, http_reqs->request_path);
+    reqs_throw_status(http_reqs, 404, "404 Not Found");
     return 1;
 }
 
@@ -203,24 +203,28 @@ chtd_set_vhost(struct htdx_t *htdx, char *szHost, char *szRoot, char *szConf)
 
 struct vhost_t *
 chtd_vhost_match(struct reqs_t *http_reqs) {
-    struct vhost_t *Curr, *Last;
-    char *Host;
+    struct vhost_t *curr, *last;
+    char *host, *temp;
     if (!http_reqs->htdx->vhosts) {
         return NULL;
     }
-    Host = (char *)get_http_header(http_reqs, "Host");
-    Curr = http_reqs->htdx->vhosts;
-    Last = Curr->prev;
+    host = strdup(get_http_header(http_reqs, "host"));
+    temp = strchr(host, ':');
+    if (temp) { *temp = 0; };
+    curr = http_reqs->htdx->vhosts;
+    last = curr->prev;
     while (1) {
-        if (strcasecmp(Curr->host, Host) == 0) {
+        if (strcasecmp(curr->host, host) == 0) {
             /* match host (xx.xx.xx.xx) */
-            http_reqs->htdx->vhosts = Curr;
-            return Curr;
+            http_reqs->htdx->vhosts = curr;
+            free(host);
+            return curr;
         }
-        if (Curr == Last) {
+        if (curr == last) {
             break;
         }
-        Curr = Curr->next;
+        curr = curr->next;
     }
+    free(host);
     return chtd_get_vhost(http_reqs->htdx, "*");
 }

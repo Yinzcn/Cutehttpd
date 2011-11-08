@@ -151,28 +151,26 @@ chtd_set_uhook(struct htdx_t *htdx, char *host, char *xuri, void *func)
 
 
 struct uhook_t *
-chtd_uhook_match(struct reqs_t *http_reqs) {
-    struct htdx_t *htdx = http_reqs->htdx;
+chtd_uhook_match(struct reqs_t *reqs) {
+    struct htdx_t *htdx = reqs->htdx;
     if (htdx->uhooks) {
         struct uhook_t *curr, *last;
-        char *host, *p;
-        host = strdup(get_http_header(http_reqs, "Host"));
-        p = strchr(host, ':');
-        if (p) {
-            *p = '\0';
-        }
+        char *host, *temp;
+        host = strdup(get_http_header(reqs, "Host"));
+        temp = strchr(host, ':');
+        if (temp) { *temp = 0; };
         curr = htdx->uhooks;
         last = curr->prev;
         while (1) {
             /* [ */
             if (strcasecmp(curr->host, host) == 0 || strcasecmp(curr->host, "*") == 0) {
 #ifdef HAVE_PCRE
-                if (pcre_exec(curr->pPcre, NULL, http_reqs->uri, strlen(http_reqs->uri), 0, 0, NULL, 0) == 0) {
+                if (pcre_exec(curr->pPcre, NULL, reqs->uri, strlen(reqs->uri), 0, 0, NULL, 0) == 0) {
                     free(host);
                     return curr;
                 }
 #else
-                if (strcmp(curr->xuri, http_reqs->uri) == 0) {
+                if (strcmp(curr->xuri, reqs->uri) == 0) {
                     free(host);
                     return curr;
                 }

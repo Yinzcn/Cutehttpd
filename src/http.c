@@ -9,11 +9,11 @@
 
 
 int
-set_status_line(struct reqs_t *http_reqs, char *status_line)
+set_status_line(struct reqs_t *reqs, char *status_line)
 {
     char buff[256] = "\0";
-    if (!http_reqs || !status_line) {
-        chtd_cry(NULL, "call set_status_line() with NULL http_reqs OR NULL status_line!");
+    if (!reqs || !status_line) {
+        chtd_cry(NULL, "call set_status_line() with NULL reqs OR NULL status_line!");
         return 0;
     }
     if (strlen(status_line) > 255) {
@@ -21,27 +21,27 @@ set_status_line(struct reqs_t *http_reqs, char *status_line)
     }
     strcat(buff, "HTTP/1.1 ");
     strcat(buff, status_line);
-    if (http_reqs->rp_status_line) {
-        free(http_reqs->rp_status_line);
+    if (reqs->rp_status_line) {
+        free(reqs->rp_status_line);
     }
-    http_reqs->rp_status_line = strdup(buff);
+    reqs->rp_status_line = strdup(buff);
     return 1;
 }
 
 
 int
-set_http_status(struct reqs_t *http_reqs, int status_code)
+set_http_status(struct reqs_t *reqs, int status_code)
 {
-    return set_status_line(http_reqs, http_status_lines_get(status_code));
+    return set_status_line(reqs, http_status_lines_get(status_code));
 }
 
 
 int
-set_http_header(struct reqs_t *http_reqs, char *n, char *v)
+set_http_header(struct reqs_t *reqs, char *n, char *v)
 {
     int nl;
     int vl;
-    if (!http_reqs || !n || !v) {
+    if (!reqs || !n || !v) {
         return 0;
     }
     nl = strlen(n);
@@ -49,15 +49,15 @@ set_http_header(struct reqs_t *http_reqs, char *n, char *v)
     if (nl) {
         if (striequ(n, "Set-Cookie")) {
             if (vl) {
-                namevalues_add(&http_reqs->rp_headers, n, nl, v, vl);
+                namevalues_add(&reqs->rp_headers, n, nl, v, vl);
             }
         } else {
-            struct namevalue_t *nv = namevalues_get(&http_reqs->rp_headers, n);
+            struct namevalue_t *nv = namevalues_get(&reqs->rp_headers, n);
             if (nv) { /* already exists, delete it */
-                namevalues_del(&http_reqs->rp_headers, nv);
+                namevalues_del(&reqs->rp_headers, nv);
             }
             if (vl) { /* add */
-                namevalues_add(&http_reqs->rp_headers, n, nl, v, vl);
+                namevalues_add(&reqs->rp_headers, n, nl, v, vl);
             }
         }
     }
@@ -66,9 +66,9 @@ set_http_header(struct reqs_t *http_reqs, char *n, char *v)
 
 
 int
-set_http_header_x(struct reqs_t *http_reqs, char *n, char *f, ...)
+set_http_header_x(struct reqs_t *reqs, char *n, char *f, ...)
 {
-    if (!http_reqs || !n || !f) {
+    if (!reqs || !n || !f) {
         return 0;
     }
     if (!strlen(n)) {
@@ -80,7 +80,7 @@ set_http_header_x(struct reqs_t *http_reqs, char *n, char *f, ...)
         va_start(a, f);
         vsprintf(b, f, a);
         va_end(a);
-        set_http_header(http_reqs, n, b);
+        set_http_header(reqs, n, b);
     }
     return 1;
 }
@@ -111,10 +111,10 @@ set_keep_alive(struct reqs_t *reqs, int should_keep_alive)
 
 
 char *
-get_http_header(struct reqs_t *http_reqs, char *name)
+get_http_header(struct reqs_t *reqs, char *name)
 {
     struct namevalue_t *nv;
-    nv = namevalues_get(&http_reqs->re_headers, name);
+    nv = namevalues_get(&reqs->re_headers, name);
     if (nv) {
         return nv->v;
     }
@@ -123,17 +123,17 @@ get_http_header(struct reqs_t *http_reqs, char *name)
 
 
 int
-send_http_header(struct reqs_t *http_reqs)
+send_http_header(struct reqs_t *reqs)
 {
     struct bufx_t *bufx = bufx_new(4096, 1024*1024);
-    if (!http_reqs->rp_status_line) {
-        set_http_status(http_reqs, 200); /* "200 OK" */
+    if (!reqs->rp_status_line) {
+        set_http_status(reqs, 200); /* "200 OK" */
     }
-    bufx_put_str(bufx, http_reqs->rp_status_line);
+    bufx_put_str(bufx, reqs->rp_status_line);
     bufx_put_str(bufx, "\r\n");
-    if (http_reqs->rp_headers) {
+    if (reqs->rp_headers) {
         struct namevalue_t *curr, *last;
-        curr = http_reqs->rp_headers;
+        curr = reqs->rp_headers;
         last = curr->prev;
         while (1) {
             bufx_put_str(bufx, curr->n);
@@ -147,8 +147,8 @@ send_http_header(struct reqs_t *http_reqs)
         }
     }
     bufx_put_str(bufx, "\r\n");
-    bufx_get_each(bufx, (void *(*)())reqs_conn_send, http_reqs);
-    http_reqs->rp_header_sent = 1;
+    bufx_get_each(bufx, (void *(*)())reqs_conn_send, reqs);
+    reqs->rp_header_sent = 1;
     bufx_del(bufx);
     return 1;
 }
