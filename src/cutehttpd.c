@@ -21,7 +21,9 @@
 #include "vhost.c"
 #include "squeue.c"
 #include "wker.c"
+#ifdef CHTD_FCGI
 #include "fcgi.c"
+#endif
 #include "status_info.c"
 #include "test_ext.c"
 #include "debug.c"

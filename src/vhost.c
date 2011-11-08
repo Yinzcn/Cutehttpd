@@ -43,15 +43,16 @@ vhost_proc(struct reqs_t *http_reqs, struct vhost_t *vhost)
             /* ] */
         } else if (S_IFREG & buf.st_mode) {
             /* [ is a file */
+            #ifdef CHTD_FCGI
             struct fcgi_pmgr_t *fcgi_pmgr;
             fcgi_pmgr = fcgi_pmgr_match(htdx, x_ext_name(reqs_real_path));
             if (fcgi_pmgr) {
                 fcgi_reqs_proc(fcgi_pmgr, http_reqs);
                 return 1;
-            } else {
-                http_send_file(http_reqs, reqs_real_path);
-                return 1;
             }
+            #endif
+            http_send_file(http_reqs, reqs_real_path);
+            return 1;
             /* ] */
         }
     }

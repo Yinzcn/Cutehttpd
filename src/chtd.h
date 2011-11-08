@@ -7,6 +7,9 @@
 #define CHTD_H
 
 
+#include "conf.h"
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -147,7 +150,9 @@ struct htdx_t
     struct uhook_t *uhooks;
     struct vhost_t *vhosts;
     struct mime_type_t *mime_types;
+    #ifdef CHTD_FCGI
     struct fcgi_pmgr_t *fcgi_pmgrs;
+    #endif
     enum {
         CHTD_STOPPED = 0,
         CHTD_STARTUP,
@@ -206,7 +211,9 @@ struct htdx_t
 #include "vhost.h"
 #include "squeue.h"
 #include "wker.h"
+#ifdef CHTD_FCGI
 #include "fcgi.h"
+#endif
 #include "status_info.h"
 #include "test_ext.h"
 #include "debug.h"

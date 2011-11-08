@@ -91,7 +91,9 @@ main(int argc, char *argv[])
         设置 fastcgi。若存在 [启动命令行]，chtdx 将自动管理 fcgi 进程。
         chtd_set_fcgi (chtd, ".扩展", "地址", "端口", "[启动命令行]");
     */
+    #ifdef CHTD_FCGI
     chtd_set_fcgi(chtd, ".php", "127.0.0.1", "9900", "php\\php-cgi.exe -b @addr@:@port@");
+    #endif
 
 
     /*

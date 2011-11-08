@@ -42,7 +42,7 @@ http_send_file(struct reqs_t *http_reqs, char *file_path)
     set_http_status  (http_reqs, 200); /* "200 OK" */
     set_http_header  (http_reqs, "Date", "");
     set_http_header  (http_reqs, "Last-Modified", "");
-    set_http_header_x(http_reqs, "Content-Type", get_mime_type(http_reqs->htdx, get_file_extname(file_path)));
+    set_http_header_x(http_reqs, "Content-Type", get_mime_type(http_reqs->htdx, x_ext_name(file_path)));
     set_http_header_x(http_reqs, "Content-Length", "%d", file_size);
     send_http_header (http_reqs);
 
