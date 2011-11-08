@@ -11,18 +11,12 @@
 struct fcgi_pmgr_t *
 fcgi_pmgr_new(struct htdx_t *htdx, char *extname, char *sz_addr, char *sz_port, char *sz_cmdl) {
     struct fcgi_pmgr_t *fcgi_pmgr = calloc(1, sizeof(struct fcgi_pmgr_t));
-
     fcgi_pmgr->n_conn_max = 64;
-
-    strncpy(fcgi_pmgr->cgiextname, extname,  15);
-    strncpy(fcgi_pmgr->fcgid_addr, sz_addr,  63);
-    strncpy(fcgi_pmgr->fcgid_port, sz_port,  15);
+    strncpy(fcgi_pmgr->cgiextname, extname, 15);
+    strncpy(fcgi_pmgr->fcgid_addr, sz_addr, 63);
+    strncpy(fcgi_pmgr->fcgid_port, sz_port, 15);
     strncpy(fcgi_pmgr->fcgid_cmdl, sz_cmdl, 255);
-
-    fcgi_pmgr->rsa.u.sin.sin_family      = AF_INET;
-    fcgi_pmgr->rsa.u.sin.sin_addr.s_addr =  inet_addr(fcgi_pmgr->fcgid_addr);
-    fcgi_pmgr->rsa.u.sin.sin_port        = htons(atoi(fcgi_pmgr->fcgid_port));
-
+    pthread_mutex_init(&fcgi_pmgr->mutex, NULL);
     fcgi_pmgr->htdx = htdx;
     return fcgi_pmgr;
 }
@@ -34,6 +28,7 @@ fcgi_pmgr_del(struct fcgi_pmgr_t *fcgi_pmgr)
     if (!fcgi_pmgr) {
         return;
     }
+    pthread_mutex_destroy(&fcgi_pmgr->mutex);
     fcgi_pmgr->htdx->fcgi_pmgr = NULL;
     free(fcgi_pmgr);
 }
@@ -42,13 +37,13 @@ fcgi_pmgr_del(struct fcgi_pmgr_t *fcgi_pmgr)
 int
 fcgi_pmgr_proc_spawn(struct fcgi_pmgr_t *fcgi_pmgr)
 {
-    int port = 9000;
+    int nm_port = atoi(fcgi_pmgr->sz_port);
     struct fcgi_proc_t *curr, *last;
     curr = fcgi_pmgr->fcgi_procs;
     last = curr->prev;
     while (1) {
-        if (curr->port == port) {
-            port++;
+        if (curr->port == nm_port) {
+            nm_port++;
             curr = last->next;
         }
         if (curr == last) {
@@ -56,15 +51,40 @@ fcgi_pmgr_proc_spawn(struct fcgi_pmgr_t *fcgi_pmgr)
         }
         curr = curr->next;
     }
+
     STARTUPINFOA si;
     PROCESS_INFORMATION pi;
     si.cb  = sizeof(si);
     si.dwFlags = STARTF_USESHOWWINDOW;
     si.wShowWindow = SW_HIDE;
-    if (CreateProcessA(NULL, fcgi_pmgr->fcgid_cmdl, NULL, NULL, TRUE, CREATE_NEW_PROCESS_GROUP, envblk, dir, &si, &pi) == 0) {
-        
-    }
 
+    char sz_port[8];
+    char *temp = str_replace("@addr@", fcgi_pmgr->fcgi_addr, fcgi_pmgr->fcgi_cmdl);
+    char *cmdl = str_replace("@port@", itoa(nm_port, sz_port, 10), temp);
+    free(temp);
+
+    int retn;
+    retn = CreateProcessA(NULL, cmdl, NULL, NULL, TRUE, CREATE_NEW_PROCESS_GROUP, envblk, dir, &si, &pi);
+    if (retn) {
+        struct fcgi_proc_t *fcgi_proc = calloc(1, sizeof(struct fcgi_proc_t));        
+        fcgi_proc->rsa.u.sin.sin_family = AF_INET;
+        fcgi_proc->rsa.u.sin.sin_addr.s_addr = inet_addr(fcgi_pmgr->fcgi_addr);
+        fcgi_proc->rsa.u.sin.sin_port = htons(nm_port);
+        if (fcgi_pmgr->fcgi_procs) {
+            fcgi_proc->prev = fcgi_pmgr->fcgi_procs->prev;
+            fcgi_proc->next = fcgi_pmgr->fcgi_procs;
+            fcgi_proc->prev->next = fcgi_proc;
+            fcgi_proc->next->prev = fcgi_proc;
+        } else {
+            fcgi_proc->prev = fcgi_proc;
+            fcgi_proc->next = fcgi_proc;
+            fcgi_pmgr->fcgi_procs = fcgi_proc;
+        }
+    } else {
+        htd_cry(fcgi_pmgr->htdx, "CreateProcessA() failed! [%s]", cmdl);
+    }
+    free(cmdl);
+    return retn ? 0 : -1;
 }
 
 
@@ -143,10 +163,8 @@ chtd_set_fcgi(struct htdx_t *htdx, char *extname, char *sz_addr, char *sz_port, 
         sz_addr = "0.0.0.0";
     }
 
-    char *temp = str_replace("@addr@", sz_addr, sz_cmdl);
-    char *cmdl = str_replace("@port@", sz_port, temp);
     fcgi_pmgr_del(htdx->fcgi_pmgr);
-    htdx->fcgi_pmgr = fcgi_pmgr_new(htdx, extname, sz_addr, sz_port, cmdl);
+    htdx->fcgi_pmgr = fcgi_pmgr_new(htdx, extname, sz_addr, sz_port, sz_cmdl);
     free(temp);
     free(cmdl);
     return 1;

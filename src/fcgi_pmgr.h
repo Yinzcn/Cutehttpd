@@ -23,19 +23,19 @@ struct fcgi_proc_t
 }
 
 
-struct fcgi_pmgr_t   /* Process Manager */
+/* Process Manager */
+struct fcgi_pmgr_t
 {
     int    n_conn_max;
     int    n_conn_curr;
     char   extname[16];
-    char   fcgid_addr[64];
-    char   fcgid_port[16];
-    char   fcgid_cmdl[256];
+    char   fcgi_addr[64];
+    char   fcgi_port[16];
+    char   fcgi_cmdl[256];
+    pthread_mutex_t mutex;
     struct usa_t rsa;
-    struct htdx_t *htdx;
     struct fcgi_proc_t *fcgi_pmgrs;
+    struct htdx_t *htdx;
     struct fcgi_pmgr_t *prev;
     struct fcgi_pmgr_t *next;
 };
-
-
