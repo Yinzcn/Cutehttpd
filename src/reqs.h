@@ -49,7 +49,10 @@ struct reqs_t
     int   post_size;
     int   post_read_flag;
     int   rp_header_sent;
+    
+    int   content_length;
     char *rp_status_line;
+    struct namevalue_t *post_vars; /* Request  headers */
     struct namevalue_t *re_headers; /* Request  headers */
     struct namevalue_t *rp_headers; /* Response headers */
     struct conn_t *conn;

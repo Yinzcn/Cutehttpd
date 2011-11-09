@@ -123,8 +123,12 @@ reqs_read_post(struct reqs_t *reqs)
 {
     char *post_data;
     int size_recv;
-    int post_size = atoi(get_http_header(reqs, "Content-Length"));
+    int post_size = reqs->content_length;
     if (post_size == 0) {
+        reqs->post_read_flag = 1;
+        return 1;
+    }
+    if (reqs->post_read_flag) {
         return 1;
     }
     if (post_size > reqs->htdx->max_post_size || post_size < 0) {
@@ -132,7 +136,7 @@ reqs_read_post(struct reqs_t *reqs)
         reqs_throw_status(reqs, 400, "post data too large!");
         return 0;
     }
-    post_data = calloc(post_size, sizeof(char));
+    post_data = calloc(post_size + 1, sizeof(char));
     size_recv = conn_recv(reqs->conn, post_data, post_size);
     if (size_recv != post_size) {
         free(post_data);
@@ -148,11 +152,88 @@ reqs_read_post(struct reqs_t *reqs)
 }
 
 
+int
+reqs_parse_post(struct reqs_t *reqs)
+{
+    char *content_type;
+    char *charset = NULL;
+    char *p;
+    if (!reqs_read_post(reqs)) {
+        return 0;
+    }
+    if (!reqs->post_size) {
+        return 0;
+    }
+    content_type = strdup(get_http_header(reqs, "Content-Type"));
+    p = content_type;
+    while ((p = strchr(p, ';'))) {
+        *p++ = '\0';
+        while (*p == ' ') { p++; };
+        if (strncmp(p, "charset=", 8) == 0) {
+            charset = p + 8;
+        }
+    }
+    /*
+    application/x-www-form-urlencoded
+[
+Content-Type: multipart/form-data; boundary=---------------------------199122566726299
+Content-Length: 355
+
+-----------------------------199122566726299
+Content-Disposition: form-data; name="f1"
+
+~!@#$%
+-----------------------------199122566726299
+Content-Disposition: form-data; name="f2"; filename="echo.php"
+Content-Type: application/octet-stream
+
+<?php
+echo '[Cutehttpd]['.time().']['.rand().']';
+?>
+-----------------------------199122566726299--
+
+]
+    */
+    if (strcasecmp(content_type, "text/plain") == 0) {
+        /* "a=Alpha&b=Beta" */
+        char *n_a, *n_z;
+        char *v_a, *v_z;
+        int n_l = 0, v_l = 0;
+        char *p = reqs->post_data;
+        while (*p) {
+            n_a = p;
+            while (*p && *p != '=') { p++; };
+            n_z = p;
+            if (*p) {
+                p++;
+            } else {
+                break;
+            }
+            v_a = p;
+            while (*p && *p != '&') { p++; };
+            v_z = p;
+            if (*p) {
+                p++;
+            }
+            n_l = n_z - n_a;
+            v_l = v_z - v_a;
+            if (n_l > 0 && v_l > 0) {
+                namevalues_add(&reqs->post_vars, n_a, n_l, v_a, v_l);
+            }
+        }
+    }
+    dump_namevalues(&reqs->post_vars);
+    chtd_cry(reqs->htdx, "[%s] [%s]", content_type, charset);
+    free(content_type);
+    return 1;
+}
+
+
 void
 reqs_skip_post(struct reqs_t *reqs)
 {
     char static buff[1024];
-    int size = atoi(get_http_header(reqs, "Content-Length"));
+    int size = reqs->content_length;
     while (size) {
         size -= conn_recv(reqs->conn, buff, size > 1024 ? 1024 : size);
     }
@@ -345,6 +426,10 @@ reqs_parse(struct reqs_t *reqs)
     ]
     */
 
+    reqs->content_length = atoi(get_http_header(reqs, "Content-Length"));
+
+    reqs_parse_post(reqs);
+
     return 1;
 }
 
@@ -393,6 +478,9 @@ reqs_proc(struct conn_t *conn)
     vhost = chtd_vhost_match(reqs);
     if (vhost) {
         if (vhost_proc(reqs, vhost)) {
+            if (reqs->post_read_flag == 0) {
+                reqs_skip_post(reqs);
+            }
             reqs_del(reqs);
             return 1;
         }

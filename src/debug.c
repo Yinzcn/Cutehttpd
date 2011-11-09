@@ -74,4 +74,23 @@ bufx_debug(struct bufx_t *bufx)
         }
     }
 }
+
+
+void
+dump_namevalues(struct namevalue_t **nvs)
+{
+    struct namevalue_t *curr, *last;
+    if (*nvs == NULL) {
+        return;
+    }
+    curr = *nvs;
+    last = curr->prev;
+    while (1) {
+        printf("[%s] => [%s]\n", curr->n, curr->v);
+        if (curr == last) {
+            return;
+        }
+        curr = curr->next;
+    }
+}
 #endif

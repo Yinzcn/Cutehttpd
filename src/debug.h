@@ -20,5 +20,13 @@ int
 chtd_print_vhosts(struct htdx_t *);
 
 
+void
+bufx_debug(struct bufx_t *);
+
+
+void
+dump_namevalues(struct namevalue_t **);
+
+
 #endif
 #endif
