@@ -173,8 +173,8 @@ reqs_parse_post(struct reqs_t *reqs)
             charset = p + 8;
         }
     }
-    /*
-    application/x-www-form-urlencoded
+/*
+application/x-www-form-urlencoded
 [
 Content-Type: multipart/form-data; boundary=---------------------------199122566726299
 Content-Length: 355
@@ -193,7 +193,7 @@ echo '[Cutehttpd]['.time().']['.rand().']';
 -----------------------------199122566726299--
 
 ]
-    */
+*/
     if (strcasecmp(content_type, "text/plain") == 0) {
         /* "a=Alpha&b=Beta" */
         char *n_a, *n_z;
@@ -204,17 +204,12 @@ echo '[Cutehttpd]['.time().']['.rand().']';
             n_a = p;
             while (*p && *p != '=') { p++; };
             n_z = p;
-            if (*p) {
-                p++;
-            } else {
-                break;
-            }
+            if (*p) { p++;
+            } else { break; }
             v_a = p;
             while (*p && *p != '&') { p++; };
             v_z = p;
-            if (*p) {
-                p++;
-            }
+            if (*p) { p++; }
             n_l = n_z - n_a;
             v_l = v_z - v_a;
             if (n_l > 0 && v_l > 0) {
