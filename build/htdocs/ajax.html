@@ -1,81 +1,82 @@
 <html>
 <head>
 <script type="text/JavaScript">
-function CreateXMLHttp() {
-    var XMLHttp;
-    try {
-        XMLHttp = new XMLHttpRequest();
-    } catch (e) {
-        try {
-            XMLHttp = new ActiveXObject("Msxml2.XMLHTTP"); 
-        } catch (e) {
-            try {
-                XMLHttp = new ActiveXObject("Microsoft.XMLHTTP");
-            } catch (e) {
-                XMLHttp = false;
-            }
-        }
-    }
-    return XMLHttp;
-}
-
 function $(id) {
     return document.getElementById(id);
 }
 
-function ajax_get(e, u) {
-    var XMLHttp;
-    e.innerHTML = "";
-    XMLHttp = CreateXMLHttp();
-    XMLHttp.onreadystatechange = function() {
-        if(XMLHttp.readyState == 4) {
-            var r = XMLHttp.responseText;
-            e.innerHTML = r;
-        }
+function new_xhr() {
+  var xhr;
+  try {
+    xhr = new XMLHttpRequest();
+  } catch (e) {
+    try {
+      xhr = new ActiveXObject("Microsoft.XMLHTTP"); 
+    } catch (e) {
+      try {
+        xhr = new ActiveXObject("Msxml2.XMLHTTP");
+      } catch (e) {
+        xhr = false;
+      }
     }
-    XMLHttp.open("GET", u, true);
-    XMLHttp.send();
+  }
+  return xhr;
 }
 
-function ajax_post(e, u) {
-    var XMLHttp;
-    e.innerHTML = "";
-    XMLHttp = CreateXMLHttp();
-    XMLHttp.onreadystatechange = function() {
-        if(XMLHttp.readyState == 4) {
-            var r = XMLHttp.responseText;
-            e.innerHTML = r;
-        }
+function xhr_get(e, u) {
+  var xhr = new_xhr();
+  e.innerHTML = "";
+  xhr.onreadystatechange = function() {
+    if(xhr.readyState == 4) {
+      e.innerHTML = xhr.responseText;
+      delete xhr;
     }
-    XMLHttp.open("POST", u, true);
-    XMLHttp.send("a=Alpha&b=Beta");
+  }
+  xhr.open("GET", u, true);
+  xhr.send();
 }
 
-function GET() {
-    ajax_get($('div_1'), '/uhook/time');
-    ajax_get($('div_2'), '/uhook/time');
-    ajax_get($('div_3'), '/uhook/time');
-    ajax_get($('div_4'), '/uhook/time');
+function xhr_post(e, u, p) {
+  var xhr = new_xhr();
+  e.innerHTML = "";
+  xhr.onreadystatechange = function() {
+    if(xhr.readyState == 4) {
+      e.innerHTML = xhr.responseText;
+      delete xhr;
+    }
+  }
+  xhr.open("POST", u, true);
+  xhr.send(p);
 }
 
-function POST() {
-    ajax_post($('div_1'), '/uhook/time');
-    ajax_post($('div_2'), '/uhook/time');
-    ajax_post($('div_3'), '/uhook/time');
-    ajax_post($('div_4'), '/uhook/time');
+function GET_all() {
+    xhr_get($('div_1'), $('u').value);
+    xhr_get($('div_2'), $('u').value);
+    xhr_get($('div_3'), $('u').value);
+    xhr_get($('div_4'), $('u').value);
+}
+
+function POST_all() {
+    xhr_post($('div_1'), $('u').value, "a=Alpha&b=Beta&c=Gamma");
+    xhr_post($('div_2'), $('u').value, "a=Alpha&b=Beta&c=Gamma");
+    xhr_post($('div_3'), $('u').value, "a=Alpha&b=Beta&c=Gamma");
+    xhr_post($('div_4'), $('u').value, "a=Alpha&b=Beta&c=Gamma");
 }
 </script>
 </head>
 <body>
-<input type="button" value="GET" onclick="GET();" />
-<input type="button" value="POST" onclick="POST();" />
-<hr />
-<div id="div_1"></div>
-<br />
-<div id="div_2"></div>
-<br />
-<div id="div_3"></div>
-<br />
-<div id="div_4"></div>
+  <input id="u" value="/uhook/time" />
+  <input type="button" value="GET_all" onclick="GET_all();" />
+  <input type="button" value="GET_1" onclick="xhr_get($('div_1'), $('u').value);" />
+  <input type="button" value="POST_all" onclick="POST_all();" />
+  <input type="button" value="POST_1" onclick="xhr_post($('div_1'), $('u').value, 'p=m');" />
+  <hr />
+  <div id="div_1"></div>
+  <br />
+  <div id="div_2"></div>
+  <br />
+  <div id="div_3"></div>
+  <br />
+  <div id="div_4"></div>
 </body>
 </html>
