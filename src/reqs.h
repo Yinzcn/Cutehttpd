@@ -27,7 +27,7 @@ enum http_method_t
 
 enum http_version_t
 {
-    HTTP_VERSION_UNKNOWN,
+    HTTP_VERSION_0_9,
     HTTP_VERSION_1_0,
     HTTP_VERSION_1_1
 };

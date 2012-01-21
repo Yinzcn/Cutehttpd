@@ -67,7 +67,8 @@ uhooks_get(struct uhook_t *uhooks, char *host, char *xuri) {
     curr = uhooks;
     last = curr->prev;
     while (1) {
-        if (striequ(curr->host, host) && striequ(curr->xuri, xuri)) {
+        if (strcasecmp(curr->host, host) == 0
+         && strcasecmp(curr->xuri, xuri) == 0) {
             return curr;
         }
         if (curr == last) {

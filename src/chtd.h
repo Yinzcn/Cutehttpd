@@ -194,9 +194,6 @@ struct htdx_t
   ( s[0] == c0 && s[1] == c1 && s[2] == c2 && s[3] == c3 && s[4] == c4         \
     && s[5] == c5 && s[6] == c6 && s[7] == c7 )
 
-#define  strequ(str1,str2) (    strcmp(str1,str2)==0)
-#define striequ(str1,str2) (strcasecmp(str1,str2)==0)
-
 
 #include "log.h"
 #include "mime_type.h"

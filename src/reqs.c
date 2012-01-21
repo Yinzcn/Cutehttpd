@@ -16,7 +16,7 @@ static char *http_method_names[] = {
     "PUT",
     "DELETE",
     "TRACE",
-    "CONNECT"
+    "CONNECT",
     "OPTIONS"
 };
 
@@ -29,7 +29,8 @@ static char *http_version_names[] = {
 
 
 struct reqs_t *
-reqs_new(struct conn_t *conn) {
+reqs_new(struct conn_t *conn)
+{
     struct reqs_t *reqs;
     if (!conn) {
         chtd_cry(NULL, "called reqs_new() with NULL conn!");
@@ -168,33 +169,15 @@ reqs_parse_post(struct reqs_t *reqs)
     p = content_type;
     while ((p = strchr(p, ';'))) {
         *p++ = '\0';
-        while (*p == ' ') { p++; };
+        while (*p == ' ') {
+            p++;
+        }
         if (strncmp(p, "charset=", 8) == 0) {
             charset = p + 8;
         }
     }
-/*
-application/x-www-form-urlencoded
-[
-Content-Type: multipart/form-data; boundary=---------------------------199122566726299
-Content-Length: 355
-
------------------------------199122566726299
-Content-Disposition: form-data; name="f1"
-
-~!@#$%
------------------------------199122566726299
-Content-Disposition: form-data; name="f2"; filename="echo.php"
-Content-Type: application/octet-stream
-
-<?php
-echo '[Cutehttpd]['.time().']['.rand().']';
-?>
------------------------------199122566726299--
-
-]
-*/
-    if (strcasecmp(content_type, "text/plain") == 0) {
+    charset = charset;
+    if (strcasecmp(content_type, "application/x-www-form-urlencoded") != 0) {
         /* "a=Alpha&b=Beta" */
         char *n_a, *n_z;
         char *v_a, *v_z;
@@ -202,14 +185,23 @@ echo '[Cutehttpd]['.time().']['.rand().']';
         char *p = reqs->post_data;
         while (*p) {
             n_a = p;
-            while (*p && *p != '=') { p++; };
+            while (*p && *p != '=') {
+                p++;
+            }
             n_z = p;
-            if (*p) { p++;
-            } else { break; }
+            if (*p) {
+                p++;
+            } else {
+                break;
+            }
             v_a = p;
-            while (*p && *p != '&') { p++; };
+            while (*p && *p != '&') {
+                p++;
+            }
             v_z = p;
-            if (*p) { p++; }
+            if (*p) {
+                p++;
+            }
             n_l = n_z - n_a;
             v_l = v_z - v_a;
             if (n_l > 0 && v_l > 0) {
@@ -217,8 +209,6 @@ echo '[Cutehttpd]['.time().']['.rand().']';
             }
         }
     }
-    dump_namevalues(&reqs->post_vars);
-    chtd_cry(reqs->htdx, "[%s] [%s]", content_type, charset);
     free(content_type);
     return 1;
 }
@@ -283,7 +273,8 @@ reqs_parse(struct reqs_t *reqs)
     case 3:
         if (str3equ(a, 'G', 'E', 'T')) {
             reqs->method = HTTP_METHOD_GET;
-        } else if (str3equ(a, 'P', 'U', 'T')) {
+        } else
+        if (str3equ(a, 'P', 'U', 'T')) {
             reqs->method = HTTP_METHOD_PUT;
         }
         break;
@@ -291,7 +282,8 @@ reqs_parse(struct reqs_t *reqs)
     case 4:
         if (str4equ(a, 'P', 'O', 'S', 'T')) {
             reqs->method = HTTP_METHOD_POST;
-        } else if (str4equ(a, 'H', 'E', 'A', 'D')) {
+        } else
+        if (str4equ(a, 'H', 'E', 'A', 'D')) {
             reqs->method = HTTP_METHOD_HEAD;
         }
         break;
@@ -311,7 +303,8 @@ reqs_parse(struct reqs_t *reqs)
     case 7:
         if (str7equ(a, 'O', 'P', 'T', 'I', 'O', 'N', 'S')) {
             reqs->method = HTTP_METHOD_OPTIONS;
-        } else if (str7equ(a, 'C', 'O', 'N', 'N', 'E', 'C', 'T')) {
+        } else
+        if (str7equ(a, 'C', 'O', 'N', 'N', 'E', 'C', 'T')) {
             reqs->method = HTTP_METHOD_CONNECT;
         }
         break;
@@ -359,25 +352,23 @@ reqs_parse(struct reqs_t *reqs)
     /*
     [ http version
     */
-    {
-        reqs->http_version = HTTP_VERSION_UNKNOWN;
-        a = z;
-        while (*a == SP) {
-            a++;
-        }
-        z = a;
-        while (*z) {
-            z++;
-        }
-        if (z - a == 8) {
-            if (str8equ(a, 'H', 'T', 'T', 'P', '/', '1', '.', '0')) {
-                reqs->http_version = HTTP_VERSION_1_0;
-            } else if (str8equ(a, 'H', 'T', 'T', 'P', '/', '1', '.', '1')) {
-                reqs->http_version = HTTP_VERSION_1_1;
-            }
-        }
-        reqs->http_version_name = http_version_names[reqs->http_version];
+    reqs->http_version = HTTP_VERSION_0_9;
+    a = z;
+    while (*a == SP) {
+        a++;
     }
+    z = a;
+    while (*z) {
+        z++;
+    }
+    if (z - a == 8) {
+        if (str8equ(a, 'H', 'T', 'T', 'P', '/', '1', '.', '0')) {
+            reqs->http_version = HTTP_VERSION_1_0;
+        } else if (str8equ(a, 'H', 'T', 'T', 'P', '/', '1', '.', '1')) {
+            reqs->http_version = HTTP_VERSION_1_1;
+        }
+    }
+    reqs->http_version_name = http_version_names[reqs->http_version];
     /*
     ]
     */
@@ -385,15 +376,13 @@ reqs_parse(struct reqs_t *reqs)
     /*
     [ parse request_path
     */
-    {
-        a = reqs->uri;
-        z = a;
-        while (*z && *z != '?') {
-            z++;
-        }
-        reqs->request_path = strndup(a, z - a);
-        path_tidy(reqs->request_path);
+    a = reqs->uri;
+    z = a;
+    while (*z && *z != '?') {
+        z++;
     }
+    reqs->request_path = strndup(a, z - a);
+    path_tidy(reqs->request_path);
     /*
     ]
     */
@@ -401,13 +390,11 @@ reqs_parse(struct reqs_t *reqs)
     /*
     [ parse query_string
     */
-    {
-        a = strchr(reqs->uri, '?');
-        if (a) {
-            reqs->query_string = strdup(a + 1);
-        } else {
-            reqs->query_string = calloc(1 , 1);
-        }
+    a = strchr(reqs->uri, '?');
+    if (a) {
+        reqs->query_string = strdup(a + 1);
+    } else {
+        reqs->query_string = calloc(1 , 1);
     }
     /*
     ]
