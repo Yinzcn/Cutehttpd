@@ -47,7 +47,7 @@ set_http_header(struct reqs_t *reqs, char *n, char *v)
     nl = strlen(n);
     vl = strlen(v);
     if (nl) {
-        if (striequ(n, "Set-Cookie")) {
+        if (strcasecmp(n, "Set-Cookie") == 0) {
             if (vl) {
                 namevalues_add(&reqs->rp_headers, n, nl, v, vl);
             }
@@ -78,7 +78,11 @@ set_http_header_x(struct reqs_t *reqs, char *n, char *f, ...)
         char b[4096] = { 0 };
         va_list a;
         va_start(a, f);
+<<<<<<< HEAD
         vsnprintf(b, sizeof(b) - 1, f, a);
+=======
+        vsnprintf(b, 4096, f, a);
+>>>>>>> 788e769e97b2f0854c82e862f8299606115ff4ea
         va_end(a);
         set_http_header(reqs, n, b);
     }
@@ -94,9 +98,9 @@ set_keep_alive(struct reqs_t *reqs, int should_keep_alive)
         return 0;
     }
     if (reqs->htdx->keep_alive_timeout > 0
-        && striequ(get_http_header(reqs, "Connection"), "keep-alive")
-        && reqs->http_version == HTTP_VERSION_1_1
-        && should_keep_alive) {
+            && strcasecmp(get_http_header(reqs, "Connection"), "keep-alive") == 0
+            && reqs->http_version == HTTP_VERSION_1_1
+            && should_keep_alive) {
         set_http_header   (reqs, "Connection", "keep-alive");
         set_http_header_x (reqs, "Keep-Alive", "timeout=%d", reqs->htdx->keep_alive_timeout);
         reqs->conn->keep_alive = 1;

@@ -37,8 +37,7 @@ char *
 x_nowstr(void)
 {
     static char buff[20];
-    time_t rawtime;
-    rawtime = time(NULL);
+    time_t rawtime = time(NULL);
     strftime(buff, sizeof(buff), "%Y-%m-%d %H:%M:%S", localtime(&rawtime));
     return buff;
 }
@@ -100,9 +99,8 @@ str_replace(char *f, char *r, char *s)
             p1 = p2 + fl;
         }
         strcpy(p3, p1);
-        return bf;
     }
-    return NULL;
+    return bf;
 }
 
 
@@ -291,9 +289,11 @@ url_decode(char *s, char *d)
             c = s[1];
             if (c >= '0' && c <= '9') {
                 c -= '0';
-            } else if (c >= 'A' && c <= 'F') {
+            } else
+            if (c >= 'A' && c <= 'F') {
                 c += 10 - 'A';
-            } else if (c >= 'a' && c <= 'f') {
+            } else
+            if (c >= 'a' && c <= 'f') {
                 c += 10 - 'a';
             } else {
                 *d++ = *s++;
@@ -306,9 +306,11 @@ url_decode(char *s, char *d)
             c = s[2];
             if (c >= '0' && c <= '9') {
                 c -= '0';
-            } else if (c >= 'A' && c <= 'F') {
+            } else
+            if (c >= 'A' && c <= 'F') {
                 c += 10 - 'A';
-            } else if (c >= 'a' && c <= 'f') {
+            } else
+            if (c >= 'a' && c <= 'f') {
                 c += 10 - 'a';
             } else {
                 *d++ = *s++;
@@ -321,7 +323,8 @@ url_decode(char *s, char *d)
             *d += c;
             s += 3;
             d += 1;
-        } else if (*s == '+') {
+        } else
+        if (*s == '+') {
             *d++ = ' ';
             s++;
         } else {
@@ -448,7 +451,6 @@ spawn_process(struct htdx_t *htdx, char *cmdl, char *wdir)
                         TRUE,
                         CREATE_NEW_PROCESS_GROUP,
                         envb->data,
-
                         wdir,
                         &si,
                         &pi)) {

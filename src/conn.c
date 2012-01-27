@@ -11,7 +11,7 @@
 struct conn_t *
 conn_new(struct wker_t *wker) {
     struct conn_t *conn = calloc(1, sizeof(struct conn_t));
-    if (!conn) {
+    if (conn == NULL) {
         chtd_cry(NULL, "conn_new() -> calloc() failed!");
         return NULL;
     }
@@ -26,7 +26,7 @@ conn_new(struct wker_t *wker) {
 void
 conn_del(struct conn_t *conn)
 {
-    if (!conn) {
+    if (conn == NULL) {
         return;
     }
     conn_close(conn);
@@ -40,14 +40,14 @@ void
 conn_close(struct conn_t *conn)
 {
     struct sock_t *sock = conn->sock;
-    if (!sock) {
+    if (sock == NULL) {
         return;
     }
     if (sock->socket > 0) {
 #ifdef WIN32
         static char buff[1024];
-        unsigned long u = 1;
         struct linger l;
+        unsigned long u = 1;
         l.l_onoff  = 1;
         l.l_linger = 1;
         setsockopt(sock->socket, SOL_SOCKET, SO_LINGER, (void *)&l, sizeof(l));
@@ -145,7 +145,7 @@ void
 conn_parse_addr(struct conn_t *conn)
 {
     struct sock_t *sock;
-    if (!conn) {
+    if (conn == NULL) {
         return;
     }
     sock = conn->sock;
@@ -191,22 +191,20 @@ conn_recv_reqs_head(struct conn_t *conn)
             } else {
                 int size_get;
                 int size_ext;
-                endp += 4; /* equal to strlen("\r\n\r\n") */
+                endp += 4; /*  = strlen("\r\n\r\n")  */
                 size_get = endp - buff;
                 size_ext = sizerecv - size_get;
                 if (size_ext) { /* push to bufx */
-                    chtd_cry(conn->htdx, "conn_recv_reqs_head() -> bufx_put %d", size_ext);
                     bufx_put(conn->recvbufx, endp, size_ext);
                 }
                 *endp = '\0';
                 return size_get;
             }
-        }
-        else if (buffleft == 0) {
+        } else
+		if (buffleft == 0) {
             chtd_cry(conn->htdx, "conn_recv_reqs_head() -> sizerecv %d", sizerecv);
             break;
-        }
-        else {
+        } else {
             int retn = recv(conn->sock->socket, buff + sizerecv, buffleft, 0);
             if (retn > 0) {
                 sizerecv += retn;
