@@ -220,45 +220,8 @@ reqs_parse_post(struct reqs_t *reqs)
             charset = p + 8;
         }
     }
-<<<<<<< HEAD
-
-    /*
-
-text/plain
-multipart/form-data
-application/x-www-form-urlencoded
-
-Content-Type: multipart/form-data; boundary=---------------------------199122566726299
-[
------------------------------199122566726299
-Content-Disposition: form-data; name="f1"
-
-~!@#$%
------------------------------199122566726299
-Content-Disposition: form-data; name="f2"; filename="echo.php"
-Content-Type: application/octet-stream
-
-<?php
-echo '[Cutehttpd]['.time().']['.rand().']';
-?>
------------------------------199122566726299--
-
-]
-
-
-Content-Type: text/plain; charset=UTF-8
-[
-a=Alpha&b=Beta
-]
-
-*/
-    if (strcasecmp(content_type, "text/plain") == 0 ||
-        content_type[0] == '\0') {
-=======
     charset = charset;
     if (strcasecmp(content_type, "application/x-www-form-urlencoded") != 0) {
-        /* "a=Alpha&b=Beta" */
->>>>>>> 788e769e97b2f0854c82e862f8299606115ff4ea
         char *n_a, *n_z;
         char *v_a, *v_z;
         int n_l = 0, v_l = 0;

@@ -2,7 +2,7 @@
 <head>
 <script type="text/JavaScript">
 function $(id) {
-    return document.getElementById(id);
+  return document.getElementById(id);
 }
 
 function new_xhr() {
@@ -44,24 +44,6 @@ function xhr_post(e, u, p) {
       e.innerHTML = xhr.responseText;
       delete xhr;
     }
-<<<<<<< HEAD
-    XMLHttp.open("POST", u, true);
-    XMLHttp.send("a=Alpha&b=Beta&c=Gamma");
-}
-
-function GET_All() {
-    ajax_get($('div_1'), $('u').value);
-    ajax_get($('div_2'), $('u').value);
-    ajax_get($('div_3'), $('u').value);
-    ajax_get($('div_4'), $('u').value);
-}
-
-function POST_All() {
-    ajax_post($('div_1'), $('u').value);
-    ajax_post($('div_2'), $('u').value);
-    ajax_post($('div_3'), $('u').value);
-    ajax_post($('div_4'), $('u').value);
-=======
   }
   xhr.open("POST", u, true);
   xhr.send(p);
@@ -79,26 +61,10 @@ function POST_all() {
     xhr_post($('div_2'), $('u').value, "a=Alpha&b=Beta&c=Gamma");
     xhr_post($('div_3'), $('u').value, "a=Alpha&b=Beta&c=Gamma");
     xhr_post($('div_4'), $('u').value, "a=Alpha&b=Beta&c=Gamma");
->>>>>>> 788e769e97b2f0854c82e862f8299606115ff4ea
 }
 </script>
 </head>
 <body>
-<<<<<<< HEAD
-<input id="u" value="/uhook/time" />
-<input type="button" value="GET_All" onclick="GET_All();" />
-<input type="button" value="GET_1" onclick="ajax_get($('div_1'), $('u').value);" />
-<input type="button" value="POST_All" onclick="POST_All();" />
-<input type="button" value="POST_1" onclick="ajax_post($('div_1'), $('u').value);" />
-<hr />
-<div id="div_1"></div>
-<br />
-<div id="div_2"></div>
-<br />
-<div id="div_3"></div>
-<br />
-<div id="div_4"></div>
-=======
   <input id="u" value="/uhook/time" />
   <input type="button" value="GET_all" onclick="GET_all();" />
   <input type="button" value="GET_1" onclick="xhr_get($('div_1'), $('u').value);" />
@@ -112,6 +78,5 @@ function POST_all() {
   <div id="div_3"></div>
   <br />
   <div id="div_4"></div>
->>>>>>> 788e769e97b2f0854c82e862f8299606115ff4ea
 </body>
 </html>

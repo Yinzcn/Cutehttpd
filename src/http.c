@@ -78,11 +78,7 @@ set_http_header_x(struct reqs_t *reqs, char *n, char *f, ...)
         char b[4096] = { 0 };
         va_list a;
         va_start(a, f);
-<<<<<<< HEAD
         vsnprintf(b, sizeof(b) - 1, f, a);
-=======
-        vsnprintf(b, 4096, f, a);
->>>>>>> 788e769e97b2f0854c82e862f8299606115ff4ea
         va_end(a);
         set_http_header(reqs, n, b);
     }
