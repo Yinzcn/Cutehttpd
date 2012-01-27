@@ -75,10 +75,10 @@ set_http_header_x(struct reqs_t *reqs, char *n, char *f, ...)
         return 0;
     }
     if (strlen(f)) {
-        char b[4096];
+        char b[4096] = { 0 };
         va_list a;
         va_start(a, f);
-        vsprintf(b, f, a);
+        vsnprintf(b, sizeof(b) - 1, f, a);
         va_end(a);
         set_http_header(reqs, n, b);
     }
@@ -119,6 +119,25 @@ get_http_header(struct reqs_t *reqs, char *name)
         return nv->v;
     }
     return "";
+}
+
+
+char *
+get_http_post(struct reqs_t *reqs, char *name)
+{
+    struct namevalue_t *nv;
+    nv = namevalues_get(&reqs->post_vars, name);
+    if (nv) {
+        return nv->v;
+    }
+    return "";
+}
+
+
+int
+each_http_post(struct reqs_t *reqs, void *func, void *arg1)
+{
+    return namevalues_each(&reqs->post_vars, func, arg1);
 }
 
 

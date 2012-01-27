@@ -90,39 +90,40 @@ static char *http_status_lines_5xx[] = {
 char *
 http_status_lines_get(int code)
 {
-    static char *unknown = "500 Unknown Status Code";
+    static char unknown[] = "500 Unknown Status Code";
     switch (code/100) {
     case 1: /* 1xx */
         if (code > http_status_lines_1xx_max) {
-            return unknown;
+            break;
         }
         return http_status_lines_1xx[code - 100];
 
     case 2: /* 2xx */
         if (code > http_status_lines_2xx_max) {
-            return unknown;
+            break;
         }
         return http_status_lines_2xx[code - 200];
 
     case 3: /* 3xx */
         if (code > http_status_lines_3xx_max) {
-            return unknown;
+            break;
         }
         return http_status_lines_3xx[code - 300];
 
     case 4: /* 4xx */
         if (code > http_status_lines_4xx_max) {
-            return unknown;
+            break;
         }
         return http_status_lines_4xx[code - 400];
 
     case 5: /* 5xx */
         if (code > http_status_lines_5xx_max) {
-            return unknown;
+            break;
         }
         return http_status_lines_5xx[code - 500];
 
     default:
-        return unknown;
+        break;
     }
+    return unknown;
 }

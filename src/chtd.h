@@ -47,8 +47,9 @@
 #else
 /*   [ MINGW */
 #include <dirent.h>
-#define PTW32_STATIC_LIB
-#include "pthreadGC2.h"
+//#define PTW32_STATIC_LIB
+//#include "pthreadGC2.h"
+#include "pthread_w32.c"
 /*   ] MINGW */
 #endif
 /* ] WIN32 */

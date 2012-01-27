@@ -93,6 +93,28 @@ namevalues_get_value(struct namevalue_t **nvs, char *n)
 }
 
 
+int
+namevalues_each(struct namevalue_t **nvs, void *func, void *arg1)
+{
+    int i = 0;
+    struct namevalue_t *curr, *last;
+    if (*nvs == NULL) {
+        return 0;
+    }
+    curr = *nvs;
+    last = curr->prev;
+    while (1) {
+        i++;
+        ((void (*)())func)(arg1, curr->n, curr->v);
+        if (curr == last) {
+            break;
+        }
+        curr = curr->next;
+    }
+    return i;
+}
+
+
 void
 namevalues_destroy(struct namevalue_t **nvs)
 {

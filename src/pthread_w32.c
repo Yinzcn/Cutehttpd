@@ -73,6 +73,13 @@ pthread_cond_init(pthread_cond_t *cv, const void *unused)
 
 
 int
+pthread_cond_destroy(pthread_cond_t *cv)
+{
+    return CloseHandle(cv->signal) && CloseHandle(cv->broadcast) ? 0 : -1;
+}
+
+
+int
 pthread_cond_wait(pthread_cond_t *cv, pthread_mutex_t *mutex)
 {
     HANDLE handles[] = { cv->signal, cv->broadcast };
@@ -93,11 +100,4 @@ int
 pthread_cond_broadcast(pthread_cond_t *cv)
 {
     return PulseEvent(cv->broadcast) ? 0 : -1;
-}
-
-
-int
-pthread_cond_destroy(pthread_cond_t *cv)
-{
-    return CloseHandle(cv->signal) && CloseHandle(cv->broadcast) ? 0 : -1;
 }

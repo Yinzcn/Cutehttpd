@@ -54,6 +54,7 @@ reqs_del(struct reqs_t *reqs)
         chtd_cry(NULL, "called reqs_del() with NULL reqs!");
         return;
     }
+    namevalues_destroy(&reqs->post_vars);
     namevalues_destroy(&reqs->re_headers);
     namevalues_destroy(&reqs->rp_headers);
     free(reqs->reqs_line);
@@ -89,6 +90,9 @@ reqs_get_wker(struct reqs_t *reqs) {
 int
 reqs_conn_send(struct reqs_t *reqs, void *data, int size)
 {
+    if (reqs == NULL) {
+        return 0;
+    }
     return conn_send(reqs->conn, data, size);
 }
 
@@ -97,24 +101,64 @@ void
 reqs_throw_status(struct reqs_t *reqs, int status_code, char *msg)
 {
     if (status_code > 199 && status_code != 204 && status_code != 304) {
-        char buf[32];
         int  len = strlen(msg);
         if (!len) {
             msg = http_status_lines_get(status_code);
             len = strlen(msg);
         }
-        sprintf(buf, "%d", len);
-        set_http_status   (reqs, status_code);
-        set_http_header   (reqs, "Content-Type",   "text/html");
-        set_http_header   (reqs, "Content-Length", buf);
-        send_http_header  (reqs);
-        reqs_conn_send    (reqs, msg, len);
+        set_http_status  (reqs, status_code);
+        set_http_header  (reqs, "Content-Type",   "text/html");
+        set_http_header_x(reqs, "Content-Length", "%d", len);
+        send_http_header (reqs);
+        reqs_conn_send   (reqs, msg, len);
     } else {
-        set_http_status   (reqs, status_code);
-        set_http_header   (reqs, "Content-Type",   "");
-        set_http_header   (reqs, "Content-Length", "");
-        send_http_header  (reqs);
+        set_http_status  (reqs, status_code);
+        set_http_header  (reqs, "Content-Type",   "");
+        set_http_header  (reqs, "Content-Length", "");
+        send_http_header (reqs);
     }
+}
+
+
+int
+reqs_cont_push(struct reqs_t *reqs, char *data)
+{
+    if (reqs->contbufx == NULL) {
+        reqs->contbufx = bufx_new(4096, 1024*1024);
+    }
+    return bufx_put_str(reqs->contbufx, data);
+}
+
+
+int
+reqs_cont_push_x(struct reqs_t *reqs, char *f, ...)
+{
+    char b[4096];
+    int n;
+    if (reqs->contbufx == NULL) {
+        reqs->contbufx = bufx_new(4096, 1024*1024);
+    }
+    va_list a;
+    va_start(a, f);
+    n = vsnprintf(b, sizeof(b), f, a);
+    va_end(a);
+    return bufx_put(reqs->contbufx, b, n);
+}
+
+
+int
+reqs_cont_send(struct reqs_t *reqs)
+{
+    if (!reqs->rp_status_line) {
+        set_http_status(reqs, 200); /* "200 OK" */
+    }
+    if (strlen(get_http_header(reqs, "Content-Type")) == 0) {
+        set_http_header(reqs, "Content-Type",   "text/html");
+    }
+    set_http_header_x(reqs, "Content-Length", "%d", bufx_get_used(reqs->contbufx));
+    send_http_header (reqs);
+    bufx_get_each    (reqs->contbufx, conn_send, reqs->conn);
+    return 1;
 }
 
 
@@ -173,12 +217,15 @@ reqs_parse_post(struct reqs_t *reqs)
             charset = p + 8;
         }
     }
-    /*
-    application/x-www-form-urlencoded
-[
-Content-Type: multipart/form-data; boundary=---------------------------199122566726299
-Content-Length: 355
 
+    /*
+
+text/plain
+multipart/form-data
+application/x-www-form-urlencoded
+
+Content-Type: multipart/form-data; boundary=---------------------------199122566726299
+[
 -----------------------------199122566726299
 Content-Disposition: form-data; name="f1"
 
@@ -193,9 +240,16 @@ echo '[Cutehttpd]['.time().']['.rand().']';
 -----------------------------199122566726299--
 
 ]
-    */
-    if (strcasecmp(content_type, "text/plain") == 0) {
-        /* "a=Alpha&b=Beta" */
+
+
+Content-Type: text/plain; charset=UTF-8
+[
+a=Alpha&b=Beta
+]
+
+*/
+    if (strcasecmp(content_type, "text/plain") == 0 ||
+        content_type[0] == '\0') {
         char *n_a, *n_z;
         char *v_a, *v_z;
         int n_l = 0, v_l = 0;
@@ -222,8 +276,6 @@ echo '[Cutehttpd]['.time().']['.rand().']';
             }
         }
     }
-    dump_namevalues(&reqs->post_vars);
-    chtd_cry(reqs->htdx, "[%s] [%s]", content_type, charset);
     free(content_type);
     return 1;
 }

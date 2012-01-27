@@ -48,27 +48,30 @@ function ajax_post(e, u) {
         }
     }
     XMLHttp.open("POST", u, true);
-    XMLHttp.send("a=Alpha&b=Beta");
+    XMLHttp.send("a=Alpha&b=Beta&c=Gamma");
 }
 
-function GET() {
-    ajax_get($('div_1'), '/uhook/time');
-    ajax_get($('div_2'), '/uhook/time');
-    ajax_get($('div_3'), '/uhook/time');
-    ajax_get($('div_4'), '/uhook/time');
+function GET_All() {
+    ajax_get($('div_1'), $('u').value);
+    ajax_get($('div_2'), $('u').value);
+    ajax_get($('div_3'), $('u').value);
+    ajax_get($('div_4'), $('u').value);
 }
 
-function POST() {
-    ajax_post($('div_1'), '/uhook/time');
-    ajax_post($('div_2'), '/uhook/time');
-    ajax_post($('div_3'), '/uhook/time');
-    ajax_post($('div_4'), '/uhook/time');
+function POST_All() {
+    ajax_post($('div_1'), $('u').value);
+    ajax_post($('div_2'), $('u').value);
+    ajax_post($('div_3'), $('u').value);
+    ajax_post($('div_4'), $('u').value);
 }
 </script>
 </head>
 <body>
-<input type="button" value="GET" onclick="GET();" />
-<input type="button" value="POST" onclick="POST();" />
+<input id="u" value="/uhook/time" />
+<input type="button" value="GET_All" onclick="GET_All();" />
+<input type="button" value="GET_1" onclick="ajax_get($('div_1'), $('u').value);" />
+<input type="button" value="POST_All" onclick="POST_All();" />
+<input type="button" value="POST_1" onclick="ajax_post($('div_1'), $('u').value);" />
 <hr />
 <div id="div_1"></div>
 <br />

@@ -1,4 +1,4 @@
 
 //#define CHTD_FCGI
 
-#define HAVE_PCRE
+#define HAVE_PCRE2

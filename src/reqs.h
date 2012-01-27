@@ -49,9 +49,9 @@ struct reqs_t
     int   post_size;
     int   post_read_flag;
     int   rp_header_sent;
-    
     int   content_length;
     char *rp_status_line;
+    struct bufx_t *contbufx;
     struct namevalue_t *post_vars; /* Request  headers */
     struct namevalue_t *re_headers; /* Request  headers */
     struct namevalue_t *rp_headers; /* Response headers */
@@ -87,6 +87,18 @@ reqs_conn_send(struct reqs_t *, void *, int);
 
 void
 reqs_throw_status(struct reqs_t *, int, char *);
+
+
+int
+reqs_cont_push(struct reqs_t *, char *);
+
+
+int
+reqs_cont_push_x(struct reqs_t *, char *, ...);
+
+
+int
+reqs_cont_send(struct reqs_t *);
 
 
 int

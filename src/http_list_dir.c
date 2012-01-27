@@ -9,32 +9,17 @@
 
 
 int
-http_list_dir(struct reqs_t *http_reqs, char *path)
+http_list_dir(struct reqs_t *reqs, char *path)
 {
-    /*
-    struct dirent
-    {
-      long           d_ino;                // Always zero.
-      unsigned short d_reclen;             // Always zero.
-      unsigned short d_namlen;             // Length of name in d_name.
-      char           d_name[FILENAME_MAX]; // File name.
-    };
-    */
-
     DIR *dirx;
-
-    int buffsize;
-    int datasize;
-    char *buff;
     struct dirent *dPtr;
+    char *req_path_ori = reqs->request_path;
+    char *req_path_dec = calloc(strlen(req_path_ori) + 1, sizeof(char));
 
-    char *request_path = http_reqs->request_path;
-    char *request_path_decoded = calloc(strlen(request_path) + 1, sizeof(char));
-    url_decode(request_path, request_path_decoded);
-    if (request_path[strlen(request_path) - 1] != '/') {
-        buff = calloc(8192, sizeof(char));
-        snprintf(buff, 8192,
-            "<html>\r\n"
+    url_decode(req_path_ori, req_path_dec);
+
+    if (req_path_ori[strlen(req_path_ori) - 1] != '/') {
+        reqs_cont_push_x(reqs, "<html>\r\n"
             "<head>\r\n"
             "<title>301 Moved Permanently</title>\r\n"
             "</head>\r\n"
@@ -44,13 +29,11 @@ http_list_dir(struct reqs_t *http_reqs, char *path)
             "<hr />\r\n"
             "<address>%s</address>\r\n"
             "</body>\r\n"
-            "</html>", request_path, http_reqs->htdx->SERVER_SOFTWARE);
-        set_http_status  (http_reqs, 301);
-        set_http_header_x(http_reqs, "Content-Length", "%d", strlen(buff));
-        set_http_header_x(http_reqs, "Location", "%s/", request_path);
-        send_http_header (http_reqs);
-        reqs_conn_send   (http_reqs, buff, strlen(buff));
-        free(request_path_decoded);
+            "</html>", req_path_ori, reqs->htdx->SERVER_SOFTWARE);
+        set_http_status  (reqs, 301);
+        set_http_header_x(reqs, "Location", "%s/", req_path_ori);
+        reqs_cont_send   (reqs);
+        free(req_path_dec);
         return 1;
     }
 
@@ -58,52 +41,40 @@ http_list_dir(struct reqs_t *http_reqs, char *path)
     dirx = opendir(path);
 
     if (!dirx) {
-        reqs_throw_status(http_reqs, 404, request_path);
-        free(request_path_decoded);
+        reqs_throw_status(reqs, 404, req_path_ori);
+        free(req_path_dec);
         return 1;
     }
 
-    buffsize = 8192;
-    datasize = 0;
-    buff = calloc(buffsize, sizeof(char));
-
-    datasize += sprintf(buff + datasize,
-                        "<!DOCTYPE html>\r\n"
-                        "<html>\r\n"
-                        "<head>\r\n"
-                        "<title>Index of %s</title></head>\r\n"
-                        "<body>\r\n"
-                        "<h1>Index of %s</h1>\r\n"
-                        "<pre>\r\n"
-                        "<hr>\r\n", request_path_decoded, request_path_decoded);
+    reqs_cont_push_x(reqs,
+        "<!DOCTYPE html>\r\n"
+        "<html>\r\n"
+        "<head>\r\n"
+        "<title>Index of %s</title></head>\r\n"
+        "<body>\r\n"
+        "<h1>Index of %s</h1>\r\n"
+        "<pre>\r\n"
+        "<hr>\r\n", req_path_dec, req_path_dec);
 
     while ((dPtr = readdir(dirx))) {
-        char Href[1024];
-        url_encode(dPtr->d_name, Href, 1024 - 1);
-        datasize += sprintf(buff + datasize, "<a href=\"%s\">%s</a>\r\n", Href, dPtr->d_name);
-        if (buffsize - datasize < 1024) {
-            buffsize += 8192;
-            buff = realloc(buff, buffsize);
-        }
+        char href[1024];
+        url_encode(dPtr->d_name, href, 1024 - 1);
+        reqs_cont_push_x(reqs, "<a href=\"%s\">%s</a>\r\n", href, dPtr->d_name);
     }
 
-    datasize += sprintf(buff + datasize,
-                        "</pre>\r\n"
-                        "<hr>\r\n"
-                        "<strong>%s</strong>\r\n"
-                        "</body>\r\n"
-                        "</html>", http_reqs->htdx->SERVER_SOFTWARE);
+    reqs_cont_push_x(reqs,
+        "</pre>\r\n"
+        "<hr>\r\n"
+        "<strong>%s</strong>\r\n"
+        "</body>\r\n"
+        "</html>", reqs->htdx->SERVER_SOFTWARE);
 
     closedir(dirx);
     /* ] */
 
-    set_http_status   (http_reqs, 200);
-    set_http_header   (http_reqs, "Content-Type", "text/html");
-    set_http_header_x (http_reqs, "Content-Length", "%d", datasize);
-    send_http_header  (http_reqs);
-    reqs_conn_send    (http_reqs, buff, datasize);
+    set_http_status(reqs, 200); /* "200 OK" */
+    reqs_cont_send (reqs);
 
-    free(buff);
-    free(request_path_decoded);
+    free(req_path_dec);
     return 1;
 }

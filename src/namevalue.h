@@ -33,6 +33,10 @@ char *
 namevalues_get_value(struct namevalue_t **, char *);
 
 
+int
+namevalues_each(struct namevalue_t **, void *, void *);
+
+
 void
 namevalues_destroy(struct namevalue_t **);
 

@@ -72,6 +72,10 @@ pthread_cond_init(pthread_cond_t *, const void *);
 
 
 int
+pthread_cond_destroy(pthread_cond_t *);
+
+
+int
 pthread_cond_wait(pthread_cond_t *, pthread_mutex_t *);
 
 
@@ -81,10 +85,6 @@ pthread_cond_signal(pthread_cond_t *);
 
 int
 pthread_cond_broadcast(pthread_cond_t *);
-
-
-int
-pthread_cond_destroy(pthread_cond_t *);
 
 
 #endif

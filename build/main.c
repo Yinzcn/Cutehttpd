@@ -19,25 +19,37 @@
 #include "assign_mime_types.c"
 
 
-void *
+int
 uhook_time(void *reqs)
 {
+    each_http_post(reqs, printf, "[%s] = [%s]\n");
     reqs_throw_status(reqs, 200, x_nowstr());
-    return (void *)1;
+    return 1;
 }
 
 
-void *
-uhook_test_2(void *data)
+int
+uhook_demo_1(void *reqs)
 {
-    printf("%s(\"0x%08x\")\n", __FUNCTION__, (int)data);
-    return (void *)2;
+    reqs_throw_status(reqs, 200, "uhook_demo_1");
+    return 1;
 }
 
 
-/*
-uhook 目标函数, 正确处理返回 0, 返回其他值向客户端输出 Bad Request
-*/
+int
+uhook_demo_2(void *reqs)
+{
+    reqs_cont_push(reqs, "a=");
+    reqs_cont_push(reqs, get_http_post(reqs, "a"));
+    reqs_cont_push(reqs, "\r\n");
+    reqs_cont_push(reqs, "b=");
+    reqs_cont_push(reqs, get_http_post(reqs, "b"));
+    reqs_cont_push(reqs, "\r\n");
+    reqs_cont_send(reqs);
+    return 1;
+}
+
+
 int
 server_status(void *reqs)
 {
@@ -118,7 +130,8 @@ main(int argc, char *argv[])
     /*
         "*" 匹配任意主机
     */
-    chtd_set_uhook(chtd, "*", "/uhook2", uhook_test_2);
+    chtd_set_uhook(chtd, "*", "/uhook_demo_1", uhook_demo_1);
+    chtd_set_uhook(chtd, "*", "/uhook_demo_2", uhook_demo_2);
 
     assign_mime_types(chtd);
 

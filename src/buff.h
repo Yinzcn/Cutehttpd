@@ -48,7 +48,7 @@ bufx_get(struct bufx_t *, char *, int);
 
 
 void
-bufx_get_each(struct bufx_t *, void* (*)(), void *);
+bufx_get_each(struct bufx_t *, void *, void *);
 
 
 char *
