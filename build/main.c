@@ -154,7 +154,7 @@ main(int argc, char *argv[])
         case 'p':
             break;
 
-        case 0xa:
+        case 0xA:
             printf("%s", chtd_get_status_info(chtd, "text"));
             break;
 
