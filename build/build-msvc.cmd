@@ -10,6 +10,6 @@ set LIB=%VSPATH%\VC\Lib;%SDKPATH%\Lib;
 
 if "%*" == "" (set C= ) else (set C= %* )
 
-set ccmd=cl /nologo main.c /Fechtd-msvc.exe /W2 /O2%C%/I../src /I../dep /link /libpath:"..\dep" ws2_32.lib pcre.lib
+set ccmd=cl /nologo main.c /Fechtd-msvc.exe /W2 /O2%C%/I../src /I../dep /link /libpath:"..\dep" ws2_32.lib
 echo %ccmd%
 %ccmd%

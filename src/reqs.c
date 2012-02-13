@@ -136,10 +136,10 @@ reqs_cont_push_x(struct reqs_t *reqs, char *f, ...)
 {
     char b[4096];
     int n;
+    va_list a;
     if (reqs->contbufx == NULL) {
         reqs->contbufx = bufx_new(4096, 1024*1024);
     }
-    va_list a;
     va_start(a, f);
     n = vsnprintf(b, sizeof(b), f, a);
     va_end(a);
