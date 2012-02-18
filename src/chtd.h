@@ -24,80 +24,67 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#if defined(_WIN32) && !defined(WIN32)
-#define WIN32
-#endif
 
-#ifdef WIN32
+#ifdef _WIN32
 /* [ WIN32 */
-#include <direct.h>
-#include <process.h>
-#include <winsock2.h>
-#define SHUT_RD   SD_RECEIVE
-#define SHUT_WR   SD_SEND
-#define SHUT_RDWR SD_BOTH
-#define sleep(n) Sleep(n)
-#define strcasecmp(a,b) stricmp(a,b)
-#ifdef _MSC_VER
-/*   [ MSVC */
-#define snprintf _snprintf
-#include "dirent-w32.h"
-#include "pthread_w32.c"
-/*   ] MSVC */
-#else
-/*   [ MINGW */
-#include <dirent.h>
-//#define PTW32_STATIC_LIB
-//#include "pthreadGC2.h"
-#include "pthread_w32.c"
-/*   ] MINGW */
-#endif
+
+    #include <direct.h>
+    #include <process.h>
+    #include <winsock2.h>
+    #define SHUT_RD   SD_RECEIVE
+    #define SHUT_WR   SD_SEND
+    #define SHUT_RDWR SD_BOTH
+    #define sleep(n) Sleep(n)
+    #define strcasecmp(a,b) stricmp(a,b)
+    #define snprintf _snprintf
+    #include "pthread_w32.c"
+
+    #ifdef HAVE_DIRENT
+        #include <dirent.h>
+    #else
+        #include "dirent_w32.h"
+    #endif
+
 /* ] WIN32 */
 #else
-/* [ Unix/Linux */
-#include <sys/wait.h>
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <pthread.h>
-#define SOCKET int
+/* [ Linux */
+
+    #include <sys/wait.h>
+    #include <sys/socket.h>
+    #include <sys/select.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <unistd.h>
+    #include <dirent.h>
+    #include <pthread.h>
+    #define SOCKET int
+
 /* ] */
 #endif
 
 
-/*
-[ PCRE
-*/
+/* [ PCRE */
 #ifdef HAVE_PCRE
-#define PCRE_STATIC
-#include "pcre.h"
+    #define PCRE_STATIC
+    #include "pcre.h"
 #endif
-/*
-]
-*/
+/* ] */
 
 
-/*
-[ DEBUG
-*/
+/* [ DEBUG */
 #ifdef DEBUG
-#ifdef _MSC_VER
-#define DEBUG_TRACE(x,...) chtd_cry_x(NULL, __FILE__, __LINE__, x, __VA_ARGS__)
+    #ifdef _MSC_VER
+        #define DEBUG_TRACE(x,...) chtd_cry_x(NULL, __FILE__, __LINE__, x, __VA_ARGS__)
+    #else
+        #define DEBUG_TRACE(va...) chtd_cry_x(NULL, __FILE__, __LINE__, ##va)
+    #endif
 #else
-#define DEBUG_TRACE(va...) chtd_cry_x(NULL, __FILE__, __LINE__, ##va)
-#endif
-#else
-#define DEBUG_TRACE(...)
+    #define DEBUG_TRACE(...)
 #endif
 /*
 #include "htd_debug.c"
 */
-/*
-]
-*/
+/* ] */
 
 
 #define CHTD_VERSION "0.01a"
@@ -209,7 +196,7 @@ struct htdx_t
 #include "squeue.h"
 #include "wker.h"
 #ifdef CHTD_FCGI
-#include "fcgi.h"
+    #include "fcgi.h"
 #endif
 #include "status_info.h"
 #include "test_ext.h"

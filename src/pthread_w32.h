@@ -36,13 +36,6 @@ typedef struct {
 } pthread_cond_t;
 
 
-struct timespec
-{
-    long tv_nsec;
-    long tv_sec;
-};
-
-
 pthread_t
 pthread_self(void);
 
