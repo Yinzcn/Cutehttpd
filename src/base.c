@@ -118,7 +118,7 @@ memdup(void *m, int n)
 }
 
 
-#ifdef WIN32
+#ifndef HAVE_STRNDUP
 char *
 strndup(char *s, int n)
 {
@@ -458,6 +458,7 @@ spawn_process(struct htdx_t *htdx, char *cmdl, char *wdir)
         return 0;
     }
     chtd_cry(htdx, "CreateProcessA!");
-#endif
     return 1;
+#endif
+    return 0;
 }

@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal enableextensions
 
 set VSPATH=D:\Projects\MSVC90ENU
 set SDKPATH=D:\Projects\Win-SDK\v6.0A
@@ -10,6 +10,6 @@ set LIB=%VSPATH%\VC\Lib;%SDKPATH%\Lib;
 
 if "%*" == "" (set C= ) else (set C= %* )
 
-set ccmd=cl /nologo main.c /Fechtd-msvc.exe /W2 /O2%C%/I../src /I../dep /link /libpath:"..\dep" ws2_32.lib
-echo %ccmd%
-%ccmd%
+set ccmd=cl main.c /Fechtd-msvc.exe /W2 /O2%C%/I../src /I../dep /link /libpath:"..\dep" ws2_32.lib
+
+echo ccmd='%ccmd%' & %ccmd%

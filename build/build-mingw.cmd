@@ -18,8 +18,7 @@ rem set d_cmdl=gcc main.c -o chtd-shared.exe -s -Wall%C% -Wl,--subsystem,windows
 if exist chtd-static.exe (del chtd-static.exe /q || goto :End)
 if exist chtd-shared.exe (del chtd-shared.exe /q || goto :End)
 
-echo %s_cmdl%
-%s_cmdl% || goto End
+echo cmdl='%s_cmdl%' & %s_cmdl% || goto End
 
 rem echo %d_cmdl%
 rem %d_cmdl% || goto End

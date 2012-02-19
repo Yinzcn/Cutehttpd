@@ -4,14 +4,14 @@
 **/
 
 
-#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <assert.h>
 #include <string.h>
-#include <ctype.h>
 #include <stddef.h>
+#include <assert.h>
+#include <ctype.h>
+#include <time.h>
 
 
 #include "../src/cutehttpd.c"

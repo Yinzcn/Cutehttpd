@@ -34,7 +34,9 @@
     #define SHUT_RD   SD_RECEIVE
     #define SHUT_WR   SD_SEND
     #define SHUT_RDWR SD_BOTH
-    #define sleep(n) Sleep(n)
+    #ifndef sleep
+        #define sleep(n) Sleep(n)
+    #endif
     #define strcasecmp(a,b) stricmp(a,b)
     #define snprintf _snprintf
     #include "pthread_w32.c"
@@ -79,7 +81,7 @@
         #define DEBUG_TRACE(va...) chtd_cry_x(NULL, __FILE__, __LINE__, ##va)
     #endif
 #else
-    #define DEBUG_TRACE(...)
+    #define DEBUG_TRACE()
 #endif
 /*
 #include "htd_debug.c"

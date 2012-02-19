@@ -8,9 +8,9 @@
 #define CHTD_LOG_H
 
 #ifdef _MSC_VER
-#define chtd_cry(x,f,...) chtd_cry_x(x, __FILE__, __LINE__, f, __VA_ARGS__)
+    #define chtd_cry(...) chtd_cry_x(__FILE__, __LINE__, __VA_ARGS__)
 #else
-#define chtd_cry(x,vf...) chtd_cry_x(x, __FILE__, __LINE__, ##vf)
+    #define chtd_cry(...) chtd_cry_x(__FILE__, __LINE__, ##__VA_ARGS__)
 #endif
 
 
@@ -23,7 +23,7 @@ chtd_log(struct htdx_t *, char *, ...);
 
 
 void
-chtd_cry_x(struct htdx_t *, char *, int, char *, ...);
+chtd_cry_x(char *, int, struct htdx_t *, char *, ...);
 
 
 #endif

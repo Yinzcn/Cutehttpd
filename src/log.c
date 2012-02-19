@@ -31,7 +31,7 @@ chtd_log(struct htdx_t *htdx, char *f, ...)
 
 
 void
-chtd_cry_x(struct htdx_t *htdx, char *FILE, int LINE, char *f, ...)
+chtd_cry_x(char *FILE, int LINE, struct htdx_t *htdx, char *f, ...)
 {
     char B[1024];
     char F[1024];
