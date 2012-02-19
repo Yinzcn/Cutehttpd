@@ -82,7 +82,10 @@ pthread_cond_destroy(pthread_cond_t *cv)
 int
 pthread_cond_wait(pthread_cond_t *cv, pthread_mutex_t *mutex)
 {
-    HANDLE handles[] = { cv->signal, cv->broadcast };
+    HANDLE handles[] = {
+        cv->signal,
+        cv->broadcast
+    };
     ReleaseMutex(*mutex);
     WaitForMultipleObjects(2, handles, FALSE, INFINITE);
     return WaitForSingleObject(*mutex, INFINITE) == WAIT_OBJECT_0 ? 0 : -1;

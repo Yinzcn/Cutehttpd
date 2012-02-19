@@ -32,7 +32,8 @@ typedef struct
 typedef HANDLE pthread_t;
 typedef HANDLE pthread_mutex_t;
 typedef struct {
-    HANDLE signal, broadcast;
+    HANDLE signal;
+    HANDLE broadcast;
 } pthread_cond_t;
 
 

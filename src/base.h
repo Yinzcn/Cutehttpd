@@ -54,7 +54,7 @@ void *
 memndup(void *, int);
 
 
-#ifdef WIN32
+#ifndef HAVE_STRNDUP
 char *
 strndup(char *, int);
 #endif

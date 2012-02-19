@@ -221,7 +221,7 @@ master_thread(struct htdx_t *htdx)
 
 
 struct htdx_t *
-chtd_create() {
+chtd_create(void) {
     struct htdx_t *htdx;
     htdx = calloc(1, sizeof(struct htdx_t));
     htdx->addr                  = strdup("0.0.0.0");
