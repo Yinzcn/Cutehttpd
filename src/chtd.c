@@ -227,13 +227,25 @@ chtd_create(void) {
     htdx = calloc(1, sizeof(struct htdx_t));
     htdx->addr                  = strdup("0.0.0.0");
     htdx->port                  = strdup("8080");
-    sprintf(SERVER_SOFTWARE, "Cutehttpd/%s (Built: %s %s/%d)", CHTD_VERSION, BUILDTIME, CPER, CVER);
+    snprintf(SERVER_SOFTWARE,
+        sizeof(SERVER_SOFTWARE),
+#ifdef DEBUG
+        "Cutehttpd/%s (Built: Debug; %s; %s/%d; %08x%2x;)",
+#else
+        "Cutehttpd/%s (Built: %s; %s/%d; %08x%2x;)",
+#endif
+        CHTD_VERSION,
+        BUILDTIME,
+        CPER,
+        CVER,
+        REV_A,
+        REV_B >> 24);
     htdx->SERVER_SOFTWARE       = SERVER_SOFTWARE;
     htdx->SERVER_PROTOCOL       = "HTTP/1.1";
     htdx->max_workers           = 32;
     htdx->squeue_size           = 1024;
     htdx->keep_alive_timeout    = 0;
-    htdx->max_post_size         = 8*1024*1024;
+    htdx->max_post_size         = 8 * 1024 * 1024;
 #ifdef PTW32_STATIC_LIB
     pthread_win32_process_attach_np();
     pthread_win32_thread_attach_np();

@@ -37,9 +37,6 @@
     #ifndef sleep
         #define sleep(n) Sleep(n)
     #endif
-    #ifndef strdup
-        #define strdup(n) _strdup(n)
-    #endif
     #define strcasecmp(a,b) stricmp(a,b)
     #define snprintf _snprintf
     #include "pthread_w32.c"
@@ -78,13 +75,9 @@
 
 /* [ DEBUG */
 #ifdef DEBUG
-    #ifdef _MSC_VER
-        #define DEBUG_TRACE(x,...) chtd_cry_x(NULL, __FILE__, __LINE__, x, __VA_ARGS__)
-    #else
-        #define DEBUG_TRACE(va...) chtd_cry_x(NULL, __FILE__, __LINE__, ##va)
-    #endif
+    #define DEBUG_TRACE(...) chtd_cry_x(__FILE__, __LINE__, __VA_ARGS__)
 #else
-    #define DEBUG_TRACE()
+    #define DEBUG_TRACE(...)
 #endif
 /*
 #include "htd_debug.c"
@@ -95,29 +88,38 @@
 /* [ build info */
 #define CHTD_VERSION "0.01a"
 #define BUILDTIME __DATE__ " " __TIME__
+#ifndef REVISION
+    #define REVISION "Unknown"
+#endif
 #ifdef _MSC_VER
-  #define CPER "MSVC"
-  #define CVER _MSC_VER
+    #define CPER "MS_VC"
+    #define CVER _MSC_VER
 #endif
 #ifdef __GNUC__
-  #define CPER "GCC"
-  #define CVER (__GNUC__ * 100 + __GNUC_MINOR__ * 10 + __GNUC_PATCHLEVEL__)
+    #define CPER "GNU_C"
+    #define CVER (__GNUC__ * 100 + __GNUC_MINOR__ * 10 + __GNUC_PATCHLEVEL__)
 #endif
 #ifdef __TINYC__
-  #undef CPER
-  #undef CVER
-  #define CPER "TCC"
-  #define CVER __TINYC__
+    #undef CPER
+    #undef CVER
+    #define CPER "Tiny_C"
+    #define CVER __TINYC__
 #endif
 #ifdef __POCC__
-  #undef CPER
-  #undef CVER
-  #define CPER "POCC"
-  #define CVER __POCC__
+    #undef CPER
+    #undef CVER
+    #define CPER "Pelles_C"
+    #define CVER __POCC__
+#endif
+#ifdef __LCC__
+    #undef CPER
+    #undef CVER
+    #define CPER "Lcc"
+    #define CVER 0
 #endif
 #ifndef CPER
-  #define CPER "Unknown"
-  #define CVER 0
+    #define CPER "Unknown"
+    #define CVER 0
 #endif
 /* ] */
 

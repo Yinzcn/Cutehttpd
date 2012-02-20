@@ -1,14 +1,18 @@
 @echo off
 setlocal enableextensions
 
+set FH=..\.git\FETCH_HEAD
+if exist %FH% for /f "tokens=1" %%i in (%FH%) do set REVISION=%%i
+set CF=-DREV_A=0x%REVISION:~0,8% -DREV_B=0x%REVISION:~8,8%
+if not "%*" == "" set CF=%CF% %*
+
 set tccdir=D:\Projects\tinycc.git\win32
 set winsdk=D:\MinGW
 
-if "%*" == "" (set C= ) else (set C= %* )
 
 call :impdef ws2_32.dll
 
-set cmdl=%tccdir%\tcc -v%C%-Wall -I%tccdir%\include -I%tccdir%\include\winapi -I%winsdk%\include -lws2_32 main.c
+set cmdl=%tccdir%\tcc -v %CF% -Wall -I%tccdir%\include -I%tccdir%\include\winapi -I%winsdk%\include -lws2_32 main.c
 
 echo cmdl='%cmdl%' & %cmdl%
 
