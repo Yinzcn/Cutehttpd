@@ -210,7 +210,7 @@ master_thread(struct htdx_t *htdx)
     /* [ Destroy */
     free_wkers (htdx);
     free_squeue(htdx);
-#ifdef WIN32
+#ifdef _WIN32
     WSACleanup();
 #endif
     /* ] */

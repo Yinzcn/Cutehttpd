@@ -116,7 +116,7 @@ conn_recv(struct conn_t *conn, char *buff, int need)
 void
 conn_set_recv_timeout(struct conn_t *conn, int msec)
 {
-#ifdef WIN32
+#ifdef _WIN32
     int tv = msec;
 #else
     struct timeval tv;
@@ -130,7 +130,7 @@ conn_set_recv_timeout(struct conn_t *conn, int msec)
 void
 conn_set_send_timeout(struct conn_t *conn, int msec)
 {
-#ifdef WIN32
+#ifdef _WIN32
     int tv = msec;
 #else
     struct timeval tv;

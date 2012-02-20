@@ -430,7 +430,7 @@ envblk_add(struct envblk_t **envblk, char *n, char *v)
 int
 spawn_process(struct htdx_t *htdx, char *cmdl, char *wdir)
 {
-#ifdef WIN32
+#ifdef _WIN32
     struct envblk_t *envb;
     STARTUPINFOA si;
     PROCESS_INFORMATION pi;
@@ -459,6 +459,7 @@ spawn_process(struct htdx_t *htdx, char *cmdl, char *wdir)
     }
     chtd_cry(htdx, "CreateProcessA!");
     return 1;
-#endif
+#else
     return 0;
+#endif
 }
