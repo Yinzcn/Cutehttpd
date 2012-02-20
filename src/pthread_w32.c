@@ -20,6 +20,8 @@ pthread_self(void)
 int
 pthread_create(pthread_t *tid, void *attr, void (*start)(void *), void *arg)
 {
+    tid = tid;
+    attr = attr;
     return _beginthread(start, 0, arg) == -1L ? -1 : 0;
 }
 

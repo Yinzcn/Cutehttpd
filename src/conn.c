@@ -44,7 +44,7 @@ conn_close(struct conn_t *conn)
         return;
     }
     if (sock->socket > 0) {
-#ifdef WIN32
+#ifdef _WIN32
         static char buff[1024];
         struct linger l;
         unsigned long u = 1;

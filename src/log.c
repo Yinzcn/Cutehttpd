@@ -11,12 +11,12 @@
 void
 chtd_log(struct htdx_t *htdx, char *f, ...)
 {
-    char b[1024];
+    char b[1024] = { 0 };
     int n;
     va_list a;
-    n = sprintf(b, "[%s] ", x_nowstr());
+    n = snprintf(b, sizeof(b), "[%s] ", x_nowstr());
     va_start(a, f);
-    n += vsprintf(b + n, f, a);
+    n += vsnprintf(b + n, sizeof(b) - n, f, a);
     va_end(a);
 
     strcat(b, "\r\n");
@@ -33,24 +33,23 @@ chtd_log(struct htdx_t *htdx, char *f, ...)
 void
 chtd_cry_x(char *FILE, int LINE, struct htdx_t *htdx, char *f, ...)
 {
-    char B[1024];
-    char F[1024];
+    char B[1024] = { 0 };
+    char F[1024] = { 0 };
+    int n;
     va_list a;
     va_start(a, f);
-    sprintf(F, "err(%d):%s:%d : %s", errno, x_basename(FILE), LINE, f);
+    n = snprintf(F, sizeof(F), "err(%d):%s:%d : %s", errno, x_basename(FILE), LINE, f);
     if (htdx) {
-        vsprintf(B, F, a);
+        vsnprintf(B, sizeof(B), F, a);
         chtd_log(htdx, B, a);
     } else {
-        char b[1024];
-        int n;
-        n = sprintf(b, "[%s] ", x_nowstr());
-        n += vsprintf(b + n, F, a);
-        strcat(b, "\r\n");
+        n = snprintf(B, sizeof(B), "[%s] ", x_nowstr());
+        n += vsnprintf(B + n, sizeof(B) - n, F, a);
+        strcat(B, "\r\n");
 #ifdef DEBUG
-        printf("%s", b);
+        printf("%s", B);
 #endif
-        file_put("chtd_cry.log", b, strlen(b));
+        file_put("chtd_cry.log", B, strlen(B));
     }
     va_end(a);
 }

@@ -74,7 +74,6 @@ namevalues_get(struct namevalue_t **nvs, char *n) {
         }
         curr = curr->next;
     }
-    return NULL;
 }
 
 

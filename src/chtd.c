@@ -190,7 +190,7 @@ master_thread(struct htdx_t *htdx)
 
     /* [ Shutdown */
     if (htdx->sock.socket > 0) {
-#ifdef WIN32
+#ifdef _WIN32
         closesocket(htdx->sock.socket);
 #else
         close(htdx->sock.socket);
@@ -222,11 +222,13 @@ master_thread(struct htdx_t *htdx)
 
 struct htdx_t *
 chtd_create(void) {
+    static char SERVER_SOFTWARE[256];
     struct htdx_t *htdx;
     htdx = calloc(1, sizeof(struct htdx_t));
     htdx->addr                  = strdup("0.0.0.0");
     htdx->port                  = strdup("8080");
-    htdx->SERVER_SOFTWARE       = "Cutehttpd/"CHTD_VERSION" (Built: "BUILDTIME")";
+    sprintf(SERVER_SOFTWARE, "Cutehttpd/%s (Built: %s %s/%d)", CHTD_VERSION, BUILDTIME, CPER, CVER);
+    htdx->SERVER_SOFTWARE       = SERVER_SOFTWARE;
     htdx->SERVER_PROTOCOL       = "HTTP/1.1";
     htdx->max_workers           = 32;
     htdx->squeue_size           = 1024;

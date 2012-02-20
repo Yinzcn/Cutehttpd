@@ -37,6 +37,9 @@
     #ifndef sleep
         #define sleep(n) Sleep(n)
     #endif
+    #ifndef strdup
+        #define strdup(n) _strdup(n)
+    #endif
     #define strcasecmp(a,b) stricmp(a,b)
     #define snprintf _snprintf
     #include "pthread_w32.c"
@@ -89,8 +92,34 @@
 /* ] */
 
 
+/* [ build info */
 #define CHTD_VERSION "0.01a"
-#define BUILDTIME __DATE__" "__TIME__
+#define BUILDTIME __DATE__ " " __TIME__
+#ifdef _MSC_VER
+  #define CPER "MSVC"
+  #define CVER _MSC_VER
+#endif
+#ifdef __GNUC__
+  #define CPER "GCC"
+  #define CVER (__GNUC__ * 100 + __GNUC_MINOR__ * 10 + __GNUC_PATCHLEVEL__)
+#endif
+#ifdef __TINYC__
+  #undef CPER
+  #undef CVER
+  #define CPER "TCC"
+  #define CVER __TINYC__
+#endif
+#ifdef __POCC__
+  #undef CPER
+  #undef CVER
+  #define CPER "POCC"
+  #define CVER __POCC__
+#endif
+#ifndef CPER
+  #define CPER "Unknown"
+  #define CVER 0
+#endif
+/* ] */
 
 
 #include "buff.h"
