@@ -8,7 +8,7 @@ if "%*" == "" (set C= ) else (set C= %* )
 
 call :impdef ws2_32.dll
 
-set cmdl=%tccdir%\tcc -v -Wall main.c -I%tccdir%\include -I%tccdir%\include\winapi -I%winsdk%\include -lws2_32
+set cmdl=%tccdir%\tcc -v%C%-Wall -I%tccdir%\include -I%tccdir%\include\winapi -I%winsdk%\include -lws2_32 main.c
 
 echo cmdl='%cmdl%' & %cmdl%
 
