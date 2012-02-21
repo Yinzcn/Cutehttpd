@@ -230,9 +230,9 @@ chtd_create(void) {
     snprintf(SERVER_SOFTWARE,
         sizeof(SERVER_SOFTWARE),
 #ifdef DEBUG
-        "Cutehttpd/%s (Built: Debug; %s; %s/%d; %08x%2x;)",
+        "Cutehttpd/%s (Built: Debug; %s; %s/%d; %08x%02x;)",
 #else
-        "Cutehttpd/%s (Built: %s; %s/%d; %08x%2x;)",
+        "Cutehttpd/%s (Built: %s; %s/%d; %08x%02x;)",
 #endif
         CHTD_VERSION,
         BUILDTIME,

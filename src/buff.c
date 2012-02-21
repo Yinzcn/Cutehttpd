@@ -179,7 +179,7 @@ bufx_get_each(struct bufx_t *bufx, void *func, void *arg1)
             last = curr->prev;
             while (1) {
                 next = curr->next;
-                ((void (*)())func)(arg1, curr->data, curr->used);
+                ((void (*)(void *, void *, int))func)(arg1, curr->data, curr->used);
                 free(curr);
                 if (curr == last) {
                     break;

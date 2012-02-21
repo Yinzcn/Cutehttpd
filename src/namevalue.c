@@ -70,10 +70,11 @@ namevalues_get(struct namevalue_t **nvs, char *n) {
             return curr;
         }
         if (curr == last) {
-            return NULL;
+            break;
         }
         curr = curr->next;
     }
+    return NULL;
 }
 
 
@@ -104,7 +105,7 @@ namevalues_each(struct namevalue_t **nvs, void *func, void *arg1)
     last = curr->prev;
     while (1) {
         i++;
-        ((void (*)())func)(arg1, curr->n, curr->v);
+        ((void (*)(void *, void *, void *))func)(arg1, curr->n, curr->v);
         if (curr == last) {
             break;
         }

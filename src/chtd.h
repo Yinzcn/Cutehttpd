@@ -86,7 +86,7 @@
 
 
 /* [ build info */
-#define CHTD_VERSION "0.01a"
+#define CHTD_VERSION "0.1a"
 #define BUILDTIME __DATE__ " " __TIME__
 #ifndef REVISION
     #define REVISION "Unknown"
@@ -120,6 +120,12 @@
 #ifndef CPER
     #define CPER "Unknown"
     #define CVER 0
+#endif
+#ifndef REV_A
+    #define REV_A 0
+#endif
+#ifndef REV_B
+    #define REV_B 0
 #endif
 /* ] */
 

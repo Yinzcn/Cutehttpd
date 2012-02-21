@@ -15,7 +15,7 @@ struct uhook_t
 {
     char *host;
     char *xuri;
-    int (*func)();
+    int (*func)(void *);
     void *pPcre;
     struct uhook_t *prev;
     struct uhook_t *next;
