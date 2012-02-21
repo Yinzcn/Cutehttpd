@@ -113,7 +113,7 @@ str_replace(char *f, char *r, char *s)
 
 
 void *
-memdup(void *m, int n)
+x_memdup(void *m, int n)
 {
     if (m) {
         char *r = malloc(n);
@@ -130,11 +130,11 @@ memdup(void *m, int n)
 char *
 x_strndup(char *s, int n)
 {
+    char *z, *r;
     if (s) {
-        int l = strlen(s);
-        char *r;
-        if (n > l) {
-            n = l;
+        z = memchr(s, '\0', n);
+        if (z) {
+            n = z - s;
         }
         r = malloc(n + 1);
         if (r) {
@@ -346,7 +346,7 @@ url_decode(char *s, char *d)
 void
 url_encode(char *s, char *d, int max)
 {
-    static unsigned char hexchars[] = "0123456789ABCDEF";
+    static unsigned char hex[] = "0123456789ABCDEF";
     register unsigned char c;
     while (*s && max) {
         c = *s++;
@@ -362,8 +362,8 @@ url_encode(char *s, char *d, int max)
              || (c > 'z' || c == ' '))
             && max >= 3) {
             *d++ = '%';
-            *d++ = hexchars[c >> 4];
-            *d++ = hexchars[c & 15];
+            *d++ = hex[c >> 4];
+            *d++ = hex[c & 15];
             max -= 3;
         } else {
             *d++ = c;

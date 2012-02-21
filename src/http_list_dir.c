@@ -50,11 +50,12 @@ http_list_dir(struct reqs_t *reqs, char *path)
         "<!DOCTYPE html>\r\n"
         "<html>\r\n"
         "<head>\r\n"
-        "<title>Index of %s</title></head>\r\n"
+        "<title>Index of %s</title>\r\n"
+        "</head>\r\n"
         "<body>\r\n"
         "<h1>Index of %s</h1>\r\n"
         "<pre>\r\n"
-        "<hr>\r\n", req_path_dec, req_path_dec);
+        "<hr />\r\n", req_path_dec, req_path_dec);
 
     while (1) {
         dPtr = readdir(dirx);
@@ -68,7 +69,7 @@ http_list_dir(struct reqs_t *reqs, char *path)
 
     reqs_cont_push_x(reqs,
         "</pre>\r\n"
-        "<hr>\r\n"
+        "<hr />\r\n"
         "<strong>%s</strong>\r\n"
         "</body>\r\n"
         "</html>", reqs->htdx->SERVER_SOFTWARE);

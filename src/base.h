@@ -51,7 +51,7 @@ str_replace(char *, char *, char *);
 
 
 void *
-memndup(void *, int);
+x_memdup(void *, int);
 
 
 #ifdef HAVE_STRNDUP
