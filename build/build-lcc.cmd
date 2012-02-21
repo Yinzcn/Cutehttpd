@@ -8,6 +8,6 @@ if not "%*" == "" (set CF=%CF% %*)
 
 set lccdir=D:\lcc
 
-set cmdl=%lccdir%\bin\lc -O %CF% -DHAVE_STRNDUP main.c -o chtd.exe
+set cmdl=%lccdir%\bin\lc -v -O %CF% -DHAVE_STRNDUP main.c -o chtd.exe
 
 echo cmdl='%cmdl%' & %cmdl%

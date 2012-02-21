@@ -85,7 +85,7 @@
 /* ] */
 
 
-/* [ build info */
+/* [ */
 #define CHTD_VERSION "0.1a"
 #define BUILDTIME __DATE__ " " __TIME__
 #ifndef REVISION

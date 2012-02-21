@@ -63,7 +63,11 @@ substr_count(char *str, char *sub)
         int l = strlen(sub);
         int n = 0;
         char *p = str;
-        while ((p = strstr(p, sub))) {
+        while (1) {
+            p = strstr(p, sub);
+            if (!p) {
+                break;
+            }
             n++;
             p += l;
         }
@@ -90,7 +94,11 @@ str_replace(char *f, char *r, char *s)
         char *p1, *p2;
         char *p3 = bf;
         p1 = s;
-        while ((p2 = strstr(p1, f))) {
+        while (1) {
+            p2 = strstr(p1, f);
+            if (p2) {
+                break;
+            }
             n = p2 - p1;
             memcpy(p3, p1, n);
             p3 += n;
@@ -108,10 +116,10 @@ void *
 memdup(void *m, int n)
 {
     if (m) {
-        char *p = calloc(n, sizeof(char));
-        if (p) {
-            memcpy(p, m, n);
-            return p;
+        char *r = malloc(n);
+        if (r) {
+            memcpy(r, m, n);
+            return r;
         }
     }
     return NULL;
@@ -120,18 +128,19 @@ memdup(void *m, int n)
 
 #ifndef HAVE_STRNDUP
 char *
-strndup(char *s, int n)
+x_strndup(char *s, int n)
 {
     if (s) {
         int l = strlen(s);
-        char *p;
+        char *r;
         if (n > l) {
             n = l;
         }
-        p = calloc(n + 1, sizeof(char));
-        if (p) {
-            memcpy(p, s, n);
-            return p;
+        r = malloc(n + 1);
+        if (r) {
+            memcpy(r, s, n);
+            r[n] = '\0';
+            return r;
         }
     }
     return NULL;

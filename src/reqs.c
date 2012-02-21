@@ -211,7 +211,11 @@ reqs_parse_post(struct reqs_t *reqs)
     }
     content_type = strdup(get_http_header(reqs, "Content-Type"));
     p = content_type;
-    while ((p = strchr(p, ';'))) {
+    while (1) {
+        p = strchr(p, ';');
+        if (!p) {
+            break;
+        }
         *p++ = '\0';
         while (*p == ' ') {
             p++;
@@ -290,7 +294,7 @@ reqs_parse(struct reqs_t *reqs)
     if (z == a) {
         return 0;
     }
-    reqs_line = strndup(a, z - a);
+    reqs_line = x_strndup(a, z - a);
     reqs->reqs_line = reqs_line;
     /*
     ]
@@ -380,7 +384,7 @@ reqs_parse(struct reqs_t *reqs)
     if (a == z) {
         return 0;
     }
-    reqs->uri = strndup(a, z - a);
+    reqs->uri = x_strndup(a, z - a);
     p = reqs->uri;
     while (*p) {
         if (!is_valid_uri_char(*p)) {
@@ -424,7 +428,7 @@ reqs_parse(struct reqs_t *reqs)
     while (*z && *z != '?') {
         z++;
     }
-    reqs->request_path = strndup(a, z - a);
+    reqs->request_path = x_strndup(a, z - a);
     path_tidy(reqs->request_path);
     /*
     ]

@@ -56,7 +56,11 @@ http_list_dir(struct reqs_t *reqs, char *path)
         "<pre>\r\n"
         "<hr>\r\n", req_path_dec, req_path_dec);
 
-    while ((dPtr = readdir(dirx))) {
+    while (1) {
+        dPtr = readdir(dirx);
+        if (!dPtr) {
+            break;
+        }
         char href[1024];
         url_encode(dPtr->d_name, href, 1024 - 1);
         reqs_cont_push_x(reqs, "<a href=\"%s\">%s</a>\r\n", href, dPtr->d_name);

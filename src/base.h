@@ -54,9 +54,11 @@ void *
 memndup(void *, int);
 
 
-#ifndef HAVE_STRNDUP
+#ifdef HAVE_STRNDUP
+#define x_strndup strndup
+#else
 char *
-strndup(char *, int);
+x_strndup(char *, int);
 #endif
 
 

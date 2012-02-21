@@ -46,7 +46,10 @@ http_send_file(struct reqs_t *http_reqs, char *file_path)
     set_http_header_x(http_reqs, "Content-Length", "%d", file_size);
     send_http_header (http_reqs);
 
-    while ((n = fread(buff, 1, 8192, pFile))) {
+    while (1) {
+        if (!(n = fread(buff, 1, 8192, pFile))) {
+            break;
+        }
         if (!reqs_conn_send(http_reqs, buff, n)) {
             break;
         }
