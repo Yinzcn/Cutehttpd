@@ -1,7 +1,7 @@
 @echo off
 setlocal enableextensions
 
-set FH=..\.git\FETCH_HEAD
+set FH=..\.git\refs\heads\master
 if exist %FH% for /f "tokens=1" %%i in (%FH%) do set REVISION=%%i
 if not "%REVISION%" == "" (set CF=-DREV_A=0x%REVISION:~0,8% -DREV_B=0x%REVISION:~8,8%)
 if not "%*" == "" (set CF=%CF% %*)
