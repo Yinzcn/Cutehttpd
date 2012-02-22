@@ -17,7 +17,7 @@ struct namevalue_t
 };
 
 
-int
+struct namevalue_t *
 namevalues_add(struct namevalue_t **, char *, int, char *, int);
 
 

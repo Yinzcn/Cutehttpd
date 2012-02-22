@@ -8,16 +8,16 @@
 #include "namevalue.h"
 
 
-int
+struct namevalue_t *
 namevalues_add(struct namevalue_t **nvs, char *n, int nl, char *v, int vl)
 {
     struct namevalue_t *nv;
-    if (n == NULL || v == NULL || nl <= 0 || vl <= 0) {
-        return 0;
+    if (!n || !v || nl <= 0) {
+        return NULL;
     }
     nv = calloc(1, sizeof(struct namevalue_t) + nl + 1 + vl + 1);
-    if (nv == NULL) {
-        return 0;
+    if (!nv) {
+        return NULL;
     }
     nv->n = (char *)nv + sizeof(struct namevalue_t);
     nv->v = nv->n + nl + 1;
@@ -33,7 +33,7 @@ namevalues_add(struct namevalue_t **nvs, char *n, int nl, char *v, int vl)
         nv->next = nv;
         *nvs = nv;
     }
-    return 1;
+    return nv;
 }
 
 
@@ -98,7 +98,7 @@ namevalues_each(struct namevalue_t **nvs, void *func, void *arg1)
 {
     int i = 0;
     struct namevalue_t *curr, *last;
-    if (*nvs == NULL) {
+    if (!*nvs) {
         return 0;
     }
     curr = *nvs;
@@ -119,7 +119,7 @@ void
 namevalues_destroy(struct namevalue_t **nvs)
 {
     struct namevalue_t *curr, *next, *last;
-    if (*nvs == NULL) {
+    if (!*nvs) {
         return;
     }
     curr = *nvs;

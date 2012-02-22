@@ -229,31 +229,39 @@ reqs_parse_post(struct reqs_t *reqs)
         char *n_a, *n_z;
         char *v_a, *v_z;
         int n_l = 0, v_l = 0;
+        struct namevalue_t *nv;
         char *p = reqs->post_data;
         while (*p) {
             n_a = p;
-            while (*p && *p != '=') {
+            while (*p && *p != '=' && *p != '&') {
                 p++;
             }
-            n_z = p;
-            if (*p) {
-                p++;
-            } else {
+            if (!*p) {
                 break;
+            }
+            n_z = p;
+            if (*p != '&') {
+                p++;
             }
             v_a = p;
             while (*p && *p != '&') {
                 p++;
             }
             v_z = p;
-            if (*p) {
-                p++;
-            }
             n_l = n_z - n_a;
             v_l = v_z - v_a;
-            if (n_l > 0 && v_l > 0) {
-                namevalues_add(&reqs->post_vars, n_a, n_l, v_a, v_l);
+            if (n_l > 0) {
+                nv = namevalues_add(&reqs->post_vars, n_a, n_l, v_a, v_l);
+                if (nv) {
+                    n_a = nv->n;
+                    for ( ; *n_a; n_a++) {
+                        if (strchr(" \t\r\n", *n_a)) {
+                            *n_a = '_';
+                        }
+                    }
+                }
             }
+            p++;
         }
     }
     free(content_type);
