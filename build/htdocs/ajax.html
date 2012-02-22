@@ -2,70 +2,71 @@
 <head>
 <script type="text/JavaScript">
 function $(id) {
-    return document.getElementById(id);
+	return document.getElementById(id);
 }
 
 function new_xhr() {
-    var xhr;
-    try {
-        xhr = new XMLHttpRequest();
-    } catch (e) {
-        try {
-            xhr = new ActiveXObject("Microsoft.XMLHTTP"); 
-        } catch (e) {
-            xhr = false;
-        }
-    }
-    return xhr;
+	var xhr;
+	try {
+		xhr = new XMLHttpRequest();
+	} catch (e) {
+		try {
+			xhr = new ActiveXObject("Microsoft.XMLHTTP");
+		} catch (e) {
+			xhr = false;
+		}
+	}
+	return xhr;
 }
 
 function xhr_get(e, u) {
-  var xhr = new_xhr();
-  e.innerHTML = "";
-  xhr.onreadystatechange = function() {
-    if(xhr.readyState == 4) {
-      e.innerHTML = xhr.responseText;
-      delete xhr;
-    }
-  }
-  xhr.open("GET", u, true);
-  xhr.send();
+	var xhr = new_xhr();
+	e.innerHTML = "";
+	xhr.onreadystatechange = function () {
+		if (xhr.readyState == 4) {
+			e.innerHTML = xhr.responseText;
+			delete xhr;
+		}
+	}
+	xhr.open("GET", u, true);
+	xhr.send();
 }
 
 function xhr_post(e, u, p) {
-  var xhr = new_xhr();
-  e.innerHTML = "";
-  xhr.onreadystatechange = function() {
-    if(xhr.readyState == 4) {
-      e.innerHTML = xhr.responseText;
-      delete xhr;
-    }
-  }
-  xhr.open("POST", u, true);
-  xhr.send(p);
+	var xhr = new_xhr();
+	e.innerHTML = "";
+	xhr.onreadystatechange = function () {
+		if (xhr.readyState == 4) {
+			e.innerHTML = xhr.responseText;
+			delete xhr;
+		}
+	}
+	xhr.open("POST", u, true);
+	xhr.send(p);
 }
 
 function GET_all() {
-    xhr_get($('div_1'), $('u').value);
-    xhr_get($('div_2'), $('u').value);
-    xhr_get($('div_3'), $('u').value);
-    xhr_get($('div_4'), $('u').value);
+	xhr_get($('div_1'), $('u').value);
+	xhr_get($('div_2'), $('u').value);
+	xhr_get($('div_3'), $('u').value);
+	xhr_get($('div_4'), $('u').value);
 }
 
 function POST_all() {
-    xhr_post($('div_1'), $('u').value, "a=Alpha&b=Beta&c=Gamma");
-    xhr_post($('div_2'), $('u').value, "a=Alpha&b=Beta&c=Gamma");
-    xhr_post($('div_3'), $('u').value, "a=Alpha&b=Beta&c=Gamma");
-    xhr_post($('div_4'), $('u').value, "a=Alpha&b=Beta&c=Gamma");
+	xhr_post($('div_1'), $('u').value, $('p').value);
+	xhr_post($('div_2'), $('u').value, $('p').value);
+	xhr_post($('div_3'), $('u').value, $('p').value);
+	xhr_post($('div_4'), $('u').value, $('p').value);
 }
 </script>
 </head>
 <body>
-  <input id="u" value="/uhook/time" />
+  <input id="u" size="40" value="/uhook/time" />
+  <input id="p" size="40" value="a=Alpha&b=Beta&c=Gamma" />
   <input type="button" value="GET_all" onclick="GET_all();" />
   <input type="button" value="GET_1" onclick="xhr_get($('div_1'), $('u').value);" />
   <input type="button" value="POST_all" onclick="POST_all();" />
-  <input type="button" value="POST_1" onclick="xhr_post($('div_1'), $('u').value, 'p=m');" />
+  <input type="button" value="POST_1" onclick="xhr_post($('div_1'), $('u').value, $('p').value);" />
   <hr />
   <div id="div_1"></div>
   <br />

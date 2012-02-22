@@ -170,7 +170,7 @@ chtd_set_vhost(struct htdx_t *htdx, char *szHost, char *szRoot, char *szConf)
         return 0;
     }
     real_root = calloc(FILENAME_MAX + 1, sizeof(char));
-    real_path(szRoot, real_root);
+    x_realpath(szRoot, real_root);
     vhost = chtd_get_vhost(htdx, szHost);
     if (vhost) { /* already exists */
         if (strlen(szRoot) || strlen(szConf)) { /* to update */

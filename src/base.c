@@ -43,73 +43,23 @@ x_nowstr(void)
 }
 
 
+#ifndef HAVE_STRLWR
 char *
 x_strlwr(char *s)
 {
-    char *p;
-    for (p = s; *p; p++) {
-        if (*p >= 'A' && *p <= 'Z') {
-            *p = *p - 'A' + 'a';
+    unsigned char c;
+    do {
+        c = *s;
+        if (c == 0) {
+            break;
+        } else
+        if (c >= 'A' && c <= 'Z') {
+            *s = c - 'A' + 'a';
         }
-    }
+    } while (++s);
     return s;
 }
-
-
-int
-substr_count(char *str, char *sub)
-{
-    if (str && sub) {
-        int l = strlen(sub);
-        int n = 0;
-        char *p = str;
-        while (1) {
-            p = strstr(p, sub);
-            if (!p) {
-                break;
-            }
-            n++;
-            p += l;
-        }
-        return n;
-    }
-    return 0;
-}
-
-
-/*
-f: find
-r: replacewith
-s: subject
-*/
-char *
-str_replace(char *f, char *r, char *s)
-{
-    int fl = strlen(f);
-    int rl = strlen(r);
-    int sl = strlen(s);
-    int n  = substr_count(s, f);
-    char *bf = calloc(sl + n * (rl - fl) + 1, sizeof(char));
-    if (bf) {
-        char *p1, *p2;
-        char *p3 = bf;
-        p1 = s;
-        while (1) {
-            p2 = strstr(p1, f);
-            if (p2) {
-                break;
-            }
-            n = p2 - p1;
-            memcpy(p3, p1, n);
-            p3 += n;
-            memcpy(p3, r, rl);
-            p3 += rl;
-            p1 = p2 + fl;
-        }
-        strcpy(p3, p1);
-    }
-    return bf;
-}
+#endif
 
 
 void *
@@ -146,6 +96,76 @@ x_strndup(char *s, int n)
     return NULL;
 }
 #endif
+
+
+#ifndef HAVE_REALPATH
+char *
+x_real_path(char *s, char *d)
+{
+#ifdef _WIN32
+    if (_fullpath(d, s, MAX_PATH)) {
+        return d;
+    }
+#endif
+    return NULL;
+}
+#endif
+
+
+int
+substr_count(char *str, char *sub)
+{
+    if (str && sub) {
+        int n = 0;
+        int l = strlen(sub);
+        char *p = str;
+        while (1) {
+            p = strstr(p, sub);
+            if (!p) {
+                break;
+            }
+            n++;
+            p += l;
+        }
+        return n;
+    }
+    return 0;
+}
+
+
+/*
+    f: search
+    r: replace
+    s: subject
+*/
+char *
+str_replace(char *f, char *r, char *s)
+{
+    int fl = strlen(f);
+    int rl = strlen(r);
+    int sl = strlen(s);
+    int n  = substr_count(s, f);
+    char *bf = calloc(sl + n * (rl - fl) + 1, sizeof(char));
+    if (bf) {
+        char *p1, *p2;
+        char *p3 = bf;
+        p1 = s;
+        while (1) {
+            p2 = strstr(p1, f);
+            if (p2) {
+                break;
+            }
+            n = p2 - p1;
+            memcpy(p3, p1, n);
+            p3 += n;
+            memcpy(p3, r, rl);
+            p3 += rl;
+            p1 = p2 + fl;
+        }
+        strcpy(p3, p1);
+    }
+    return bf;
+}
 
 
 int
@@ -269,23 +289,6 @@ path_tidy(char *path)
         path[0] = '/';
         path[1] = '\0';
     }
-}
-
-
-void
-real_path(char *s, char *d)
-{
-    *d = 0;
-    if (is_absolute_path(s)) {
-        strcat(d, s);
-    } else {
-        char w[FILENAME_MAX];
-        getcwd(w, FILENAME_MAX);
-        strcat(d, w);
-        strcat(d, "/");
-        strcat(d, s);
-    }
-    path_tidy(d);
 }
 
 

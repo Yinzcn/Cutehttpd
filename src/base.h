@@ -38,16 +38,12 @@ char *
 x_nowstr(void);
 
 
+#ifdef HAVE_STRLWR
+#define x_strlwr strlwr
+#else
 char *
 x_strlwr(char *);
-
-
-int
-substr_count(char *, char *);
-
-
-char *
-str_replace(char *, char *, char *);
+#endif
 
 
 void *
@@ -60,6 +56,22 @@ x_memdup(void *, int);
 char *
 x_strndup(char *, int);
 #endif
+
+
+#ifdef HAVE_REALPATH
+#define x_realpath realpath
+#else
+char *
+x_realpath(char *, char *);
+#endif
+
+
+int
+substr_count(char *, char *);
+
+
+char *
+str_replace(char *, char *, char *);
 
 
 int
@@ -76,10 +88,6 @@ is_absolute_path(char *);
 
 void
 path_tidy(char *);
-
-
-void
-real_path(char *, char *);
 
 
 void

@@ -1,4 +1,4 @@
-<form action="" method="post" enctype="multipart/form-data">
+<form action="/uhook/time" method="post" enctype="multipart/form-data">
 <input type="file" name="f" />
 <input type="submit" value="Send" />
 </form>
