@@ -8,6 +8,75 @@
 #include "base.h"
 
 
+#ifndef HAVE_STRLWR
+char *
+x_strlwr(char *s)
+{
+    unsigned char c;
+    do {
+        c = *s;
+        if (c == 0) {
+            break;
+        } else
+        if (c >= 'A' && c <= 'Z') {
+            *s = c - 'A' + 'a';
+        }
+    } while (++s);
+    return s;
+}
+#endif
+
+
+#ifndef HAVE_STRNDUP
+char *
+x_strndup(char *s, int n)
+{
+    char *z, *r;
+    if (s) {
+        z = memchr(s, '\0', n);
+        if (z) {
+            n = z - s;
+        }
+        r = malloc(n + 1);
+        if (r) {
+            memcpy(r, s, n);
+            r[n] = '\0';
+            return r;
+        }
+    }
+    return NULL;
+}
+#endif
+
+
+#ifndef HAVE_REALPATH
+char *
+x_realpath(char *s, char *d)
+{
+#ifdef _WIN32
+    if (_fullpath(d, s, MAX_PATH)) {
+        return d;
+    }
+#endif
+    return NULL;
+}
+#endif
+
+
+void *
+x_memdup(void *m, int n)
+{
+    if (m) {
+        char *r = malloc(n);
+        if (r) {
+            memcpy(r, m, n);
+            return r;
+        }
+    }
+    return NULL;
+}
+
+
 char *
 x_basename(char *path)
 {
@@ -41,75 +110,6 @@ x_nowstr(void)
     strftime(buff, sizeof(buff), "%Y-%m-%d %H:%M:%S", localtime(&rawtime));
     return buff;
 }
-
-
-#ifndef HAVE_STRLWR
-char *
-x_strlwr(char *s)
-{
-    unsigned char c;
-    do {
-        c = *s;
-        if (c == 0) {
-            break;
-        } else
-        if (c >= 'A' && c <= 'Z') {
-            *s = c - 'A' + 'a';
-        }
-    } while (++s);
-    return s;
-}
-#endif
-
-
-void *
-x_memdup(void *m, int n)
-{
-    if (m) {
-        char *r = malloc(n);
-        if (r) {
-            memcpy(r, m, n);
-            return r;
-        }
-    }
-    return NULL;
-}
-
-
-#ifndef HAVE_STRNDUP
-char *
-x_strndup(char *s, int n)
-{
-    char *z, *r;
-    if (s) {
-        z = memchr(s, '\0', n);
-        if (z) {
-            n = z - s;
-        }
-        r = malloc(n + 1);
-        if (r) {
-            memcpy(r, s, n);
-            r[n] = '\0';
-            return r;
-        }
-    }
-    return NULL;
-}
-#endif
-
-
-#ifndef HAVE_REALPATH
-char *
-x_real_path(char *s, char *d)
-{
-#ifdef _WIN32
-    if (_fullpath(d, s, MAX_PATH)) {
-        return d;
-    }
-#endif
-    return NULL;
-}
-#endif
 
 
 int

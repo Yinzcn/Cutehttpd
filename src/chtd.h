@@ -31,8 +31,8 @@
     #include <direct.h>
     #include <process.h>
     #include <winsock2.h>
-    #define SHUT_RD   SD_RECEIVE
-    #define SHUT_WR   SD_SEND
+    #define SHUT_RD SD_RECEIVE
+    #define SHUT_WR SD_SEND
     #define SHUT_RDWR SD_BOTH
     #ifndef sleep
         #define sleep(n) Sleep(n)
@@ -60,6 +60,9 @@
     #include <dirent.h>
     #include <pthread.h>
     #define SOCKET int
+    #define HAVE_STRLWR
+    #define HAVE_STRNDUP
+    #define HAVE_REALPATH
 
 /* ] */
 #endif

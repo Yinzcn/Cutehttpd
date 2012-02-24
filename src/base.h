@@ -26,28 +26,12 @@ struct sock_t
 };
 
 
-char *
-x_basename(char *);
-
-
-char *
-x_ext_name(char *);
-
-
-char *
-x_nowstr(void);
-
-
 #ifdef HAVE_STRLWR
 #define x_strlwr strlwr
 #else
 char *
 x_strlwr(char *);
 #endif
-
-
-void *
-x_memdup(void *, int);
 
 
 #ifdef HAVE_STRNDUP
@@ -64,6 +48,22 @@ x_strndup(char *, int);
 char *
 x_realpath(char *, char *);
 #endif
+
+
+void *
+x_memdup(void *, int);
+
+
+char *
+x_basename(char *);
+
+
+char *
+x_ext_name(char *);
+
+
+char *
+x_nowstr(void);
 
 
 int
