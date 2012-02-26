@@ -60,7 +60,6 @@
     #include <dirent.h>
     #include <pthread.h>
     #define SOCKET int
-    #define HAVE_STRLWR
     #define HAVE_STRNDUP
     #define HAVE_REALPATH
 
