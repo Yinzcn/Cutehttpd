@@ -51,7 +51,7 @@ assign_mime_types(struct htdx_t *htdx)
     mime_type_assign(htdx, ".text"    , "text/plain");
     mime_type_assign(htdx, ".txt"     , "text/plain");
     mime_type_assign(htdx, ".spec"    , "text/plain");
-    mime_type_assign(htdx, ".php"    , "text/plain");
+    mime_type_assign(htdx, ".php"     , "text/plain");
     mime_type_assign(htdx, ".dtd"     , "text/xml");
     mime_type_assign(htdx, ".xml"     , "text/xml");
     mime_type_assign(htdx, ".mpeg"    , "video/mpeg");
