@@ -29,45 +29,10 @@ conn_del(struct conn_t *conn)
     if (conn == NULL) {
         return;
     }
-    conn_close(conn);
+    sock_close(conn->sock);
     bufx_del(conn->recvbufx);
     free(conn->reqs_head);
     free(conn);
-}
-
-
-void
-conn_close(struct conn_t *conn)
-{
-    struct sock_t *sock = conn->sock;
-    if (sock == NULL) {
-        return;
-    }
-    if (sock->socket > 0) {
-#ifdef _WIN32
-        static char buff[1024];
-        struct linger l;
-        unsigned long u = 1;
-        l.l_onoff  = 1;
-        l.l_linger = 1;
-        setsockopt(sock->socket, SOL_SOCKET, SO_LINGER, (void *)&l, sizeof(l));
-        shutdown(sock->socket, SHUT_WR);
-        ioctlsocket(sock->socket, FIONBIO, &u);
-        while (recv(sock->socket, buff, 1024, 0) > 0);
-        closesocket(sock->socket);
-        sock->socket = 0;
-#else
-        static char buff[1024];
-        struct linger l;
-        l.l_onoff  = 1;
-        l.l_linger = 1;
-        setsockopt(sock->socket, SOL_SOCKET, SO_LINGER, (void *)&l, sizeof(l));
-        shutdown(sock->socket, SHUT_WR);
-        while (recv(sock->socket, buff, 1024, 0) > 0);
-        close(sock->socket);
-        sock->socket = 0;
-#endif
-    }
 }
 
 
@@ -114,30 +79,16 @@ conn_recv(struct conn_t *conn, char *buff, int need)
 
 
 void
-conn_set_recv_timeout(struct conn_t *conn, int msec)
+conn_set_send_timeout(struct conn_t *conn, int msec)
 {
-#ifdef _WIN32
-    int tv = msec;
-#else
-    struct timeval tv;
-    tv.tv_sec  = 0;
-    tv.tv_usec = msec * 1000;
-#endif
-    setsockopt(conn->sock->socket, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, sizeof(tv));
+    sock_set_send_timeout(conn->sock, msec);
 }
 
 
 void
-conn_set_send_timeout(struct conn_t *conn, int msec)
+conn_set_recv_timeout(struct conn_t *conn, int msec)
 {
-#ifdef _WIN32
-    int tv = msec;
-#else
-    struct timeval tv;
-    tv.tv_sec  = 0;
-    tv.tv_usec = msec * 1000;
-#endif
-    setsockopt(conn->sock->socket, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, sizeof(tv));
+    sock_set_recv_timeout(conn->sock, msec);
 }
 
 

@@ -8,22 +8,29 @@
 #define CHTD_BASE_H
 
 
-struct usa_t   /* unified socket address */
-{
-    int len;
-    union {
-        struct sockaddr sa;
-        struct sockaddr_in sin;
-    } u;
-};
+#define str2equ(s, c0, c1)                                                     \
+  ( s[0] == c0 && s[1] == c1 )
 
+#define str3equ(s, c0, c1, c2)                                                 \
+  ( s[0] == c0 && s[1] == c1 && s[2] == c2 )
 
-struct sock_t
-{
-    SOCKET socket;
-    struct usa_t lsa;
-    struct usa_t rsa;
-};
+#define str4equ(s, c0, c1, c2, c3)                                             \
+  ( s[0] == c0 && s[1] == c1 && s[2] == c2 && s[3] == c3 )
+
+#define str5equ(s, c0, c1, c2, c3, c4)                                         \
+  ( s[0] == c0 && s[1] == c1 && s[2] == c2 && s[3] == c3 && s[4] == c4 )
+
+#define str6equ(s, c0, c1, c2, c3, c4, c5)                                     \
+  ( s[0] == c0 && s[1] == c1 && s[2] == c2 && s[3] == c3 && s[4] == c4         \
+    && s[5] == c5 )
+
+#define str7equ(s, c0, c1, c2, c3, c4, c5, c6)                                 \
+  ( s[0] == c0 && s[1] == c1 && s[2] == c2 && s[3] == c3 && s[4] == c4         \
+    && s[5] == c5 && s[6] == c6 )
+
+#define str8equ(s, c0, c1, c2, c3, c4, c5, c6, c7)                             \
+  ( s[0] == c0 && s[1] == c1 && s[2] == c2 && s[3] == c3 && s[4] == c4         \
+    && s[5] == c5 && s[6] == c6 && s[7] == c7 )
 
 
 #ifdef HAVE_STRLWR

@@ -34,10 +34,6 @@ void
 conn_del(struct conn_t *);
 
 
-void
-conn_close(struct conn_t *);
-
-
 int
 conn_send(struct conn_t *, char *, int);
 
@@ -47,11 +43,11 @@ conn_recv(struct conn_t *, char *, int);
 
 
 void
-conn_set_recv_timeout(struct conn_t *, int);
+conn_set_send_timeout(struct conn_t *, int);
 
 
 void
-conn_set_send_timeout(struct conn_t *, int);
+conn_set_recv_timeout(struct conn_t *, int);
 
 
 void

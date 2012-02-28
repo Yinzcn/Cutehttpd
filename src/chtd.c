@@ -52,7 +52,6 @@ worker_thread(struct wker_t *wker)
             }
         }
 
-        conn_close(conn);
         conn_del(conn);
         wker->conn = NULL;
         if (htdx->status != CHTD_RUNNING) {
@@ -190,11 +189,7 @@ master_thread(struct htdx_t *htdx)
 
     /* [ Shutdown */
     if (htdx->sock.socket > 0) {
-#ifdef _WIN32
         closesocket(htdx->sock.socket);
-#else
-        close(htdx->sock.socket);
-#endif
     }
 
     /* broadcast all worker_thread to exit */

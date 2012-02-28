@@ -7,7 +7,8 @@
 #define CHTD_H
 
 
-#include "conf.h"
+#include "config.h"
+#include "version.h"
 
 
 #include <stdio.h>
@@ -28,12 +29,9 @@
 #ifdef _WIN32
 /* [ WIN32 */
 
+    #include <winsock2.h>
     #include <direct.h>
     #include <process.h>
-    #include <winsock2.h>
-    #define SHUT_RD SD_RECEIVE
-    #define SHUT_WR SD_SEND
-    #define SHUT_RDWR SD_BOTH
     #ifndef sleep
         #define sleep(n) Sleep(n)
     #endif
@@ -52,14 +50,13 @@
 /* [ Linux */
 
     #include <sys/wait.h>
-    #include <sys/socket.h>
     #include <sys/select.h>
+    #include <sys/socket.h>
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <unistd.h>
     #include <dirent.h>
     #include <pthread.h>
-    #define SOCKET int
     #define HAVE_STRNDUP
     #define HAVE_REALPATH
 
@@ -87,53 +84,9 @@
 /* ] */
 
 
-/* [ */
-#define CHTD_VERSION "0.1a"
-#define BUILDTIME __DATE__ " " __TIME__
-#ifndef REVISION
-    #define REVISION "Unknown"
-#endif
-#ifdef _MSC_VER
-    #define CPER "MS_VC"
-    #define CVER _MSC_VER
-#endif
-#ifdef __GNUC__
-    #define CPER "GNU_C"
-    #define CVER (__GNUC__ * 100 + __GNUC_MINOR__ * 10 + __GNUC_PATCHLEVEL__)
-#endif
-#ifdef __TINYC__
-    #undef CPER
-    #undef CVER
-    #define CPER "Tiny_C"
-    #define CVER __TINYC__
-#endif
-#ifdef __POCC__
-    #undef CPER
-    #undef CVER
-    #define CPER "Pelles_C"
-    #define CVER __POCC__
-#endif
-#ifdef __LCC__
-    #undef CPER
-    #undef CVER
-    #define CPER "Lcc"
-    #define CVER 0
-#endif
-#ifndef CPER
-    #define CPER "Unknown"
-    #define CVER 0
-#endif
-#ifndef REV_A
-    #define REV_A 0
-#endif
-#ifndef REV_B
-    #define REV_B 0
-#endif
-/* ] */
-
-
 #include "buff.h"
 #include "base.h"
+#include "sock.h"
 #include "namevalue.h"
 #include "parse_header.h"
 
@@ -197,31 +150,6 @@ struct htdx_t
 
 #define CHTD_OK 0
 #define CHTD_ERROR -1
-
-
-#define str2equ(s, c0, c1)                                                     \
-  ( s[0] == c0 && s[1] == c1 )
-
-#define str3equ(s, c0, c1, c2)                                                 \
-  ( s[0] == c0 && s[1] == c1 && s[2] == c2 )
-
-#define str4equ(s, c0, c1, c2, c3)                                             \
-  ( s[0] == c0 && s[1] == c1 && s[2] == c2 && s[3] == c3 )
-
-#define str5equ(s, c0, c1, c2, c3, c4)                                         \
-  ( s[0] == c0 && s[1] == c1 && s[2] == c2 && s[3] == c3 && s[4] == c4 )
-
-#define str6equ(s, c0, c1, c2, c3, c4, c5)                                     \
-  ( s[0] == c0 && s[1] == c1 && s[2] == c2 && s[3] == c3 && s[4] == c4         \
-    && s[5] == c5 )
-
-#define str7equ(s, c0, c1, c2, c3, c4, c5, c6)                                 \
-  ( s[0] == c0 && s[1] == c1 && s[2] == c2 && s[3] == c3 && s[4] == c4         \
-    && s[5] == c5 && s[6] == c6 )
-
-#define str8equ(s, c0, c1, c2, c3, c4, c5, c6, c7)                             \
-  ( s[0] == c0 && s[1] == c1 && s[2] == c2 && s[3] == c3 && s[4] == c4         \
-    && s[5] == c5 && s[6] == c6 && s[7] == c7 )
 
 
 #include "log.h"
