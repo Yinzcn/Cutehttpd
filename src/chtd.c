@@ -23,6 +23,7 @@ worker_thread(struct wker_t *wker)
             if (htdx->status == CHTD_RUNNING) {
                 chtd_cry(htdx, "worker_thread() -> squeue_get() failed!");
             }
+            DEBUG_TRACE("squeue_get return 0");
             break;
         }
 
@@ -90,7 +91,7 @@ listen_thread(struct htdx_t *htdx)
                 sock.socket = accept(htdx->sock.socket, &sock.rsa.u.sa, (void *)&sock.rsa.len);
                 if (sock.socket <= 0) {
                     htdx->status = CHTD_SUSPEND;
-                    chtd_cry(htdx, "accept() return 0 OR -1!");
+                    chtd_cry(htdx, "accept() return %d!", sock.socket);
                     break;
                 }
                 sock.lsa.len = sizeof(sock.lsa.u);
@@ -183,7 +184,7 @@ master_thread(struct htdx_t *htdx)
         htdx->birthtime = time(NULL);
         while (htdx->status == CHTD_RUNNING) {
             wker_stat(htdx);
-            sleep(100);
+            x_msleep(100);
         }
     }
 
@@ -194,11 +195,12 @@ master_thread(struct htdx_t *htdx)
 
     /* broadcast all worker_thread to exit */
     pthread_cond_broadcast(&htdx->cv_sq_put);
+            DEBUG_TRACE("pthread_cond_broadcast");
 
     /* wait until listen_thread() & worker_thread() exit */
     while (htdx->n_listen_thread
         || htdx->n_worker_thread) {
-        sleep(100);
+        x_msleep(100);
     }
     /* ] */
 
