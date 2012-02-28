@@ -35,7 +35,7 @@ struct sock_t
 };
 
 
-int
+void
 sock_set_non_blocking(struct sock_t *);
 
 

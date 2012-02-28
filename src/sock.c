@@ -4,14 +4,14 @@
 **/
 
 
-int
+void
 sock_set_non_blocking(struct sock_t *sock)
 {
 #ifdef _WIN32
     unsigned long u = 1;
-    return ioctlsocket(sock->socket, FIONBIO, &u);
+    ioctlsocket(sock->socket, FIONBIO, &u);
 #else
-    (void) fcntl(sock->socket, F_SETFL, fcntl(sock->socket, F_GETFL, 0) | O_NONBLOCK);
+    (void)fcntl(sock->socket, F_SETFL, fcntl(sock->socket, F_GETFL, 0) | O_NONBLOCK);
 #endif
 }
 
