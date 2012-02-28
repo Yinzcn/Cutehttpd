@@ -3,8 +3,9 @@
 
 //#include "pthread_w32.c"
 
-#include "buff.c"
 #include "base.c"
+#include "buff.c"
+#include "sock.c"
 
 #include "namevalue.c"
 #include "parse_header.c"
@@ -22,7 +23,7 @@
 #include "squeue.c"
 #include "wker.c"
 #ifdef CHTD_FCGI
-#include "fcgi.c"
+    #include "fcgi.c"
 #endif
 #include "status_info.c"
 #include "test_ext.c"
