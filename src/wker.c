@@ -75,7 +75,7 @@ wker_create_thread(struct wker_t *wker)
             wker->t_id = t_id;
             return 0;
         }
-        sleep(100);
+        x_msleep(100);
     }
     chtd_cry(wker->htdx, "wker_create_thread() -> pthread_create() failed!");
     return -1;

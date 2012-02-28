@@ -11,7 +11,7 @@
 int
 http_send_file(struct reqs_t *http_reqs, char *file_path)
 {
-    int maxtry = 1000;
+    int maxtry = 100;
     int file_size;
     FILE *pFile;
     int  n;
@@ -21,7 +21,7 @@ http_send_file(struct reqs_t *http_reqs, char *file_path)
         if (pFile) {
             break;
         }
-        sleep(1);
+        x_msleep(5);
     }
     if(!pFile) {
         chtd_cry(http_reqs->htdx, "http_send_file() -> fopen() failed! [%s]", file_path);

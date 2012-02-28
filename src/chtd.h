@@ -13,13 +13,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <stdarg.h>
-#include <assert.h>
+#include <stddef.h>
 #include <string.h>
+#include <errno.h>
 #include <ctype.h>
 #include <limits.h>
-#include <stddef.h>
 #include <locale.h>
 #include <time.h>
 #include <sys/types.h>
@@ -32,9 +31,6 @@
     #include <winsock2.h>
     #include <direct.h>
     #include <process.h>
-    #define x_msleep(n) Sleep(n)
-    #define strcasecmp(a,b) stricmp(a,b)
-    #define snprintf _snprintf
     #include "pthread_w32.c"
 
     #ifdef HAVE_DIRENT
@@ -47,7 +43,6 @@
 #else
 /* [ Linux */
 
-    #include <sys/wait.h>
     #include <sys/select.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
@@ -56,7 +51,6 @@
     #include <unistd.h>
     #include <dirent.h>
     #include <pthread.h>
-    #define x_msleep(n) usleep(n * 1000)
     #define HAVE_STRNDUP
     #define HAVE_REALPATH
 

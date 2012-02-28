@@ -8,6 +8,15 @@
 #define CHTD_BASE_H
 
 
+#ifdef _WIN32
+    #define x_msleep(ms) Sleep(ms)
+    #define strcasecmp(a,b) stricmp(a,b)
+    #define snprintf _snprintf
+#else
+    #define x_msleep(ms) usleep(ms * 1000)
+#endif
+
+
 #define str2equ(s, c0, c1)                                                     \
   ( s[0] == c0 && s[1] == c1 )
 
