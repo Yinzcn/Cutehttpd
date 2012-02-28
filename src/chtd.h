@@ -32,9 +32,7 @@
     #include <winsock2.h>
     #include <direct.h>
     #include <process.h>
-    #ifndef sleep
-        #define sleep(n) Sleep(n)
-    #endif
+    #define x_msleep(n) Sleep(n)
     #define strcasecmp(a,b) stricmp(a,b)
     #define snprintf _snprintf
     #include "pthread_w32.c"
@@ -58,6 +56,7 @@
     #include <unistd.h>
     #include <dirent.h>
     #include <pthread.h>
+    #define x_msleep(n) usleep(n * 1000)
     #define HAVE_STRNDUP
     #define HAVE_REALPATH
 
@@ -75,7 +74,7 @@
 
 /* [ DEBUG */
 #ifdef DEBUG
-    #define DEBUG_TRACE(...) chtd_cry_x(__FILE__, __LINE__, __VA_ARGS__)
+    #define DEBUG_TRACE(...) chtd_cry_x(__FILE__, __LINE__, NULL, __VA_ARGS__)
 #else
     #define DEBUG_TRACE(...)
 #endif
