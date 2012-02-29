@@ -14,6 +14,6 @@ set PATH=%VSPATH%\Common7\IDE;%VSPATH%\VC\bin;%PATH%
 set INCLUDE=%VSPATH%\VC\include;%SDKPATH%\Include;
 set LIB=%VSPATH%\VC\Lib;%SDKPATH%\Lib;
 
-set ccmd=cl main.c /Fechtd.exe /W2 /O2 %CF% /I../src /link ws2_32.lib
+set ccmd=cl /nologo main.c /Fechtd.exe /W2 /O2 %CF% /I../src /link ws2_32.lib
 
 echo ccmd='%ccmd%' & %ccmd%
