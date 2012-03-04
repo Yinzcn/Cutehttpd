@@ -292,11 +292,11 @@ reqs_parse(struct reqs_t *reqs)
     [ take reqs_line
     */
     a = reqs_head;
-    while (*a == LF || *a == CR || *a == SP || *a == HT) {
+    while (*a == CR || *a == LF || *a == SP || *a == HT) {
         a++;
     }
     z = a;
-    while (*z != LF && *z != CR && *z) {
+    while (*z != CR && *z != LF && *z) {
         z++;
     }
     if (z == a) {
@@ -380,7 +380,7 @@ reqs_parse(struct reqs_t *reqs)
     /*
     [ URI
     */
-    #define is_valid_uri_char(c) ((c > 32) && (c != 127) && (c != 255))
+    #define is_valid_uri_char(c) ((c > 0x20) && (c != 0x7f) && (c != 0xff))
     a = z;
     while (*a == SP) {
         a++;
@@ -412,14 +412,12 @@ reqs_parse(struct reqs_t *reqs)
     while (*a == SP) {
         a++;
     }
-    z = a;
-    while (*z) {
-        z++;
-    }
+    z = strchr(a, 0);
     if (z - a == 8) {
         if (str8equ(a, 'H', 'T', 'T', 'P', '/', '1', '.', '0')) {
             reqs->http_version = HTTP_VERSION_1_0;
-        } else if (str8equ(a, 'H', 'T', 'T', 'P', '/', '1', '.', '1')) {
+        } else
+        if (str8equ(a, 'H', 'T', 'T', 'P', '/', '1', '.', '1')) {
             reqs->http_version = HTTP_VERSION_1_1;
         }
     }
@@ -433,7 +431,7 @@ reqs_parse(struct reqs_t *reqs)
     */
     a = reqs->uri;
     z = a;
-    while (*z && *z != '?') {
+    while (*z != '?' && *z) {
         z++;
     }
     reqs->request_path = x_strndup(a, z - a);

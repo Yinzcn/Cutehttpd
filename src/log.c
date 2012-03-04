@@ -26,7 +26,7 @@ chtd_log(struct htdx_t *htdx, char *f, ...)
     printf("%s", b);
     pthread_mutex_unlock(&htdx->mutex);
 #endif
-    file_put("chtd.log", b, strlen(b));
+    file_add("chtd.log", b, strlen(b));
 }
 
 
@@ -49,7 +49,7 @@ chtd_cry_x(char *FILE, int LINE, struct htdx_t *htdx, char *f, ...)
 #ifdef DEBUG
         printf("%s", B);
 #endif
-        file_put("chtd_cry.log", B, strlen(B));
+        file_add("chtd_cry.log", B, strlen(B));
     }
     va_end(a);
 }

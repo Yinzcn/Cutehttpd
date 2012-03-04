@@ -14,6 +14,7 @@ test_ext(struct reqs_t *http_reqs)
     char *body = calloc(20480, sizeof(char));
 
     snprintf(body, 20480, "<pre>\r\n"
+             "Time: [%s]\r\n"
              "method: [%s]\r\n"
              "uri: [%s]\r\n"
              "http_version: [%s]\r\n"
@@ -23,6 +24,7 @@ test_ext(struct reqs_t *http_reqs)
              "server_addr: [%s:%s]\r\n"
              "client_addr: [%s:%s]\r\n"
              "</pre>",
+             x_nowstr(),
              http_reqs->method_name,
              http_reqs->uri,
              http_reqs->http_version_name,
@@ -34,11 +36,11 @@ test_ext(struct reqs_t *http_reqs)
              http_reqs->conn->client_addr,
              http_reqs->conn->client_port);
 
-    set_http_status  (http_reqs, 200); /* "200 OK" */
+    set_http_status  (http_reqs, 200);
     set_http_header  (http_reqs, "Content-Type", "text/html");
-    set_http_header_x(http_reqs, "Content-Length", "%d", strlen(body)); // 设置内容主体大小
-    send_http_header (http_reqs); // 发送 http 头
+    set_http_header_x(http_reqs, "Content-Length", "%d", strlen(body));
+    send_http_header (http_reqs);
 
-    reqs_conn_send   (http_reqs, body, strlen(body)); // 发送 http 主体
+    reqs_conn_send   (http_reqs, body, strlen(body));
     return 1;
 }

@@ -9,63 +9,50 @@
 #include "parse_header.h"
 
 
-/*
-
-GET /hello/Yinz.php?i=Piao&f=China HTTP/1.1
-Host: phpnow.org
-User-Agent: Firefox
-
-*/
-
-
-#define isvalidnamechar(c) \
+#define is_valid_name_char(c) \
   ( (c == '-') || (c == '_') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') )
 
 
 int
-parse_header(struct namevalue_t **nvs, char *header_str)
+parse_header(struct namevalue_t **nvs, char *hstr)
 {
+    char *n_a = NULL;
+    char *n_z = NULL;
+    char *v_a = NULL;
+    char *v_z = NULL;
+    int   n_l;
+    int   v_l;
+    char *p = hstr;
     int count = 0;
-
-    enum {
-        sw_name_start = 0,
-        sw_name_end,
-        sw_value_start,
-        sw_value_end,
-        sw_check_next_line,
-        sw_field_done,
-        sw_goto_next_line,
-    } state = sw_name_start;
-
-    char *n_a = NULL;   /*  name start       */
-    char *n_z = NULL;   /*  name end         */
-    char *v_a = NULL;   /*  value start      */
-    char *v_z = NULL;   /*  value end        */
-    int   n_l;          /*  length of name   */
-    int   v_l;          /*  length of value  */
-
-    char *p = header_str;
     int loop = 1;
+    enum {
+        sw_name_bot,
+        sw_name_eot,
+        sw_value_bot,
+        sw_value_eot,
+        sw_field_done,
+        sw_next_line,
+    } state = sw_name_bot;
 
-    while (loop) {
+    do {
         switch (state) {
-            /* name start */
-        case sw_name_start:
-            if (*p == LF || *p == CR) {
+        /* name BOT */
+        case sw_name_bot:
+            if (*p == CR || *p == LF) {
                 loop = 0;
                 break;
             }
-            if (isvalidnamechar(*p)) {
+            if (is_valid_name_char(*p)) {
                 n_a = p;
-                state = sw_name_end;
+                state = sw_name_eot;
             } else {
-                state = sw_goto_next_line;
+                state = sw_next_line;
             }
             break;
 
-            /* name end */
-        case sw_name_end:
-            while (isvalidnamechar(*p)) {
+        /* name EOT */
+        case sw_name_eot:
+            while (is_valid_name_char(*p)) {
                 p++;
             }
             n_z = p;
@@ -74,46 +61,41 @@ parse_header(struct namevalue_t **nvs, char *header_str)
                 p++;
             }
             if (*p == ':') {
-                state = sw_value_start;
+                p++;
+                state = sw_value_bot;
             } else {
-                state = sw_goto_next_line;
+                state = sw_next_line;
             }
-            p++;
             break;
 
-            /* value start */
-        case sw_value_start:
+        /* value BOT */
+        case sw_value_bot:
             /* space before value */
             while (*p == SP || *p == HT) {
                 p++;
             }
             v_a = p;
-            state = sw_value_end;
+            state = sw_value_eot;
             break;
 
-            /* value end */
-        case sw_value_end:
+        /* value EOT */
+        case sw_value_eot:
             while (*p != LF && *p) {
                 p++;
             }
-            v_z = p;
+            if ((p[0] == LF) && (p[1] == SP || p[1] == HT)) {
+            /* is multi lines value */
+                p++;
+                state = sw_value_eot;
+                break;
+            }
             /* space after value */
             do {
-                v_z--;
-            } while (*v_z == SP || *v_z == HT || *v_z == CR);
-            v_z++;
-            state = sw_check_next_line;
-            break;
-
-        case sw_check_next_line:
+                p--;
+            } while (*p == SP || *p == HT || *p == CR);
+            p++;
+            v_z = p;
             state = sw_field_done;
-            if (p[0] == LF) {
-                if (p[1] == SP || p[1] == HT) {
-                    p++;
-                    /* multi lines value */
-                    state = sw_value_end;
-                }
-            }
             break;
 
         case sw_field_done:
@@ -123,27 +105,26 @@ parse_header(struct namevalue_t **nvs, char *header_str)
                 namevalues_add(nvs, n_a, n_l, v_a, v_l);
                 count++;
             }
-            state = sw_goto_next_line;
+            state = sw_next_line;
             break;
 
-        case sw_goto_next_line:
+        case sw_next_line:
             while (*p != LF && *p) {
                 p++;
             }
-            if (p[0] == LF) {
-                if (p[1]) {
-                    p++;
-                    state = sw_name_start;
-                    break;
-                }
+            if (p[0] && p[1]) {
+                p++;
+                state = sw_name_bot;
+                break;
             }
             loop = 0;
             break;
-
+/*
         default:
             loop = 0;
             break;
+*/
         }
-    }
+    } while (loop);
     return count;
 }

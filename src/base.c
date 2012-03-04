@@ -377,8 +377,25 @@ url_encode(char *s, char *d, int max)
 }
 
 
+char *
+file_get(char *filename)
+{
+    char *filedata = NULL;
+    int filesize;
+    FILE *pFile = fopen(filename, "rb");
+    if (pFile) {
+        fseek(pFile, 0, SEEK_END);
+        filesize = ftell(pFile);
+        rewind(pFile);
+        filedata = calloc(filesize + 1, sizeof(char));
+        fread(filedata, 1, filesize, pFile);
+    }
+    return filedata;
+}
+
+
 int
-file_put(char *filename, char *data, int size)
+file_add(char *filename, char *data, int size)
 {
     FILE *pFile;
     if (!filename || !data) {
@@ -436,42 +453,4 @@ envblk_add(struct envblk_t **envblk, char *n, char *v)
 
     envb->used += sprintf(envb->data + envb->used, "%s=%s", n, v) + 1;
     return 1;
-}
-
-
-int
-spawn_process(struct htdx_t *htdx, char *cmdl, char *wdir)
-{
-#ifdef _WIN32
-    struct envblk_t *envb;
-    STARTUPINFOA si;
-    PROCESS_INFORMATION pi;
-    memset(&si, 0, sizeof(si));
-    memset(&pi, 0, sizeof(pi));
-
-    si.cb  = sizeof(si);
-    si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
-    si.wShowWindow = SW_SHOW;//SW_HIDE;
-
-    envblk_add(&envb, "PATH", getenv("PATH"));
-    envblk_add(&envb, "COMSPEC", getenv("COMSPEC"));
-    envblk_add(&envb, "SYSTEMROOT", getenv("SYSTEMROOT"));
-    if (!CreateProcessA(NULL,
-                        cmdl,
-                        NULL,
-                        NULL,
-                        TRUE,
-                        CREATE_NEW_PROCESS_GROUP,
-                        envb->data,
-                        wdir,
-                        &si,
-                        &pi)) {
-        chtd_cry(htdx, "CreateProcessA!");
-        return 0;
-    }
-    chtd_cry(htdx, "CreateProcessA!");
-    return 1;
-#else
-    return 0;
-#endif
 }

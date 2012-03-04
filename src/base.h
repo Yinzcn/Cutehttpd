@@ -114,8 +114,12 @@ void
 url_encode(char *, char *, int);
 
 
+char *
+file_get(char *);
+
+
 int
-file_put(char *filename, char *, int);
+file_add(char *, char *, int);
 
 
 #endif
