@@ -43,10 +43,10 @@ namevalues_del(struct namevalue_t **nvs, struct namevalue_t *nv)
     if (*nvs == NULL || nv == NULL) {
         return 0;
     }
-    if (nv->next == nv) { /* only one */
+    if (nv->next == nv) {
         *nvs = NULL;
     } else {
-        if (nv == *nvs) { /* the first */
+        if (nv == *nvs) {
             *nvs = nv->next;
         }
         nv->prev->next = nv->next;

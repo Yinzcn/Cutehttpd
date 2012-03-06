@@ -12,7 +12,7 @@
 int
 vhost_proc(struct reqs_t *http_reqs, struct vhost_t *vhost)
 {
-    struct stat buf;
+    struct stat st;
     char *reqs_real_path = calloc(strlen(vhost->real_root) + strlen(http_reqs->request_path) + 1, sizeof(char));
     char *p = reqs_real_path;
     http_reqs->real_path = reqs_real_path;
@@ -35,14 +35,15 @@ vhost_proc(struct reqs_t *http_reqs, struct vhost_t *vhost)
     }
     /* ] */
 
-    if (stat(reqs_real_path, &buf) == 0) {
-        if (S_IFDIR & buf.st_mode) {
-            /* [ is a dir */
+    if (stat(reqs_real_path, &st) == 0) {
+        if (S_IFDIR & st.st_mode) {
+        /* [ is dir */
             http_list_dir(http_reqs, reqs_real_path);
             return 1;
-            /* ] */
-        } else if (S_IFREG & buf.st_mode) {
-            /* [ is a file */
+        /* ] */
+        } else
+        if (S_IFREG & st.st_mode) {
+        /* [ is file */
             #ifdef CHTD_FCGI
             struct fcgi_pmgr_t *fcgi_pmgr;
             fcgi_pmgr = fcgi_pmgr_match(htdx, x_ext_name(reqs_real_path));
@@ -53,7 +54,7 @@ vhost_proc(struct reqs_t *http_reqs, struct vhost_t *vhost)
             #endif
             http_send_file(http_reqs, reqs_real_path);
             return 1;
-            /* ] */
+        /* ] */
         }
     }
 

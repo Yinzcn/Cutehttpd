@@ -108,7 +108,7 @@ reqs_throw_status(struct reqs_t *reqs, int status_code, char *msg)
             len = strlen(msg);
         }
         set_http_status  (reqs, status_code);
-        set_http_header  (reqs, "Content-Type",   "text/html");
+        set_http_header  (reqs, "Content-Type", "text/html");
         set_http_header_x(reqs, "Content-Length", "%d", len);
         send_http_header (reqs);
         reqs_conn_send   (reqs, msg, len);
@@ -125,7 +125,7 @@ int
 reqs_cont_push(struct reqs_t *reqs, char *data)
 {
     if (reqs->contbufx == NULL) {
-        reqs->contbufx = bufx_new(4096, 1024*1024);
+        reqs->contbufx = bufx_new(4096, 1024 * 1024);
     }
     return bufx_put_str(reqs->contbufx, data);
 }
@@ -138,7 +138,7 @@ reqs_cont_push_x(struct reqs_t *reqs, char *f, ...)
     int n;
     va_list a;
     if (reqs->contbufx == NULL) {
-        reqs->contbufx = bufx_new(4096, 1024*1024);
+        reqs->contbufx = bufx_new(4096, 1024 * 1024);
     }
     va_start(a, f);
     n = vsnprintf(b, sizeof(b), f, a);
@@ -526,7 +526,9 @@ reqs_proc(struct conn_t *conn)
     set_keep_alive(reqs, 0);
     reqs_throw_status(reqs, 400, ""); /* "400 Bad Request" */
     chtd_log(reqs->htdx, "Got a bad request.");
+    pthread_mutex_lock(&reqs->htdx->mutex);
     reqs->htdx->nBadReqs++;
+    pthread_mutex_unlock(&reqs->htdx->mutex);
     /* ] */
 
     reqs_del(reqs);

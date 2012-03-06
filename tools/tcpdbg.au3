@@ -128,7 +128,7 @@ EndFunc
 
 
 Func C_Send_Click()
-    If $sock <= 0 And  Then
+    If $Socket <= 0 And  Then
     
     Endif
     $n = TCPSend($Socket, GUICtrlRead($Edit1))

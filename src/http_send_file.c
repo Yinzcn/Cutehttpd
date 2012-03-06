@@ -11,10 +11,13 @@
 int
 http_send_file(struct reqs_t *http_reqs, char *file_path)
 {
-    int maxtry = 100;
-    int file_size;
     FILE *pFile;
-    int  n;
+    int n;
+    struct stat st = { 0 };
+    int maxtry = 100;
+    time_t rawtime;
+    char lmd_time[32];
+    char snd_time[32];
     char buff[8192];
     while (maxtry--) {
         pFile = fopen(file_path, "rb");
@@ -23,31 +26,23 @@ http_send_file(struct reqs_t *http_reqs, char *file_path)
         }
         x_msleep(5);
     }
-    if(!pFile) {
+    if (!pFile) {
         chtd_cry(http_reqs->htdx, "http_send_file() -> fopen() failed! [%s]", file_path);
-        reqs_throw_status(http_reqs, 404, "http_send_file() -> fopen() failed!");
+        reqs_throw_status(http_reqs, 503, "http_send_file() -> fopen() failed!");
         return 1;
     }
-
-    /*
-    [ get file size
-    */
-    fseek(pFile, 0, SEEK_END);
-    file_size = ftell(pFile);
-    rewind(pFile);
-    /*
-    ]
-    */
-
+    fstat(fileno(pFile), &st);
+    rawtime = time(NULL);
+    strftime(snd_time, sizeof(snd_time), "%a, %d %b %Y %H:%M:%S GMT", gmtime(&rawtime));
+    strftime(lmd_time, sizeof(lmd_time), "%a, %d %b %Y %H:%M:%S GMT", gmtime(&st.st_mtime));
     set_http_status  (http_reqs, 200); /* "200 OK" */
-    set_http_header  (http_reqs, "Date", "");
-    set_http_header  (http_reqs, "Last-Modified", "");
-    set_http_header_x(http_reqs, "Content-Type", get_mime_type(http_reqs->htdx, x_ext_name(file_path)));
-    set_http_header_x(http_reqs, "Content-Length", "%d", file_size);
+    set_http_header  (http_reqs, "Date", snd_time);
+    set_http_header  (http_reqs, "Last-Modified", lmd_time);
+    set_http_header  (http_reqs, "Content-Type", get_mime_type(http_reqs->htdx, x_ext_name(file_path)));
+    set_http_header_x(http_reqs, "Content-Length", "%d", st.st_size);
     send_http_header (http_reqs);
-
     while (1) {
-        if (!(n = fread(buff, 1, 8192, pFile))) {
+        if (!(n = fread(buff, 1, sizeof(buff), pFile))) {
             break;
         }
         if (!reqs_conn_send(http_reqs, buff, n)) {
@@ -55,6 +50,5 @@ http_send_file(struct reqs_t *http_reqs, char *file_path)
         }
     }
     fclose(pFile);
-
     return 1;
 }
