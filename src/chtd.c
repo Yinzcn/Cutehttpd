@@ -195,7 +195,7 @@ master_thread(struct htdx_t *htdx)
 
     /* broadcast all worker_thread to exit */
     pthread_cond_broadcast(&htdx->cv_sq_put);
-            DEBUG_TRACE("pthread_cond_broadcast");
+    DEBUG_TRACE("pthread_cond_broadcast");
 
     /* wait until listen_thread() & worker_thread() exit */
     while (htdx->n_listen_thread
@@ -219,11 +219,20 @@ master_thread(struct htdx_t *htdx)
 
 struct htdx_t *
 chtd_create(void) {
-    static char SERVER_SOFTWARE[256];
+    static char SERVER_SOFTWARE[256] = "";
     struct htdx_t *htdx;
     htdx = calloc(1, sizeof(struct htdx_t));
+    if (!htdx) {
+        return NULL;
+    }
     htdx->addr                  = strdup("0.0.0.0");
     htdx->port                  = strdup("8080");
+    htdx->max_workers           = 32;
+    htdx->squeue_size           = 1024;
+    htdx->keep_alive_timeout    = 0;
+    htdx->max_post_size         = 8 * 1024 * 1024;
+    htdx->SERVER_PROTOCOL       = "HTTP/1.1";
+    htdx->SERVER_SOFTWARE       = SERVER_SOFTWARE;
     snprintf(SERVER_SOFTWARE,
         sizeof(SERVER_SOFTWARE),
 #ifdef DEBUG
@@ -237,12 +246,6 @@ chtd_create(void) {
         CVER,
         REV_A,
         REV_B >> 24);
-    htdx->SERVER_SOFTWARE       = SERVER_SOFTWARE;
-    htdx->SERVER_PROTOCOL       = "HTTP/1.1";
-    htdx->max_workers           = 32;
-    htdx->squeue_size           = 1024;
-    htdx->keep_alive_timeout    = 0;
-    htdx->max_post_size         = 8 * 1024 * 1024;
 #ifdef PTW32_STATIC_LIB
     pthread_win32_process_attach_np();
     pthread_win32_thread_attach_np();
@@ -355,7 +358,7 @@ chtd_set_opt(struct htdx_t *htdx, char *opt, char *value)
         if (n <= 0) {
             return 0;
         }
-        htdx->max_post_size = n*1024*1024;
+        htdx->max_post_size = n * 1024 * 1024;
         return 1;
     }
     return 0;

@@ -34,6 +34,7 @@ reqs_new(struct conn_t *conn)
     struct reqs_t *reqs;
     if (!conn) {
         chtd_cry(NULL, "called reqs_new() with NULL conn!");
+        return NULL;
     }
     reqs = calloc(1, sizeof(struct reqs_t));
     if (!reqs) {
@@ -394,11 +395,10 @@ reqs_parse(struct reqs_t *reqs)
     }
     reqs->uri = x_strndup(a, z - a);
     p = reqs->uri;
-    while (*p) {
+    for ( ; *p; p++) {
         if (!is_valid_uri_char(*p)) {
             return 0;
         }
-        p++;
     }
     /*
     ]
@@ -409,9 +409,7 @@ reqs_parse(struct reqs_t *reqs)
     */
     reqs->http_version = HTTP_VERSION_0_9;
     a = z;
-    while (*a == SP) {
-        a++;
-    }
+    for ( ; *a == SP; a++);
     z = strchr(a, 0);
     if (z - a == 8) {
         if (str8equ(a, 'H', 'T', 'T', 'P', '/', '1', '.', '0')) {
