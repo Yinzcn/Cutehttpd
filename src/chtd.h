@@ -152,15 +152,16 @@ struct htdx_t
 #include "reqs.h"
 #include "http_status_lines.h"
 #include "http_list_dir.h"
+#ifdef CHTD_FCGI
+    #include "../ext/fcgi.h"
+    #include "../ext/fcgi_pmgr.h"
+#endif
 #include "http_send_file.h"
 #include "http.h"
 #include "uhook.h"
 #include "vhost.h"
 #include "squeue.h"
 #include "wker.h"
-#ifdef CHTD_FCGI
-    #include "fcgi.h"
-#endif
 #include "status_info.h"
 #include "test_ext.h"
 #include "debug.h"

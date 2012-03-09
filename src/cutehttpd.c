@@ -23,7 +23,8 @@
 #include "squeue.c"
 #include "wker.c"
 #ifdef CHTD_FCGI
-    #include "fcgi.c"
+    #include "../ext/fcgi.c"
+    #include "../ext/fcgi_pmgr.c"
 #endif
 #include "status_info.c"
 #include "test_ext.c"

@@ -12,19 +12,6 @@
 #include "fastcgi.h"
 
 
-struct fcgi_pmgr_t   /* Process Manager */
-{
-    int    n_conn_max;
-    int    n_conn_curr;
-    char   cgiextname  [16];
-    char   fcgid_addr  [64];
-    char   fcgid_port  [16];
-    char   fcgid_cmdl [256];
-    struct usa_t rsa;
-    struct htdx_t *htdx;
-};
-
-
 struct fcgi_reqs_t
 {
     int         requestId;
@@ -54,18 +41,6 @@ struct fcgi_conn_t
     struct fcgi_pmgr_t  *fcgi_pmgr;
     struct htdx_t       *htdx;
 };
-
-
-struct fcgi_pmgr_t *
-fcgi_pmgr_new(struct htdx_t *, char *, char *, char *, char *);
-
-
-void
-fcgi_pmgr_del(struct fcgi_pmgr_t *);
-
-
-int
-chtd_set_fcgi(struct htdx_t *, char *, char *, char *, char *);
 
 
 struct fcgi_conn_t *
@@ -149,7 +124,7 @@ fcgi_reqs_done(struct fcgi_reqs_t *);
 
 
 int
-fcgi_reqs_proc(struct reqs_t *, struct vhost_t *);
+fcgi_reqs_proc(struct fcgi_pmgr_t *, struct reqs_t *);
 
 
 #endif

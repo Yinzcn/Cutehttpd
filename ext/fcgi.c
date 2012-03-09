@@ -5,75 +5,20 @@
 
 
 #include "chtd.h"
+#include "fastcgi.h"
 #include "fcgi.h"
 #include "fcgi_pmgr.h"
-
-
-struct fcgi_pmgr_t *
-fcgi_pmgr_new(struct htdx_t *htdx, char *extname, char *sz_addr, char *sz_port, char *sz_cmdl) {
-    struct fcgi_pmgr_t *fcgi_pmgr = calloc(1, sizeof(struct fcgi_pmgr_t));
-
-    fcgi_pmgr->n_conn_max = 64;
-
-    strncpy(fcgi_pmgr->cgiextname, extname,  15);
-    strncpy(fcgi_pmgr->fcgid_addr, sz_addr,  63);
-    strncpy(fcgi_pmgr->fcgid_port, sz_port,  15);
-    strncpy(fcgi_pmgr->fcgid_cmdl, sz_cmdl, 255);
-
-    fcgi_pmgr->rsa.u.sin.sin_family      = AF_INET;
-    fcgi_pmgr->rsa.u.sin.sin_addr.s_addr =  inet_addr(fcgi_pmgr->fcgid_addr);
-    fcgi_pmgr->rsa.u.sin.sin_port        = htons(atoi(fcgi_pmgr->fcgid_port));
-
-    fcgi_pmgr->htdx = htdx;
-    return fcgi_pmgr;
-}
-
-
-void
-fcgi_pmgr_del(struct fcgi_pmgr_t *fcgi_pmgr)
-{
-    if (!fcgi_pmgr) {
-        return;
-    }
-    fcgi_pmgr->htdx->fcgi_pmgr = NULL;
-    free(fcgi_pmgr);
-}
-
-
-int
-chtd_set_fcgi(struct htdx_t *htdx, char *extname, char *sz_addr, char *sz_port, char *sz_cmdl)
-{
-    int port = atoi(sz_port);
-    char *temp;
-    char *cmdl;
-    if (port > 65535 || port < 1) {
-        sz_port = "9000";
-    }
-
-    if (strlen(sz_addr) == 0) {
-        sz_addr = "0.0.0.0";
-    }
-
-    temp = str_replace("@addr@", sz_addr, sz_cmdl);
-    cmdl = str_replace("@port@", sz_port, temp);
-    fcgi_pmgr_del(htdx->fcgi_pmgr);
-    htdx->fcgi_pmgr = fcgi_pmgr_new(htdx, extname, sz_addr, sz_port, cmdl);
-    free(temp);
-    free(cmdl);
-    return 1;
-}
 
 
 struct fcgi_conn_t *
 fcgi_conn_new(struct reqs_t *http_reqs) {
     struct htdx_t *htdx = http_reqs->htdx;
     struct fcgi_conn_t *fcgi_conn;
-
     fcgi_conn = calloc(1, sizeof(struct fcgi_conn_t));
     if (!fcgi_conn) {
         return NULL;
     }
-    fcgi_conn->sock.socket  = fcgi_socket;
+    fcgi_conn->sock.socket  = 0;
     fcgi_conn->http_reqs    = http_reqs;
     fcgi_conn->fcgi_reqs    = NULL;
     fcgi_conn->htdx         = htdx;
@@ -159,18 +104,16 @@ fcgi_reqs_new(struct reqs_t *http_reqs) {
     if (!fcgi_conn) {
         return NULL;
     }
-
     fcgi_reqs = calloc(1, sizeof(struct fcgi_reqs_t));
     if (!fcgi_reqs) {
         fcgi_conn_del(fcgi_conn);
         return NULL;
     }
-
     fcgi_conn->fcgi_reqs   = fcgi_reqs;
     fcgi_reqs->fcgi_conn   = fcgi_conn;
     fcgi_reqs->http_reqs   = http_reqs;
     fcgi_reqs->http_conn   = http_reqs->conn;
-    fcgi_reqs->fcgi_pmgr   = http_reqs->htdx->fcgi_pmgr;
+    fcgi_reqs->fcgi_pmgr   = NULL;
     fcgi_reqs->htdx        = http_reqs->htdx;
     fcgi_reqs->requestId   = req_Id;
     re_header = &fcgi_reqs->re_header;
@@ -203,7 +146,6 @@ int
 fcgi_recv_header(struct fcgi_reqs_t *fcgi_reqs)
 {
     FCGI_Header *rp_header = &fcgi_reqs->rp_header;
-
     if (fcgi_conn_recv(fcgi_reqs->fcgi_conn, (char *)rp_header, sizeof(FCGI_Header))) {
         fcgi_reqs->rp_requestId     = (rp_header->requestIdB1     << 8) + rp_header->requestIdB0;
         fcgi_reqs->rp_contentLength = (rp_header->contentLengthB1 << 8) + rp_header->contentLengthB0;
@@ -516,7 +458,7 @@ fcgi_trans_header(struct fcgi_reqs_t *fcgi_reqs, char *header_str)
     curr = nvs;
     last = curr->prev;
     while (1) {
-        if (striequ(curr->n, "Status")) {
+        if (strcasecmp(curr->n, "Status")) {
             set_status_line(fcgi_reqs->http_reqs, curr->v);
         } else {
             set_http_header(fcgi_reqs->http_reqs, curr->n, curr->v);
@@ -667,15 +609,15 @@ int
 fcgi_reqs_proc(struct fcgi_pmgr_t *fcgi_pmgr, struct reqs_t *http_reqs)
 {
     struct conn_t *http_conn = http_reqs->conn;
+    struct fcgi_conn_t *fcgi_conn = fcgi_conn_new(http_reqs);
     struct fcgi_reqs_t *fcgi_reqs = fcgi_reqs_new(http_reqs);
-    struct fcgi_conn_t *fcgi_conn = fcgi_conn_new(fcgi_reqs);
     int loop = 1;
 
     if (fcgi_pmgr_conn(fcgi_pmgr, fcgi_conn) == -1) {
         set_keep_alive(http_reqs, 0);
         reqs_throw_status(http_reqs, 504, "connect to fastcgi server failed!");
-        fcgi_conn_free(fcgi_conn);
-        fcgi_reqs_free(fcgi_reqs);
+        fcgi_conn_del(fcgi_conn);
+        fcgi_reqs_del(fcgi_reqs);
         return 1;
     }
 
