@@ -6,6 +6,7 @@
 
 #include "chtd.h"
 #include "fcgi.h"
+#include "fcgi_pmgr.h"
 
 
 struct fcgi_pmgr_t *
@@ -298,13 +299,12 @@ fcgi_add_params(struct fcgi_reqs_t *fcgi_reqs, char *n, char *v)
     char *p;
     int nl;
     int vl;
+
     if (!n || !v) {
         return 0;
     }
-
     nl = strlen(n);
     vl = strlen(v);
-
     if (!nl || !vl) {
         return 0;
     }
@@ -312,26 +312,21 @@ fcgi_add_params(struct fcgi_reqs_t *fcgi_reqs, char *n, char *v)
     buffsize = fcgi_reqs->params_buffsize;
     datasize = fcgi_reqs->params_datasize;
     databody = fcgi_reqs->params_databody;
-
     needsize = nl + vl + 8;
 
     if (buffsize - datasize < needsize) {
         newbsize = buffsize ? buffsize * 2 : 4096;
-
         while (newbsize - datasize < needsize) {
             newbsize *= 2;
         }
-
         if (!buffsize) {
             p = calloc(newbsize, sizeof(char));
         } else {
             p = realloc(databody, newbsize);
         }
-
         if (!p) {
             return 0;
         }
-
         databody = p;
         buffsize = newbsize;
     }
@@ -526,11 +521,9 @@ fcgi_trans_header(struct fcgi_reqs_t *fcgi_reqs, char *header_str)
         } else {
             set_http_header(fcgi_reqs->http_reqs, curr->n, curr->v);
         }
-
         if (curr == last) {
             break;
         }
-
         curr = curr->next;
     }
 
@@ -542,14 +535,14 @@ fcgi_trans_header(struct fcgi_reqs_t *fcgi_reqs, char *header_str)
 int
 fcgi_trans_stdout(struct fcgi_reqs_t *fcgi_reqs)
 {
-    struct reqs_t *http_reqs;
-    int contleft = fcgi_reqs->rp_contentLength;
     char buffdata[8192];
     int  buffsize = sizeof(buffdata);
-    int  buffleft = buffsize;
+    int  buffleft = sizeof(buffdata);
     int  buffused = 0;
     int  needrecv;
     int  sizerecv;
+    int  contleft = fcgi_reqs->rp_contentLength;
+    struct reqs_t *http_reqs = fcgi_reqs->http_reqs;
 
     if (contleft == 0) {
         return 0;
@@ -558,12 +551,9 @@ fcgi_trans_stdout(struct fcgi_reqs_t *fcgi_reqs)
     /*
     [ read response HTTP header
     */
-    http_reqs = fcgi_reqs->http_reqs;
-
     if (!http_reqs->rp_header_sent) {
         char header_str[4096];
         int retn = fcgi_recv_http_header(fcgi_reqs->fcgi_conn, header_str, 4096 - 1);
-
         if (retn > 0) {
             contleft -= retn;
             fcgi_trans_header(fcgi_reqs, header_str); /* trans headers */
@@ -573,10 +563,8 @@ fcgi_trans_stdout(struct fcgi_reqs_t *fcgi_reqs)
             /* "500 Internal Server Error" */
             return 0;
         }
-
         send_http_header(http_reqs);
     }
-
     /*
     ]
     */
@@ -584,16 +572,13 @@ fcgi_trans_stdout(struct fcgi_reqs_t *fcgi_reqs)
     /*
     [ read stdout content
     */
-
     while (contleft > 0) {
         needrecv = buffleft > contleft ? contleft : buffleft;
         sizerecv = fcgi_conn_recv(fcgi_reqs->fcgi_conn, buffdata + buffused, needrecv);
-
         if (sizerecv > 0) {
             buffused += sizerecv;
             buffleft -= sizerecv;
             contleft -= sizerecv;
-
             if (buffleft == 0) {
                 send_http_chunk(http_reqs, buffdata, buffused);
                 buffused = 0;
@@ -607,7 +592,6 @@ fcgi_trans_stdout(struct fcgi_reqs_t *fcgi_reqs)
             break;
         }
     }
-
     /*
     ]
     */
@@ -620,14 +604,13 @@ fcgi_trans_stdout(struct fcgi_reqs_t *fcgi_reqs)
 int
 fcgi_trans_stderr(struct fcgi_reqs_t *fcgi_reqs)
 {
-    int contsize = fcgi_reqs->rp_contentLength;
     char buffdata[1024];
     int  buffsize = sizeof(buffdata);
-    int  contleft = contsize;
     int  needrecv;
     int  sizerecv;
+    int  contleft = fcgi_reqs->rp_contentLength;
 
-    if (contsize == 0) {
+    if (!contleft) {
         return 0;
     }
 
@@ -635,11 +618,9 @@ fcgi_trans_stderr(struct fcgi_reqs_t *fcgi_reqs)
         fcgi_reqs->stderrbufx  = bufx_new(1024, 1024*1024*2);
     }
 
-
     while (contleft > 0) {
         needrecv = contleft > buffsize ? buffsize : contleft;
         sizerecv = fcgi_conn_recv(fcgi_reqs->fcgi_conn, buffdata, needrecv);
-
         if (sizerecv > 0) {
             contleft -= sizerecv;
             bufx_put(fcgi_reqs->stderrbufx, buffdata, sizerecv);
@@ -759,28 +740,25 @@ fcgi_reqs_proc(struct fcgi_pmgr_t *fcgi_pmgr, struct reqs_t *http_reqs)
         }
 
         switch (fcgi_reqs->rp_header.type) {
-            /* STDOUT */
+        /* STDOUT */
         case FCGI_STDOUT:
             if (!fcgi_trans_stdout(fcgi_reqs)) {
                 loop = 0;
             }
-
             break;
 
-            /* STDERR */
+        /* STDERR */
         case FCGI_STDERR:
             if (!fcgi_trans_stderr(fcgi_reqs)) {
                 loop = 0;
             }
-
             break;
 
-            /* END_REQUEST */
+        /* END_REQUEST */
         case FCGI_END_REQUEST:
             if (!fcgi_reqs_done(fcgi_reqs)) {
                 chtd_cry(fcgi_reqs->htdx, "fcgi error: fcgi_reqs_done");
             }
-
             loop = 0;
             break;
 
@@ -791,7 +769,6 @@ fcgi_reqs_proc(struct fcgi_pmgr_t *fcgi_pmgr, struct reqs_t *http_reqs)
             break;
         }
     }
-
     /*
     ]
     */

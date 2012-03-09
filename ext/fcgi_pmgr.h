@@ -16,7 +16,7 @@ struct fcgi_proc_t
 {
     int    port;
     int    n_conn_max;
-    int    n_conn_curr;
+    int    n_conn_cur;
     struct usa_t rsa;
     struct fcgi_proc_t *prev;
     struct fcgi_proc_t *next;
@@ -27,7 +27,7 @@ struct fcgi_proc_t
 struct fcgi_pmgr_t
 {
     int    n_conn_max;
-    int    n_conn_curr;
+    int    n_conn_cur;
     char   extname[16];
     char   fcgi_addr[64];
     char   fcgi_port[16];

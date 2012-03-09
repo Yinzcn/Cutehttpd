@@ -333,7 +333,7 @@ chtd_set_opt(struct htdx_t *htdx, char *opt, char *value)
     if (0 == strcasecmp(opt, "max_workers")) {
         if (n > 1000) {
             n = 1000;
-        }
+        } else
         if (n < 1) {
             n = 1;
         }
@@ -345,7 +345,7 @@ chtd_set_opt(struct htdx_t *htdx, char *opt, char *value)
     if (0 == strcasecmp(opt, "keep_alive")) {
         if (n > 60) {
             n = 60;
-        }
+        } else
         if (n < 1) {
             n = 1;
         }
