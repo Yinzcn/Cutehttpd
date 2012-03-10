@@ -17,6 +17,7 @@ struct fcgi_proc_t
     int    port;
     int    n_conn_max;
     int    n_conn_cur;
+    char  *cmdl;
     struct usa_t rsa;
     struct fcgi_proc_t *prev;
     struct fcgi_proc_t *next;
@@ -26,6 +27,7 @@ struct fcgi_proc_t
 /* Process Manager */
 struct fcgi_pmgr_t
 {
+    int    enablepmgr;
     int    n_conn_max;
     int    n_conn_cur;
     char   cgiextname[16];
@@ -65,7 +67,7 @@ int
 fcgi_pmgr_conn(struct fcgi_pmgr_t *, struct fcgi_conn_t *);
 
 
-int
+void *
 chtd_set_fcgi(struct htdx_t *, char *, char *, char *, char *);
 
 

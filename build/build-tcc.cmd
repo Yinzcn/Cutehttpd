@@ -13,7 +13,7 @@ set winsdk=D:\MinGW
 
 call :impdef ws2_32.dll
 
-set cmdl=%tccdir%\tcc -v %CF% -Wall -I%tccdir%\include -I%tccdir%\include\winapi -I%winsdk%\include -lws2_32 main.c -o chtd.exe
+set cmdl=%tccdir%\tcc -v %CF% -Wall -I%tccdir%\include -I%tccdir%\include\winapi -I%winsdk%\include -I../src -lws2_32 main.c -o chtd.exe
 
 echo cmdl='%cmdl%' & %cmdl%
 

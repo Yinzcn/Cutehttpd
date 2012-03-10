@@ -35,10 +35,10 @@ enum http_version_t
 
 struct reqs_t
 {
-    enum http_method_t  method;
-    char *       method_name;
+    enum http_method_t method;
+    char *method_name;
     enum http_version_t http_version;
-    char *       http_version_name;
+    char *http_version_name;
     char *reqs_line;
     char *uri;
     char *request_path;

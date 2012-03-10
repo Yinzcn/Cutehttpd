@@ -152,7 +152,7 @@ str_replace(char *f, char *r, char *s)
         p1 = s;
         while (1) {
             p2 = strstr(p1, f);
-            if (p2) {
+            if (!p2) {
                 break;
             }
             n = p2 - p1;

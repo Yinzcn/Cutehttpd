@@ -64,7 +64,7 @@ fcgi_conn_recv(struct fcgi_conn_t *, char *, int);
 
 
 struct fcgi_reqs_t *
-fcgi_reqs_new(struct reqs_t *);
+fcgi_reqs_new(struct fcgi_conn_t *);
 
 
 void

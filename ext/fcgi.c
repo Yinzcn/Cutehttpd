@@ -22,7 +22,7 @@ fcgi_conn_new(struct reqs_t *http_reqs) {
     fcgi_conn->http_reqs    = http_reqs;
     fcgi_conn->fcgi_reqs    = NULL;
     fcgi_conn->htdx         = htdx;
-    fcgi_conn->recvbufx     = bufx_new(4096, 1024*1024*8);
+    fcgi_conn->recvbufx     = bufx_new(4096, 1024 * 1024 * 8);
     return fcgi_conn;
 }
 
@@ -49,11 +49,7 @@ fcgi_conn_close(struct fcgi_conn_t *fcgi_conn)
         static char buff[1024];
         shutdown(fcgi_conn->sock.socket, SHUT_WR);
         while (recv(fcgi_conn->sock.socket, buff, 1024, 0) > 0);
-#ifdef WIN32
         closesocket(fcgi_conn->sock.socket);
-#else
-        close(fcgi_conn->sock.socket);
-#endif
         fcgi_conn->sock.socket = 0;
     }
 }
@@ -95,26 +91,19 @@ fcgi_conn_recv(struct fcgi_conn_t *fcgi_conn, char *buff, int need)
 
 
 struct fcgi_reqs_t *
-fcgi_reqs_new(struct reqs_t *http_reqs) {
-    struct fcgi_conn_t *fcgi_conn;
+fcgi_reqs_new(struct fcgi_conn_t *fcgi_conn) {
     struct fcgi_reqs_t *fcgi_reqs;
     int req_Id = 1;
     FCGI_Header *re_header;
-    fcgi_conn  = fcgi_conn_new(http_reqs);
-    if (!fcgi_conn) {
-        return NULL;
-    }
     fcgi_reqs = calloc(1, sizeof(struct fcgi_reqs_t));
     if (!fcgi_reqs) {
-        fcgi_conn_del(fcgi_conn);
         return NULL;
     }
-    fcgi_conn->fcgi_reqs   = fcgi_reqs;
     fcgi_reqs->fcgi_conn   = fcgi_conn;
-    fcgi_reqs->http_reqs   = http_reqs;
-    fcgi_reqs->http_conn   = http_reqs->conn;
+    fcgi_reqs->http_reqs   = fcgi_conn->http_reqs;
+    fcgi_reqs->http_conn   = fcgi_conn->http_reqs->conn;
     fcgi_reqs->fcgi_pmgr   = NULL;
-    fcgi_reqs->htdx        = http_reqs->htdx;
+    fcgi_reqs->htdx        = fcgi_conn->htdx;
     fcgi_reqs->requestId   = req_Id;
     re_header = &fcgi_reqs->re_header;
     re_header->version     = FCGI_VERSION_1;
@@ -608,18 +597,19 @@ fcgi_reqs_done(struct fcgi_reqs_t *fcgi_reqs)
 int
 fcgi_reqs_proc(struct fcgi_pmgr_t *fcgi_pmgr, struct reqs_t *http_reqs)
 {
+    struct fcgi_conn_t *fcgi_conn;
+    struct fcgi_reqs_t *fcgi_reqs;
     struct conn_t *http_conn = http_reqs->conn;
-    struct fcgi_conn_t *fcgi_conn = fcgi_conn_new(http_reqs);
-    struct fcgi_reqs_t *fcgi_reqs = fcgi_reqs_new(http_reqs);
     int loop = 1;
 
+    fcgi_conn = fcgi_conn_new(http_reqs);
     if (fcgi_pmgr_conn(fcgi_pmgr, fcgi_conn) == -1) {
         set_keep_alive(http_reqs, 0);
         reqs_throw_status(http_reqs, 504, "connect to fastcgi server failed!");
         fcgi_conn_del(fcgi_conn);
-        fcgi_reqs_del(fcgi_reqs);
         return 1;
     }
+    fcgi_reqs = fcgi_reqs_new(fcgi_conn);
 
     fcgi_add_params(fcgi_reqs, "SCRIPT_FILENAME",      http_reqs->real_path);
     fcgi_add_params(fcgi_reqs, "SCRIPT_NAME",          http_reqs->request_path);
