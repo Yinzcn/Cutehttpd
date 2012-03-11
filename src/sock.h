@@ -11,9 +11,11 @@
     #define SHUT_RD   SD_RECEIVE
     #define SHUT_WR   SD_SEND
     #define SHUT_RDWR SD_BOTH
+    #define sockerrno WSAGetLastError()
 #else
     #define closesocket(s) close(s)
     #define SOCKET int
+    #define sockerrno errno
 #endif
 
 

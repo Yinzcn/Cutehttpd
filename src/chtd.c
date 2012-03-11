@@ -23,7 +23,6 @@ worker_thread(struct wker_t *wker)
             if (htdx->status == CHTD_RUNNING) {
                 chtd_cry(htdx, "worker_thread() -> squeue_get() failed!");
             }
-            DEBUG_TRACE("squeue_get return 0");
             break;
         }
 
@@ -64,7 +63,6 @@ worker_thread(struct wker_t *wker)
     htdx->n_worker_thread--;
     pthread_mutex_unlock(&htdx->mutex);
     wker->status = WK_DEAD;
-    chtd_cry(htdx, "worker_thread() end!");
     pthread_exit(NULL);
     return 0;
 }
@@ -156,7 +154,7 @@ master_thread(struct htdx_t *htdx)
         lsa->u.sin.sin_port = htons(atoi(htdx->port));
         lsa->len = sizeof(lsa->u);
         if (bind(htdx->sock.socket, &lsa->u.sa, lsa->len) == -1) {
-            chtd_cry(htdx, "bind() to %s:%s error!", htdx->addr, htdx->port);
+            chtd_cry(htdx, "bind() to %s:%s error(%d)!", htdx->addr, htdx->port, sockerrno);
             htdx->status = CHTD_SUSPEND;
             break;
         }

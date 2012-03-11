@@ -37,14 +37,16 @@ sock_close(struct sock_t *sock)
         return;
     }
     if (sock->socket > 0) {
-        static char buff[1024];
+        static char buff[256];
+        int sw = 0;
         struct linger l;
         l.l_onoff  = 1;
-        l.l_linger = 1;
-        setsockopt(sock->socket, SOL_SOCKET, SO_LINGER, (void *)&l, sizeof(l));
+        l.l_linger = 0;
+        //setsockopt(sock->socket, SOL_SOCKET, SO_LINGER, (void *)&l, sizeof(l));
+        setsockopt(sock->socket, SOL_SOCKET, SO_DONTLINGER, (void *)&sw, sizeof(sw));
         shutdown(sock->socket, SHUT_WR);
         sock_set_non_blocking(sock);
-        while (recv(sock->socket, buff, 1024, 0) > 0);
+        while (recv(sock->socket, buff, 256, 0) > 0);
         closesocket(sock->socket);
         sock->socket = 0;
     }

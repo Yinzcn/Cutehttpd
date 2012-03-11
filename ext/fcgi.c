@@ -46,11 +46,7 @@ fcgi_conn_close(struct fcgi_conn_t *fcgi_conn)
         return;
     }
     if (fcgi_conn->sock.socket != 0) {
-        static char buff[1024];
-        shutdown(fcgi_conn->sock.socket, SHUT_WR);
-        while (recv(fcgi_conn->sock.socket, buff, 1024, 0) > 0);
-        closesocket(fcgi_conn->sock.socket);
-        fcgi_conn->sock.socket = 0;
+        sock_close(&fcgi_conn->sock);
     }
 }
 

@@ -46,7 +46,6 @@ conn_send(struct conn_t *conn, char *data, int size)
         if (retn > 0) {
             done += retn;
         } else {
-            /* */
             return 0;
         }
     }
@@ -68,7 +67,6 @@ conn_recv(struct conn_t *conn, char *buff, int need)
             done += retn;
             left -= retn;
         } else {
-            /* */
             chtd_cry(conn->htdx, "conn_recv() -> recv() return %d", retn);
             bufx_put(conn->recvbufx, buff, done);
             return 0;

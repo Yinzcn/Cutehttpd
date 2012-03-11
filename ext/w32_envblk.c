@@ -52,4 +52,20 @@ envblk_add(struct envblk_t *envblk, char *n, char *v)
 }
 
 
+struct envblk_t *
+envblk_add_x(struct envblk_t *envblk, char *n, char *f, ...)
+{
+    char b[1024] = { 0 };
+    int c;
+    va_list v;
+    va_start(v, f);
+    c = vsnprintf(b, sizeof(b), f, v);
+    va_end(a);
+    if (!c) {
+        return envblk;
+    }
+    return envblk_add(envblk, n, b);
+}
+
+
 #endif

@@ -19,6 +19,7 @@ struct fcgi_proc_t
     int    n_conn_cur;
     char  *cmdl;
     struct usa_t rsa;
+    struct htdx_t *htdx;
     struct fcgi_proc_t *prev;
     struct fcgi_proc_t *next;
 };
@@ -56,7 +57,7 @@ fcgi_pmgr_match(struct htdx_t *, char *);
 
 
 struct fcgi_proc_t *
-fcgi_pmgr_proc_spawn(struct fcgi_pmgr_t *);
+fcgi_pmgr_proc_spawn(struct fcgi_proc_t *);
 
 
 struct fcgi_proc_t *

@@ -17,7 +17,7 @@ fcgi_pmgr_add(struct htdx_t *htdx, char *extname, char *sz_addr, char *sz_port, 
         chtd_cry(htdx, "fcgi_pmgr_new() failed!");
         return NULL;
     }
-    fcgi_pmgr->n_conn_max = 64;
+    fcgi_pmgr->n_conn_max = 200;
     strncpy(fcgi_pmgr->cgiextname, extname, 15);
     strncpy(fcgi_pmgr->fcgid_addr, sz_addr, 63);
     strncpy(fcgi_pmgr->fcgid_port, sz_port, 15);
@@ -111,9 +111,10 @@ fcgi_pmgr_proc_new(struct fcgi_pmgr_t *fcgi_pmgr)
         fcgi_proc->rsa.u.sin.sin_family = AF_INET;
         fcgi_proc->rsa.u.sin.sin_addr.s_addr = inet_addr(fcgi_pmgr->fcgid_addr);
         fcgi_proc->rsa.u.sin.sin_port = htons(port);
-        fcgi_proc->n_conn_max = 5;
+        fcgi_proc->n_conn_max = fcgi_pmgr->n_conn_max;
         fcgi_proc->port = port;
         fcgi_proc->cmdl = cmdl;
+        fcgi_proc->htdx = fcgi_pmgr->htdx;
         if (fcgi_pmgr->fcgi_procs) {
             fcgi_proc->prev = fcgi_pmgr->fcgi_procs->prev;
             fcgi_proc->next = fcgi_pmgr->fcgi_procs;
@@ -143,7 +144,7 @@ fcgi_pmgr_proc_spawn(struct fcgi_proc_t *fcgi_proc)
     envblk_add(&envblk, "WINDIR", getenv("WINDIR"));
     envblk_add(&envblk, "TEMP", getenv("TEMP"));
     envblk_add(&envblk, "PATH", getenv("PATH"));
-    envblk_add(&envblk, "PHP_FCGI_MAX_REQUESTS", "5");
+    envblk_add_x(&envblk, "PHP_FCGI_MAX_REQUESTS", "%d", fcgi_proc->n_conn_max);
     if (CreateProcess(NULL,
             fcgi_proc->cmdl,
             NULL,
@@ -155,7 +156,7 @@ fcgi_pmgr_proc_spawn(struct fcgi_proc_t *fcgi_proc)
             &si,
             &pi)) {
     } else {
-        chtd_cry(fcgi_pmgr->htdx, "CreateProcess() failed! [%s]", fcgi_proc->cmdl);
+        chtd_cry(fcgi_proc->htdx, "CreateProcess() failed! [%s]", fcgi_proc->cmdl);
     }
     DEBUG_TRACE("fcgi_pmgr_proc_spawn() -> %s", fcgi_proc->cmdl);
     return fcgi_proc;
@@ -166,16 +167,20 @@ struct fcgi_proc_t *
 fcgi_pmgr_proc_assign(struct fcgi_pmgr_t *fcgi_pmgr)
 {
     struct fcgi_proc_t *curr, *last, *proc = NULL;
+    pthread_mutex_lock(&fcgi_pmgr->mutex);
     curr = fcgi_pmgr->fcgi_procs;
     if (curr) {
         last = curr->prev;
         while (1) {
-            DEBUG_TRACE("fcgi_pmgr_proc_spawn() -> %d, %d", curr->n_conn_max, curr->n_conn_cur);
+            DEBUG_TRACE("fcgi_pmgr_proc: max=%d, cur=%d", curr->n_conn_max, curr->n_conn_cur);
             if (curr->n_conn_cur < curr->n_conn_max) {
                 proc = curr;
                 break;
             } else {
-                
+                proc = curr;
+                fcgi_pmgr_proc_spawn(proc);
+                proc->n_conn_cur = 0;
+                break;
             }
             if (curr == last) {
                 break;
@@ -188,6 +193,7 @@ fcgi_pmgr_proc_assign(struct fcgi_pmgr_t *fcgi_pmgr)
         fcgi_pmgr_proc_spawn(proc);
     }
     proc->n_conn_cur++;
+    pthread_mutex_unlock(&fcgi_pmgr->mutex);
     return proc;
 }
 
@@ -195,6 +201,7 @@ fcgi_pmgr_proc_assign(struct fcgi_pmgr_t *fcgi_pmgr)
 int
 fcgi_pmgr_conn(struct fcgi_pmgr_t *fcgi_pmgr, struct fcgi_conn_t *fcgi_conn)
 {
+    int bTrue = 1;
     struct sock_t *sock;
     struct fcgi_proc_t *fcgi_proc;
     fcgi_proc = fcgi_pmgr_proc_assign(fcgi_pmgr);
@@ -208,9 +215,10 @@ fcgi_pmgr_conn(struct fcgi_pmgr_t *fcgi_pmgr, struct fcgi_conn_t *fcgi_conn)
         chtd_cry(fcgi_pmgr->htdx, "ERROR: fcgi_pmgr_conn() -> socket() failed!%d");
         return -1;
     }
+    setsockopt(sock->socket, SOL_SOCKET, SO_REUSEADDR, (void *)&bTrue, sizeof(bTrue));
     if (connect(sock->socket, &sock->rsa.u.sa, sizeof(sock->rsa.u)) == -1) {
-        chtd_cry(fcgi_pmgr->htdx, "ERROR: connect() to fastcgi server (%s:%s) failed!",
-            fcgi_pmgr->fcgid_addr, fcgi_pmgr->fcgid_port);
+        chtd_cry(fcgi_pmgr->htdx, "ERROR: connect() to fastcgi server (%s:%s) failed(%d)!",
+            fcgi_pmgr->fcgid_addr, fcgi_pmgr->fcgid_port, sockerrno);
         closesocket(sock->socket);
         return -1;
     }
