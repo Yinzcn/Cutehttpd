@@ -5,7 +5,7 @@
 
 
 void
-sock_set_non_blocking(struct sock_t *sock)
+sock_non_blocking(struct sock_t *sock)
 {
 #ifdef _WIN32
     unsigned long u = 1;
@@ -38,14 +38,14 @@ sock_close(struct sock_t *sock)
     }
     if (sock->socket > 0) {
         static char buff[256];
-        int sw = 0;
+        int o = 1;
         struct linger l;
         l.l_onoff  = 1;
         l.l_linger = 0;
-        //setsockopt(sock->socket, SOL_SOCKET, SO_LINGER, (void *)&l, sizeof(l));
-        setsockopt(sock->socket, SOL_SOCKET, SO_DONTLINGER, (void *)&sw, sizeof(sw));
+        //setsockopt(sock->socket, SOL_SOCKET, SO_LINGER,     (void *)&l, sizeof(l));
+        setsockopt(sock->socket, SOL_SOCKET, SO_DONTLINGER, (void *)&o, sizeof(o));
         shutdown(sock->socket, SHUT_WR);
-        sock_set_non_blocking(sock);
+        sock_non_blocking(sock);
         while (recv(sock->socket, buff, 256, 0) > 0);
         closesocket(sock->socket);
         sock->socket = 0;

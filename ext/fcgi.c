@@ -52,7 +52,7 @@ fcgi_conn_close(struct fcgi_conn_t *fcgi_conn)
 
 
 int
-fcgi_conn_send(struct fcgi_conn_t *fcgi_conn, char *data, int size)
+fcgi_conn_send(struct fcgi_conn_t *fcgi_conn, void *data, int size)
 {
     int done = 0;
     while (done < size) {
@@ -60,7 +60,7 @@ fcgi_conn_send(struct fcgi_conn_t *fcgi_conn, char *data, int size)
         if (retn > 0) {
             done += retn;
         } else {
-            DEBUG_TRACE("fcgi_conn_send() -> send() return %d!", retn);
+            DEBUG_TRACE("fcgi_conn_send() -> send() got %d!", sockerrno);
             return 0;
         }
     }
@@ -69,7 +69,7 @@ fcgi_conn_send(struct fcgi_conn_t *fcgi_conn, char *data, int size)
 
 
 int
-fcgi_conn_recv(struct fcgi_conn_t *fcgi_conn, char *buff, int need)
+fcgi_conn_recv(struct fcgi_conn_t *fcgi_conn, void *buff, int need)
 {
     int done = bufx_get(fcgi_conn->recvbufx, buff, need);
     while (done < need) {
@@ -78,7 +78,7 @@ fcgi_conn_recv(struct fcgi_conn_t *fcgi_conn, char *buff, int need)
             done += retn;
         } else {
             bufx_put(fcgi_conn->recvbufx, buff, done);
-            chtd_cry(fcgi_conn->htdx, "fcgi_conn_recv() -> recv() return %d", retn);
+            chtd_cry(fcgi_conn->htdx, "fcgi_conn_recv() -> recv() return %d, %d", retn, sockerrno);
             return 0;
         }
     }
@@ -89,7 +89,7 @@ fcgi_conn_recv(struct fcgi_conn_t *fcgi_conn, char *buff, int need)
 struct fcgi_reqs_t *
 fcgi_reqs_new(struct fcgi_conn_t *fcgi_conn) {
     struct fcgi_reqs_t *fcgi_reqs;
-    int req_Id = 1;
+    int req_Id = 0;
     FCGI_Header *re_header;
     fcgi_reqs = calloc(1, sizeof(struct fcgi_reqs_t));
     if (!fcgi_reqs) {
@@ -123,7 +123,7 @@ fcgi_reqs_del(struct fcgi_reqs_t *fcgi_reqs)
 int
 fcgi_send_header(struct fcgi_reqs_t *fcgi_reqs)
 {
-    return fcgi_conn_send(fcgi_reqs->fcgi_conn, (char *)&fcgi_reqs->re_header, sizeof(FCGI_Header));
+    return fcgi_conn_send(fcgi_reqs->fcgi_conn, &fcgi_reqs->re_header, sizeof(FCGI_Header));
 }
 
 
@@ -131,7 +131,7 @@ int
 fcgi_recv_header(struct fcgi_reqs_t *fcgi_reqs)
 {
     FCGI_Header *rp_header = &fcgi_reqs->rp_header;
-    if (fcgi_conn_recv(fcgi_reqs->fcgi_conn, (char *)rp_header, sizeof(FCGI_Header))) {
+    if (fcgi_conn_recv(fcgi_reqs->fcgi_conn, rp_header, sizeof(FCGI_Header))) {
         fcgi_reqs->rp_requestId     = (rp_header->requestIdB1     << 8) + rp_header->requestIdB0;
         fcgi_reqs->rp_contentLength = (rp_header->contentLengthB1 << 8) + rp_header->contentLengthB0;
         return 1;
@@ -195,7 +195,7 @@ fcgi_send_begin_record(struct fcgi_reqs_t *fcgi_reqs)
     FCGI_Header *re_header = &fcgi_reqs->re_header;
     body.roleB1 = 0;
     body.roleB0 = FCGI_RESPONDER;
-    body.flags  = 0; /* FCGI_KEEP_CONN; */
+    body.flags  = 0; /* | FCGI_KEEP_CONN; */
     body.reserved[0] = 0;
     body.reserved[1] = 0;
     body.reserved[2] = 0;
@@ -314,7 +314,11 @@ fcgi_send_params(struct fcgi_reqs_t *fcgi_reqs)
             return 0;
         }
 
-        if (!fcgi_conn_send(fcgi_reqs->fcgi_conn, fcgi_reqs->params_databody, size + padl)) {
+        if (!fcgi_conn_send(fcgi_reqs->fcgi_conn, fcgi_reqs->params_databody, size)) {
+            return 0;
+        }
+
+        if (!fcgi_send_padding(fcgi_reqs, padl)) {
             return 0;
         }
     }
@@ -371,7 +375,6 @@ fcgi_send_stdin(struct fcgi_reqs_t *fcgi_reqs, char *data, int size)
             done = done + step;
         }
     }
-
     /* ] */
 
     /* [ end stdin */
@@ -383,7 +386,6 @@ fcgi_send_stdin(struct fcgi_reqs_t *fcgi_reqs, char *data, int size)
         chtd_cry(fcgi_reqs->htdx, "fcgi_send_header() failed!");
         return 0;
     }
-
     /* ] */
 
     return 1;
@@ -395,7 +397,7 @@ fcgi_recv_http_header(struct fcgi_conn_t *fcgi_conn, char *buff, int buffsize)
 {
     int buffleft = buffsize - 1;
     int recvsize = 0;
-    if (!fcgi_conn || !buff || buffsize < 2) {
+    if (!fcgi_conn || !buff || buffsize < 4) {
         return 0;
     }
     while (buffleft) {
@@ -430,7 +432,7 @@ fcgi_recv_http_header(struct fcgi_conn_t *fcgi_conn, char *buff, int buffsize)
 
 
 int
-fcgi_trans_header(struct fcgi_reqs_t *fcgi_reqs, char *header_str)
+fcgi_tran_http_header(struct fcgi_reqs_t *fcgi_reqs, char *header_str)
 {
     struct namevalue_t *curr, *last;
     struct namevalue_t *nvs = NULL;
@@ -443,7 +445,7 @@ fcgi_trans_header(struct fcgi_reqs_t *fcgi_reqs, char *header_str)
     curr = nvs;
     last = curr->prev;
     while (1) {
-        if (strcasecmp(curr->n, "Status")) {
+        if (strcasecmp(curr->n, "Status") == 0) {
             set_status_line(fcgi_reqs->http_reqs, curr->v);
         } else {
             set_http_header(fcgi_reqs->http_reqs, curr->n, curr->v);
@@ -460,7 +462,7 @@ fcgi_trans_header(struct fcgi_reqs_t *fcgi_reqs, char *header_str)
 
 
 int
-fcgi_trans_stdout(struct fcgi_reqs_t *fcgi_reqs)
+fcgi_tran_stdout(struct fcgi_reqs_t *fcgi_reqs)
 {
     char buffdata[8192];
     int  buffsize = sizeof(buffdata);
@@ -480,10 +482,10 @@ fcgi_trans_stdout(struct fcgi_reqs_t *fcgi_reqs)
     */
     if (!http_reqs->rp_header_sent) {
         char header_str[4096];
-        int retn = fcgi_recv_http_header(fcgi_reqs->fcgi_conn, header_str, 4096 - 1);
+        int retn = fcgi_recv_http_header(fcgi_reqs->fcgi_conn, header_str, contleft > 4096 ? 4096 : contleft);
         if (retn > 0) {
             contleft -= retn;
-            fcgi_trans_header(fcgi_reqs, header_str); /* trans headers */
+            fcgi_tran_http_header(fcgi_reqs, header_str); /* trans headers */
         } else {
             chtd_cry(fcgi_reqs->htdx, "fcgi_recv_http_header() return %d", retn);
             reqs_throw_status(http_reqs, 500, "fcgi_recv_http_header() got an error!");
@@ -529,7 +531,7 @@ fcgi_trans_stdout(struct fcgi_reqs_t *fcgi_reqs)
 
 
 int
-fcgi_trans_stderr(struct fcgi_reqs_t *fcgi_reqs)
+fcgi_tran_stderr(struct fcgi_reqs_t *fcgi_reqs)
 {
     char buffdata[1024];
     int  buffsize = sizeof(buffdata);
@@ -542,7 +544,7 @@ fcgi_trans_stderr(struct fcgi_reqs_t *fcgi_reqs)
     }
 
     if (fcgi_reqs->stderrbufx == NULL) {
-        fcgi_reqs->stderrbufx  = bufx_new(1024, 1024*1024*2);
+        fcgi_reqs->stderrbufx = bufx_new(1024, 1024*1024*2);
     }
 
     while (contleft > 0) {
@@ -552,7 +554,7 @@ fcgi_trans_stderr(struct fcgi_reqs_t *fcgi_reqs)
             contleft -= sizerecv;
             bufx_put(fcgi_reqs->stderrbufx, buffdata, sizerecv);
         } else {
-            chtd_cry(fcgi_reqs->htdx, "fcgi_trans_stderr() -> fcgi_conn_recv() return %d!", sizerecv);
+            chtd_cry(fcgi_reqs->htdx, "fcgi_tran_stderr() -> fcgi_conn_recv() return %d!", sizerecv);
             break;
         }
     }
@@ -578,13 +580,12 @@ fcgi_reqs_done(struct fcgi_reqs_t *fcgi_reqs)
 
     /* [ send stderr */
     stderr_len = bufx_get_used(fcgi_reqs->stderrbufx);
-
     if (stderr_len) {
         send_http_chunk(http_reqs, "\r\n", 2);
         send_http_chunk(http_reqs, bufx_link(fcgi_reqs->stderrbufx), stderr_len);
     }
-
     /* ] */
+
     send_http_chunk_end(http_reqs);
     return 1;
 }
@@ -599,7 +600,7 @@ fcgi_reqs_proc(struct fcgi_pmgr_t *fcgi_pmgr, struct reqs_t *http_reqs)
     int loop = 1;
 
     fcgi_conn = fcgi_conn_new(http_reqs);
-    if (fcgi_pmgr_conn(fcgi_pmgr, fcgi_conn) == -1) {
+    if (!fcgi_pmgr_conn(fcgi_pmgr, fcgi_conn)) {
         set_keep_alive(http_reqs, 0);
         reqs_throw_status(http_reqs, 504, "connect to fastcgi server failed!");
         fcgi_conn_del(fcgi_conn);
@@ -646,9 +647,21 @@ fcgi_reqs_proc(struct fcgi_pmgr_t *fcgi_pmgr, struct reqs_t *http_reqs)
     /*
     [ send fastcgi request
     */
-    fcgi_send_begin_record(fcgi_reqs);
-    fcgi_send_params      (fcgi_reqs);
-    fcgi_send_stdin       (fcgi_reqs, http_reqs->post_data, http_reqs->post_size);
+    if (!fcgi_send_begin_record(fcgi_reqs)) {
+        chtd_cry(fcgi_reqs->htdx, "fcgi_reqs_proc() -> fcgi_send_begin_record() got %d!", sockerrno);
+        fcgi_reqs_del(fcgi_reqs);
+        return 1;
+    }
+    if (!fcgi_send_params(fcgi_reqs)) {
+        chtd_cry(fcgi_reqs->htdx, "fcgi_reqs_proc() -> fcgi_send_params() got %d!", sockerrno);
+        fcgi_reqs_del(fcgi_reqs);
+        return 1;
+    }
+    if (!fcgi_send_stdin(fcgi_reqs, http_reqs->post_data, http_reqs->post_size)) {
+        chtd_cry(fcgi_reqs->htdx, "fcgi_reqs_proc() -> fcgi_send_stdin() got %d!", sockerrno);
+        fcgi_reqs_del(fcgi_reqs);
+        return 1;
+    }
     free(fcgi_reqs->params_databody);
     fcgi_reqs->params_buffsize = 0;
     fcgi_reqs->params_datasize = 0;
@@ -664,20 +677,23 @@ fcgi_reqs_proc(struct fcgi_pmgr_t *fcgi_pmgr, struct reqs_t *http_reqs)
     */
     while (loop) {
         if (!fcgi_recv_header(fcgi_reqs)) {
+            chtd_cry(fcgi_reqs->htdx, "fcgi error: fcgi_recv_header");
             break;
         }
 
         switch (fcgi_reqs->rp_header.type) {
         /* STDOUT */
         case FCGI_STDOUT:
-            if (!fcgi_trans_stdout(fcgi_reqs)) {
+            if (!fcgi_tran_stdout(fcgi_reqs)) {
+                chtd_cry(fcgi_reqs->htdx, "fcgi error: fcgi_tran_stdout");
                 loop = 0;
             }
             break;
 
         /* STDERR */
         case FCGI_STDERR:
-            if (!fcgi_trans_stderr(fcgi_reqs)) {
+            if (!fcgi_tran_stderr(fcgi_reqs)) {
+                chtd_cry(fcgi_reqs->htdx, "fcgi error: fcgi_tran_stderr");
                 loop = 0;
             }
             break;

@@ -1,3 +1,3 @@
 <?php
-echo '[Cutehttpd]['.time().']['.rand().']';
+echo '[Cutehttpd]['.time().']';
 ?>

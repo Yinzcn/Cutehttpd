@@ -68,8 +68,8 @@ free_wkers(struct htdx_t *htdx)
 int
 wker_create_thread(struct wker_t *wker)
 {
-    pthread_t t_id;
     int maxtry = 10;
+    pthread_t t_id;
     while (maxtry--) {
         if (pthread_create(&t_id, NULL, (void *)worker_thread, wker) == 0) {
             wker->t_id = t_id;

@@ -18,10 +18,16 @@ fcgi_pmgr_add(struct htdx_t *htdx, char *extname, char *sz_addr, char *sz_port, 
         return NULL;
     }
     fcgi_pmgr->n_conn_max = 200;
-    strncpy(fcgi_pmgr->cgiextname, extname, 15);
-    strncpy(fcgi_pmgr->fcgid_addr, sz_addr, 63);
-    strncpy(fcgi_pmgr->fcgid_port, sz_port, 15);
+    strncpy(fcgi_pmgr->cgiextname, extname,  15);
+    strncpy(fcgi_pmgr->fcgid_addr, sz_addr,  63);
+    strncpy(fcgi_pmgr->fcgid_port, sz_port,  15);
     strncpy(fcgi_pmgr->fcgid_cmdl, sz_cmdl, 255);
+    if (sz_cmdl && strlen(sz_cmdl)) {
+        fcgi_pmgr->enablepmgr = 1;
+    }
+    fcgi_pmgr->rsa.u.sin.sin_family = AF_INET;
+    fcgi_pmgr->rsa.u.sin.sin_addr.s_addr = inet_addr(sz_addr);
+    fcgi_pmgr->rsa.u.sin.sin_port = htons(atoi(sz_port));
     pthread_mutex_init(&fcgi_pmgr->mutex, NULL);
     if (htdx->fcgi_pmgrs) {
         fcgi_pmgr->prev = htdx->fcgi_pmgrs->prev;
@@ -155,6 +161,8 @@ fcgi_pmgr_proc_spawn(struct fcgi_proc_t *fcgi_proc)
             NULL,//dir,
             &si,
             &pi)) {
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
     } else {
         chtd_cry(fcgi_proc->htdx, "CreateProcess() failed! [%s]", fcgi_proc->cmdl);
     }
@@ -203,24 +211,28 @@ fcgi_pmgr_conn(struct fcgi_pmgr_t *fcgi_pmgr, struct fcgi_conn_t *fcgi_conn)
 {
     int bTrue = 1;
     struct sock_t *sock;
-    struct fcgi_proc_t *fcgi_proc;
-    fcgi_proc = fcgi_pmgr_proc_assign(fcgi_pmgr);
-    if (!fcgi_proc) {
-        return 0;
+    if (fcgi_pmgr->enablepmgr) {
+        struct fcgi_proc_t *fcgi_proc;
+        fcgi_proc = fcgi_pmgr_proc_assign(fcgi_pmgr);
+        if (!fcgi_proc) {
+            return 0;
+        }
+        memcpy(&fcgi_conn->sock.rsa, &fcgi_proc->rsa, sizeof(struct usa_t));
+    } else {
+        memcpy(&fcgi_conn->sock.rsa, &fcgi_pmgr->rsa, sizeof(struct usa_t));
     }
-    memcpy(&fcgi_conn->sock.rsa, &fcgi_proc->rsa, sizeof(struct usa_t));
     sock = &fcgi_conn->sock;
     sock->socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock->socket == 0) {
         chtd_cry(fcgi_pmgr->htdx, "ERROR: fcgi_pmgr_conn() -> socket() failed!%d");
-        return -1;
+        return 0;
     }
     setsockopt(sock->socket, SOL_SOCKET, SO_REUSEADDR, (void *)&bTrue, sizeof(bTrue));
     if (connect(sock->socket, &sock->rsa.u.sa, sizeof(sock->rsa.u)) == -1) {
         chtd_cry(fcgi_pmgr->htdx, "ERROR: connect() to fastcgi server (%s:%s) failed(%d)!",
             fcgi_pmgr->fcgid_addr, fcgi_pmgr->fcgid_port, sockerrno);
         closesocket(sock->socket);
-        return -1;
+        return 0;
     }
     fcgi_conn->fcgi_pmgr = fcgi_pmgr;
     return 1;
