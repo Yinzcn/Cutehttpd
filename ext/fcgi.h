@@ -56,11 +56,11 @@ fcgi_conn_close(struct fcgi_conn_t *);
 
 
 int
-fcgi_conn_send(struct fcgi_conn_t *, char *, int);
+fcgi_conn_send(struct fcgi_conn_t *, void *, int);
 
 
 int
-fcgi_conn_recv(struct fcgi_conn_t *, char *, int);
+fcgi_conn_recv(struct fcgi_conn_t *, void *, int);
 
 
 struct fcgi_reqs_t *

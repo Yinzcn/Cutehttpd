@@ -365,9 +365,9 @@ main(int argc, char *argv[])
 {
     struct srvx_t srvx = { 0 };
     srvx.f_addr = "127.0.0.1";
-    srvx.f_port = "8000";
+    srvx.f_port = "9900";
     srvx.d_addr = "127.0.0.1";
-    srvx.d_port = "8080";
+    srvx.d_port = "9000";
     srvx.n_worker_max = 100;
     master_thread(&srvx);
     return 0;

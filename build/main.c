@@ -105,7 +105,7 @@ main(int argc, char *argv[])
     */
     #ifdef CHTD_FCGI
     chtd_set_fcgi(chtd, ".php", "127.0.0.1", "9900", "");
-    //chtd_set_fcgi(chtd, ".php", "127.0.0.1", "9900", "..\\..\\php\\php-cgi.exe -b @addr@:@port@");
+    //chtd_set_fcgi(chtd, ".php", "127.0.0.1", "9000", "..\\..\\php\\php-cgi.exe -b @addr@:@port@");
     #endif
 
 

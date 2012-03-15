@@ -242,7 +242,7 @@ fcgi_add_params(struct fcgi_reqs_t *fcgi_reqs, char *n, char *v)
     needsize = nl + vl + 8;
 
     if (buffsize - datasize < needsize) {
-        newbsize = buffsize ? buffsize * 2 : 4096;
+        newbsize = buffsize ? buffsize * 2 : 8 * 512;
         while (newbsize - datasize < needsize) {
             newbsize *= 2;
         }
@@ -314,11 +314,7 @@ fcgi_send_params(struct fcgi_reqs_t *fcgi_reqs)
             return 0;
         }
 
-        if (!fcgi_conn_send(fcgi_reqs->fcgi_conn, fcgi_reqs->params_databody, size)) {
-            return 0;
-        }
-
-        if (!fcgi_send_padding(fcgi_reqs, padl)) {
+        if (!fcgi_conn_send(fcgi_reqs->fcgi_conn, fcgi_reqs->params_databody, size + padl)) {
             return 0;
         }
     }
@@ -347,7 +343,6 @@ fcgi_send_stdin(struct fcgi_reqs_t *fcgi_reqs, char *data, int size)
         int done = 0;
         int step;
         int padl;
-
         while (left > 0) {
             step = left > 0x8000 ? 0x8000 : left;
             padl = step & 0x07;
@@ -355,22 +350,18 @@ fcgi_send_stdin(struct fcgi_reqs_t *fcgi_reqs, char *data, int size)
             re_header->contentLengthB1 = step >> 8;
             re_header->contentLengthB0 = step & 0xff;
             re_header->paddingLength   = padl;
-
             if (!fcgi_send_header(fcgi_reqs)) {
                 chtd_cry(fcgi_reqs->htdx, "fcgi_send_header() failed!");
                 return 0;
             }
-
             if (!fcgi_conn_send(fcgi_reqs->fcgi_conn, data + done, step)) {
                 chtd_cry(fcgi_reqs->htdx, "fcgi_conn_send() failed!");
                 return 0;
             }
-
             if (!fcgi_send_padding(fcgi_reqs, padl)) {
                 chtd_cry(fcgi_reqs->htdx, "fcgi_send_padding() failed!");
                 return 0;
             }
-
             left = left - step;
             done = done + step;
         }
@@ -381,7 +372,6 @@ fcgi_send_stdin(struct fcgi_reqs_t *fcgi_reqs, char *data, int size)
     re_header->contentLengthB1 = 0;
     re_header->contentLengthB0 = 0;
     re_header->paddingLength   = 0;
-
     if (!fcgi_send_header(fcgi_reqs)) {
         chtd_cry(fcgi_reqs->htdx, "fcgi_send_header() failed!");
         return 0;
@@ -571,6 +561,21 @@ fcgi_reqs_done(struct fcgi_reqs_t *fcgi_reqs)
     int stderr_len;
     FCGI_EndRequestBody body;
     fcgi_conn_recv(fcgi_reqs->fcgi_conn, (char *)&body, sizeof(FCGI_EndRequestBody));
+
+    switch (body.protocolStatus) {
+        case FCGI_REQUEST_COMPLETE:
+            chtd_cry(fcgi_reqs->htdx, "FCGI_REQUEST_COMPLETE");
+            break;
+        case FCGI_CANT_MPX_CONN:
+            chtd_cry(fcgi_reqs->htdx, "FCGI_CANT_MPX_CONN");
+            break;
+        case FCGI_OVERLOADED:
+            chtd_cry(fcgi_reqs->htdx, "FCGI_OVERLOADED");
+            break;
+        case FCGI_UNKNOWN_ROLE:
+            chtd_cry(fcgi_reqs->htdx, "FCGI_UNKNOWN_ROLE");
+            break;
+    }
 
     if (!http_reqs->rp_header_sent) {
         set_http_status (http_reqs, 200); /* "200 OK" */
