@@ -139,7 +139,7 @@ master_thread(struct htdx_t *htdx)
         /* socket() */
         htdx->sock.socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (htdx->sock.socket == -1) {
-            chtd_cry(htdx, "master_thread() -> socket() error!");
+            chtd_cry(htdx, "master_thread() -> socket() error(%d)!", sockerrno);
             htdx->status = CHTD_SUSPEND;
             break;
         }
@@ -161,7 +161,7 @@ master_thread(struct htdx_t *htdx)
 
         /* listen() */
         if (listen(htdx->sock.socket, SOMAXCONN) == -1) {
-            chtd_cry(htdx, "listen() on %s:%s error!", htdx->addr, htdx->port);
+            chtd_cry(htdx, "listen() on %s:%s error(%d)!", htdx->addr, htdx->port, sockerrno);
             htdx->status = CHTD_SUSPEND;
             break;
         }
@@ -170,7 +170,7 @@ master_thread(struct htdx_t *htdx)
 
         /* listen_thread() */
         if (pthread_create(&htdx->listen_tid, NULL, (void *)listen_thread, htdx) != 0) {
-            chtd_cry(htdx, "create listen_thread falied!");
+            chtd_cry(htdx, "create listen_thread falied(%d)!", sockerrno);
             htdx->status = CHTD_SUSPEND;
             break;
         }

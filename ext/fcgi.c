@@ -89,7 +89,7 @@ fcgi_conn_recv(struct fcgi_conn_t *fcgi_conn, void *buff, int need)
 struct fcgi_reqs_t *
 fcgi_reqs_new(struct fcgi_conn_t *fcgi_conn) {
     struct fcgi_reqs_t *fcgi_reqs;
-    int req_Id = 0;
+    int req_Id = 1;
     FCGI_Header *re_header;
     fcgi_reqs = calloc(1, sizeof(struct fcgi_reqs_t));
     if (!fcgi_reqs) {
@@ -116,6 +116,8 @@ fcgi_reqs_del(struct fcgi_reqs_t *fcgi_reqs)
         return;
     }
     fcgi_conn_del(fcgi_reqs->fcgi_conn);
+    bufx_del(fcgi_reqs->stdoutbufx);
+    bufx_del(fcgi_reqs->stderrbufx);
     free(fcgi_reqs);
 }
 
@@ -397,6 +399,7 @@ fcgi_recv_http_header(struct fcgi_conn_t *fcgi_conn, char *buff, int buffsize)
             recvsize += retn;
             buffleft -= retn;
             buff[recvsize] = '\0';
+            chtd_cry(fcgi_conn->htdx, "[%s]", buff);
             endp = strstr(buff, "\r\n\r\n");
             if (endp) {
                 int headsize;
@@ -472,16 +475,18 @@ fcgi_tran_stdout(struct fcgi_reqs_t *fcgi_reqs)
     */
     if (!http_reqs->rp_header_sent) {
         char header_str[4096];
+        fcgi_reqs->rp_http_header = calloc(4096, sizeof(char));
+        fcgi_reqs->rp_http_header_buff_left = 4096;
         int retn = fcgi_recv_http_header(fcgi_reqs->fcgi_conn, header_str, contleft > 4096 ? 4096 : contleft);
-        if (retn > 0) {
-            contleft -= retn;
-            fcgi_tran_http_header(fcgi_reqs, header_str); /* trans headers */
-        } else {
+        if (retn == 0) {
             chtd_cry(fcgi_reqs->htdx, "fcgi_recv_http_header() return %d", retn);
             reqs_throw_status(http_reqs, 500, "fcgi_recv_http_header() got an error!");
             /* "500 Internal Server Error" */
             return 0;
         }
+        contleft -= retn;
+        fcgi_tran_http_header(fcgi_reqs, header_str); /* trans headers */
+        set_http_header (http_reqs, "Transfer-Encoding", "chunked");
         send_http_header(http_reqs);
     }
     /*
@@ -502,7 +507,8 @@ fcgi_tran_stdout(struct fcgi_reqs_t *fcgi_reqs)
                 send_http_chunk(http_reqs, buffdata, buffused);
                 buffused = 0;
                 buffleft = buffsize;
-            } else if (contleft == 0) {
+            } else
+            if (contleft == 0) {
                 send_http_chunk(http_reqs, buffdata, buffused);
                 break;
             }
@@ -531,10 +537,6 @@ fcgi_tran_stderr(struct fcgi_reqs_t *fcgi_reqs)
 
     if (!contleft) {
         return 0;
-    }
-
-    if (fcgi_reqs->stderrbufx == NULL) {
-        fcgi_reqs->stderrbufx = bufx_new(1024, 1024*1024*2);
     }
 
     while (contleft > 0) {
@@ -675,7 +677,8 @@ fcgi_reqs_proc(struct fcgi_pmgr_t *fcgi_pmgr, struct reqs_t *http_reqs)
     ]
     */
 
-    set_http_header(http_reqs, "Transfer-Encoding", "chunked");
+    fcgi_reqs->stdoutbufx = bufx_new(1024, 1024 * 1024 * 1);
+    fcgi_reqs->stderrbufx = bufx_new(1024, 1024 * 1024 * 1);
 
     /*
     [ recv fastcgi response
@@ -697,7 +700,7 @@ fcgi_reqs_proc(struct fcgi_pmgr_t *fcgi_pmgr, struct reqs_t *http_reqs)
 
         /* STDERR */
         case FCGI_STDERR:
-            if (!fcgi_tran_stderr(fcgi_reqs)) {
+            if (!fcgi_tran_stdout(fcgi_reqs)) {
                 chtd_cry(fcgi_reqs->htdx, "fcgi error: fcgi_tran_stderr");
                 loop = 0;
             }

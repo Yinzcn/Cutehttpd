@@ -22,6 +22,8 @@ struct fcgi_reqs_t
     int    params_buffsize;
     int    params_datasize;
     char  *params_databody;
+    char  *rp_http_header;
+    int    rp_http_header_buff_left;
     struct bufx_t       *stderrbufx;
     struct bufx_t       *stdoutbufx;
     struct fcgi_conn_t  *fcgi_conn;

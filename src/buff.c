@@ -198,17 +198,23 @@ bufx_link(struct bufx_t *bufx)
 {
     if (bufx) {
         struct bufx_blks_t *blks;
-        int size;
-        size = bufx->used;
+        int size = bufx->used;
+        int sizx = bufx->base;
         if (size == 0) {
             return NULL;
         }
-        blks = calloc(1, sizeof(struct bufx_blks_t) + size);
+        if (bufx->blks->next == bufx->blks) {
+            return bufx->blks->data;
+        }
+        while (sizx < size) {
+            sizx *= 2;
+        }
+        blks = calloc(1, sizeof(struct bufx_blks_t) + sizx);
         if (blks == NULL) {
             return NULL;
         }
         blks->data = (char *)blks + sizeof(struct bufx_blks_t);
-        blks->size = size;
+        blks->size = sizx;
         blks->used = size;
         blks->prev = blks->next = blks;
         bufx_get(bufx, blks->data, size);
