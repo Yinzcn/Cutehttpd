@@ -137,13 +137,13 @@ bufx_get(struct bufx_t *bufx, char *buff, int need)
                 free(curr);
                 curr = next;
                 continue;
-            } else if (curr->used > left) {
+            } else
+            if (curr->used > left) {
                 int blk_left;
                 step = left;
                 memcpy(bufp, curr->data, step);
                 blk_left = curr->used - step;
                 memcpy(curr->data, curr->data + step, blk_left);
-                curr->size = blk_left;
                 curr->used = blk_left;
                 curr->prev = last;
                 last->next = curr;

@@ -144,7 +144,7 @@ master_thread(struct htdx_t *htdx)
             break;
         }
 
-        setsockopt(htdx->sock.socket, SOL_SOCKET, SO_REUSEADDR, (void *)&bTrue, sizeof(bTrue));
+        //setsockopt(htdx->sock.socket, SOL_SOCKET, SO_REUSEADDR, (void *)&bTrue, sizeof(bTrue));
         setsockopt(htdx->sock.socket, SOL_SOCKET, SO_KEEPALIVE, (void *)&bTrue, sizeof(bTrue));
 
         /* bind() */

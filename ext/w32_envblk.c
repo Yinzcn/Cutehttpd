@@ -60,7 +60,7 @@ envblk_add_x(struct envblk_t *envblk, char *n, char *f, ...)
     va_list v;
     va_start(v, f);
     c = vsnprintf(b, sizeof(b), f, v);
-    va_end(a);
+    va_end(v);
     if (!c) {
         return envblk;
     }

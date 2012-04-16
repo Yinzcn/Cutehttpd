@@ -19,11 +19,10 @@ struct fcgi_reqs_t
     FCGI_Header rp_header;
     int         rp_requestId;
     int         rp_contentLength;
+    int         tran_http_header_flag;
     int    params_buffsize;
     int    params_datasize;
     char  *params_databody;
-    char  *rp_http_header;
-    int    rp_http_header_buff_left;
     struct bufx_t       *stderrbufx;
     struct bufx_t       *stdoutbufx;
     struct fcgi_conn_t  *fcgi_conn;
@@ -37,7 +36,6 @@ struct fcgi_reqs_t
 struct fcgi_conn_t
 {
     struct sock_t        sock;
-    struct bufx_t       *recvbufx;
     struct fcgi_reqs_t  *fcgi_reqs;
     struct reqs_t       *http_reqs;
     struct fcgi_pmgr_t  *fcgi_pmgr;

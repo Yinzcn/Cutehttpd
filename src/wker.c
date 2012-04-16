@@ -17,9 +17,9 @@ init_wkers(struct htdx_t *htdx)
     struct wker_t *wker;
     for (i = 0; i < n; i++) {
         wker = &wkers[i];
-        wker->w_id      = i;
-        wker->conn      = NULL;
-        wker->htdx      = htdx;
+        wker->w_id = i;
+        wker->conn = NULL;
+        wker->htdx = htdx;
         if (wker_create_thread(wker) == 0) {
             wker->status = WK_IDEL;
         } else {

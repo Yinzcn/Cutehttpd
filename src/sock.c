@@ -42,7 +42,7 @@ sock_close(struct sock_t *sock)
         struct linger l;
         l.l_onoff  = 1;
         l.l_linger = 0;
-        //setsockopt(sock->socket, SOL_SOCKET, SO_LINGER,     (void *)&l, sizeof(l));
+        setsockopt(sock->socket, SOL_SOCKET, SO_LINGER,     (void *)&l, sizeof(l));
         setsockopt(sock->socket, SOL_SOCKET, SO_DONTLINGER, (void *)&o, sizeof(o));
         shutdown(sock->socket, SHUT_WR);
         sock_non_blocking(sock);

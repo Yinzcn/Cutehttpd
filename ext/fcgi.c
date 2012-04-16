@@ -22,7 +22,6 @@ fcgi_conn_new(struct reqs_t *http_reqs) {
     fcgi_conn->http_reqs    = http_reqs;
     fcgi_conn->fcgi_reqs    = NULL;
     fcgi_conn->htdx         = htdx;
-    fcgi_conn->recvbufx     = bufx_new(4096, 1024 * 1024 * 8);
     return fcgi_conn;
 }
 
@@ -34,7 +33,6 @@ fcgi_conn_del(struct fcgi_conn_t *fcgi_conn)
         return;
     }
     fcgi_conn_close(fcgi_conn);
-    bufx_del(fcgi_conn->recvbufx);
     free(fcgi_conn);
 }
 
@@ -71,13 +69,12 @@ fcgi_conn_send(struct fcgi_conn_t *fcgi_conn, void *data, int size)
 int
 fcgi_conn_recv(struct fcgi_conn_t *fcgi_conn, void *buff, int need)
 {
-    int done = bufx_get(fcgi_conn->recvbufx, buff, need);
+    int done = 0;
     while (done < need) {
         int retn = recv(fcgi_conn->sock.socket, buff + done, need - done, 0);
         if (retn > 0) {
             done += retn;
         } else {
-            bufx_put(fcgi_conn->recvbufx, buff, done);
             chtd_cry(fcgi_conn->htdx, "fcgi_conn_recv() -> recv() return %d, %d", retn, sockerrno);
             return 0;
         }
@@ -385,51 +382,11 @@ fcgi_send_stdin(struct fcgi_reqs_t *fcgi_reqs, char *data, int size)
 
 
 int
-fcgi_recv_http_header(struct fcgi_conn_t *fcgi_conn, char *buff, int buffsize)
-{
-    int buffleft = buffsize - 1;
-    int recvsize = 0;
-    if (!fcgi_conn || !buff || buffsize < 4) {
-        return 0;
-    }
-    while (buffleft) {
-        int retn = recv(fcgi_conn->sock.socket, buff + recvsize, buffleft, 0);
-        if (retn > 0) {
-            char *endp;
-            recvsize += retn;
-            buffleft -= retn;
-            buff[recvsize] = '\0';
-            chtd_cry(fcgi_conn->htdx, "[%s]", buff);
-            endp = strstr(buff, "\r\n\r\n");
-            if (endp) {
-                int headsize;
-                int extrsize;
-                endp += 4;
-                headsize = endp - buff;
-                extrsize = recvsize - headsize;
-                if (extrsize) { /* put back to bufx */
-                    bufx_put(fcgi_conn->recvbufx, endp, extrsize);
-                }
-                *endp = '\0';
-                return headsize;
-            } else {
-                continue;
-            }
-        } else {
-            break;
-        }
-    }
-    bufx_put(fcgi_conn->recvbufx, buff, recvsize);
-    return 0;
-}
-
-
-int
-fcgi_tran_http_header(struct fcgi_reqs_t *fcgi_reqs, char *header_str)
+fcgi_tran_http_header(struct fcgi_reqs_t *fcgi_reqs, char *headerstr)
 {
     struct namevalue_t *curr, *last;
     struct namevalue_t *nvs = NULL;
-    parse_header(&nvs, header_str);
+    parse_header(&nvs, headerstr);
 
     if (!nvs) {
         return 0;
@@ -457,12 +414,9 @@ fcgi_tran_http_header(struct fcgi_reqs_t *fcgi_reqs, char *header_str)
 int
 fcgi_tran_stdout(struct fcgi_reqs_t *fcgi_reqs)
 {
-    char buffdata[8192];
+    char buffdata[4096];
     int  buffsize = sizeof(buffdata);
-    int  buffleft = sizeof(buffdata);
-    int  buffused = 0;
-    int  needrecv;
-    int  sizerecv;
+    int  recvretn;
     int  contleft = fcgi_reqs->rp_contentLength;
     struct reqs_t *http_reqs = fcgi_reqs->http_reqs;
 
@@ -471,55 +425,45 @@ fcgi_tran_stdout(struct fcgi_reqs_t *fcgi_reqs)
     }
 
     /*
-    [ read response HTTP header
+    [ read stdout content
     */
-    if (!http_reqs->rp_header_sent) {
-        char header_str[4096];
-        fcgi_reqs->rp_http_header = calloc(4096, sizeof(char));
-        fcgi_reqs->rp_http_header_buff_left = 4096;
-        int retn = fcgi_recv_http_header(fcgi_reqs->fcgi_conn, header_str, contleft > 4096 ? 4096 : contleft);
-        if (retn == 0) {
-            chtd_cry(fcgi_reqs->htdx, "fcgi_recv_http_header() return %d", retn);
-            reqs_throw_status(http_reqs, 500, "fcgi_recv_http_header() got an error!");
-            /* "500 Internal Server Error" */
+    while (contleft > 0) {
+        recvretn = fcgi_conn_recv(fcgi_reqs->fcgi_conn, buffdata, (contleft > buffsize ? buffsize : contleft));
+        if (recvretn > 0) {
+            contleft -= recvretn;
+            bufx_put(fcgi_reqs->stdoutbufx, buffdata, recvretn);
+        } else {
+            chtd_cry(fcgi_reqs->htdx, "fcgi_conn_recv() return %d! when reading stdout content!", recvretn);
             return 0;
         }
-        contleft -= retn;
-        fcgi_tran_http_header(fcgi_reqs, header_str); /* trans headers */
-        set_http_header (http_reqs, "Transfer-Encoding", "chunked");
-        send_http_header(http_reqs);
     }
     /*
     ]
     */
 
     /*
-    [ read stdout content
+    [ tran response HTTP header
     */
-    while (contleft > 0) {
-        needrecv = buffleft > contleft ? contleft : buffleft;
-        sizerecv = fcgi_conn_recv(fcgi_reqs->fcgi_conn, buffdata + buffused, needrecv);
-        if (sizerecv > 0) {
-            buffused += sizerecv;
-            buffleft -= sizerecv;
-            contleft -= sizerecv;
-            if (buffleft == 0) {
-                send_http_chunk(http_reqs, buffdata, buffused);
-                buffused = 0;
-                buffleft = buffsize;
-            } else
-            if (contleft == 0) {
-                send_http_chunk(http_reqs, buffdata, buffused);
-                break;
-            }
-        } else {
-            chtd_cry(fcgi_reqs->htdx, "fcgi_conn_recv() return %d! when reading stdout content!", sizerecv);
-            break;
+    if (!fcgi_reqs->tran_http_header_flag) {
+        char *buff, *endp;
+        buff = bufx_link(fcgi_reqs->stdoutbufx);
+        endp = strstr(buff, "\r\n\r\n");
+        if (endp) {
+            int hdrlen;
+            char *hdrstr;
+            hdrlen = endp - buff + 4;
+            hdrstr = calloc(hdrlen + 1, sizeof(char));
+            bufx_get(fcgi_reqs->stdoutbufx, hdrstr, hdrlen);
+            fcgi_tran_http_header(fcgi_reqs, hdrstr); /* trans headers */
+            set_http_header (http_reqs, "Transfer-Encoding", "chunked");
+            send_http_header(http_reqs);
+            fcgi_reqs->tran_http_header_flag = 1;
         }
     }
     /*
     ]
     */
+    bufx_get_each(fcgi_reqs->stdoutbufx, send_http_chunk, http_reqs);
 
     fcgi_recv_padding(fcgi_reqs, fcgi_reqs->rp_header.paddingLength);
     return 1;
@@ -529,10 +473,9 @@ fcgi_tran_stdout(struct fcgi_reqs_t *fcgi_reqs)
 int
 fcgi_tran_stderr(struct fcgi_reqs_t *fcgi_reqs)
 {
-    char buffdata[1024];
+    char buffdata[4096];
     int  buffsize = sizeof(buffdata);
-    int  needrecv;
-    int  sizerecv;
+    int  recvretn;
     int  contleft = fcgi_reqs->rp_contentLength;
 
     if (!contleft) {
@@ -540,14 +483,13 @@ fcgi_tran_stderr(struct fcgi_reqs_t *fcgi_reqs)
     }
 
     while (contleft > 0) {
-        needrecv = contleft > buffsize ? buffsize : contleft;
-        sizerecv = fcgi_conn_recv(fcgi_reqs->fcgi_conn, buffdata, needrecv);
-        if (sizerecv > 0) {
-            contleft -= sizerecv;
-            bufx_put(fcgi_reqs->stderrbufx, buffdata, sizerecv);
+        recvretn = fcgi_conn_recv(fcgi_reqs->fcgi_conn, buffdata, (contleft > buffsize ? buffsize : contleft));
+        if (recvretn > 0) {
+            contleft -= recvretn;
+            bufx_put(fcgi_reqs->stderrbufx, buffdata, recvretn);
         } else {
-            chtd_cry(fcgi_reqs->htdx, "fcgi_tran_stderr() -> fcgi_conn_recv() return %d!", sizerecv);
-            break;
+            chtd_cry(fcgi_reqs->htdx, "fcgi_tran_stderr() -> fcgi_conn_recv() return %d!", recvretn);
+            return 0;
         }
     }
 
@@ -566,7 +508,6 @@ fcgi_reqs_done(struct fcgi_reqs_t *fcgi_reqs)
 
     switch (body.protocolStatus) {
         case FCGI_REQUEST_COMPLETE:
-            chtd_cry(fcgi_reqs->htdx, "FCGI_REQUEST_COMPLETE");
             break;
         case FCGI_CANT_MPX_CONN:
             chtd_cry(fcgi_reqs->htdx, "FCGI_CANT_MPX_CONN");
