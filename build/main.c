@@ -59,13 +59,16 @@ server_status(void *reqs)
     memset(body, 0, 20480);
 
     wkinfo = chtd_get_status_info(reqs_get_htdx(reqs), "html");
-    snprintf(body, 20480, "<html><head><title>Cutehttpd Server Status Hook</title></head><body><br />Your wker ID: %d<br />\r\n%s</body></html>", wker_get_id(reqs_get_wker(reqs)), wkinfo);
+    snprintf(body, 20480, "<html>"
+        "<head><title>Cutehttpd Server Status Hook</title></head>"
+        "<body><br />Your wker ID: %d<br />\r\n%s</body>"
+        "</html>", wker_get_id(reqs_get_wker(reqs)), wkinfo);
     /*free(wkinfo);*/
 
     set_http_status  (reqs, 200); /* "200 OK" */
     set_http_header  (reqs, "Content-Type", "text/html");
     set_http_header_x(reqs, "Content-Length", "%d", strlen(body));
-    send_http_header (reqs); /* 发送 http 头m*/
+    send_http_header (reqs); /* 发送 http 头 */
 
     /* 发送 http 主体 */
     reqs_conn_send   (reqs, body, strlen(body));
