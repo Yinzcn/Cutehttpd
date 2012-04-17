@@ -1,35 +1,43 @@
+Cutehttpd 嵌入式 HTTP 服务器
+============================
+
 Cutehttpd 是用纯 C 写的一个小巧的嵌入式 http 服务器。Cutehttpd 致力于将协议分化为对象类，这使得上一层的开发变得更容易，上层调用只需考虑逻辑处理。Cutehttpd 在与性能的权衡下谨慎分配内存，无请求状态下只占用约 1MB 内存，1000 个请求约占用 4MB 内存。目前版本可执行文件体积约为 80KB。
 
 
-==特性：==
-支持 FastCGI(所以支持 PHP)，目录列表，MIME Type；
+特性
+----
+支持 FastCGI，目录列表，MIME Type；
 
 
-==计划：==
-支持 SSL；可选加载符合标准 JSON 的配置文件。
+计划
+----
+支持 SSL；动态加载符合标准 JSON 的配置文件。
 
 
-==应用：==
-PHP 产品封装；远程监视、控制；以及其他基于 Web 的产品开发。
+应用
+----
+远程控制面板，以及其他基于 Web 的产品开发。
 
 
-==协议：==
+协议
+----
 使用 GNU Lesser General Public License v3.0 协议发布。
 简而言之，链接到 Cutehttpd 库的产品可以不公开源代码，但是对 Cutehttpd 源码进行修改必须公开源代码，并使用 LGPL 协议发布。
 
 
-==状态：==
-目前处于开发阶段，很多功能没有实现、完善，仅供研究、测试。
+状态
+----
+基本成形，可以尝试进行二次开发。
+欢迎提出建议 YinzCN_@_gmail.com。
 
-实验性项目，欢迎提出意见与建议 YinzCN_@_gmail.com。
 
-
-==示例：==
-Cutehttpd 将支持多种编程语言，包括 C(源生支持), C++, Ruby, Lua, C#
+示例
+----
+Cutehttpd 将支持多种编程语言，包括 C/C++, Ruby, Lua, C#
 
 下面用 C 语言演示了将如何使用 Cutehttpd：
 
-_
+
 #include "../src/cutehttpd.c"
 
 int
@@ -111,4 +119,3 @@ main(int argc, char *argv[])
   htd_stop(htdx);
 
 }
-}}}
