@@ -19,7 +19,8 @@ http_list_dir(struct reqs_t *reqs, char *path)
     url_decode(req_path_ori, req_path_dec);
 
     if (req_path_ori[strlen(req_path_ori) - 1] != '/') {
-        reqs_cont_push_x(reqs, "<html>\r\n"
+        reqs_cont_push_x(reqs,
+            "<html>\r\n"
             "<head>\r\n"
             "<title>301 Moved Permanently</title>\r\n"
             "</head>\r\n"
@@ -29,7 +30,8 @@ http_list_dir(struct reqs_t *reqs, char *path)
             "<hr />\r\n"
             "<address>%s</address>\r\n"
             "</body>\r\n"
-            "</html>", req_path_ori, reqs->htdx->SERVER_SOFTWARE);
+            "</html>",
+            req_path_ori, reqs->htdx->SERVER_SOFTWARE);
         set_http_status  (reqs, 301);
         set_http_header_x(reqs, "Location", "%s/", req_path_ori);
         reqs_cont_send   (reqs);
@@ -55,7 +57,8 @@ http_list_dir(struct reqs_t *reqs, char *path)
         "<body>\r\n"
         "<h1>Index of %s</h1>\r\n"
         "<pre>\r\n"
-        "<hr />\r\n", req_path_dec, req_path_dec);
+        "<hr />\r\n",
+        req_path_dec, req_path_dec);
 
     while (1) {
         char href[1024];
@@ -63,7 +66,7 @@ http_list_dir(struct reqs_t *reqs, char *path)
         if (!dPtr) {
             break;
         }
-        url_encode(dPtr->d_name, href, 1024 - 1);
+        url_encode(dPtr->d_name, href, sizeof(href) - 1);
         reqs_cont_push_x(reqs, "<a href=\"%s\">%s</a>\r\n", href, dPtr->d_name);
     }
 
@@ -72,7 +75,8 @@ http_list_dir(struct reqs_t *reqs, char *path)
         "<hr />\r\n"
         "<strong>%s</strong>\r\n"
         "</body>\r\n"
-        "</html>", reqs->htdx->SERVER_SOFTWARE);
+        "</html>",
+        reqs->htdx->SERVER_SOFTWARE);
 
     closedir(dirx);
     /* ] */

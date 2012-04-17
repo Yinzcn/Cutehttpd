@@ -1,5 +1,0 @@
-ANSI
-
-PHPnow 绿色 PHP 套件包 - 零配置瞬间搭建
-
-EOF

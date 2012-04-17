@@ -39,15 +39,11 @@ uhooks_del(struct htdx_t *htdx, struct uhook_t *uhooks, struct uhook_t *uhook) {
         free(uhook->host);
         free(uhook->xuri);
         free(uhook->pPcre);
-        if (uhook->next == uhook) {
-            /* [ only one */
+        if (uhook->next == uhook) { /* only one */
             retn = NULL;
-            /* ] */
         } else {
-            if (uhook == uhooks) {
-                /* [ the first */
+            if (uhook == uhooks) { /* the first */
                 retn = uhook->next;
-                /* ] */
             }
             uhook->prev->next = uhook->next;
             uhook->next->prev = uhook->prev;
@@ -114,31 +110,26 @@ chtd_set_uhook(struct htdx_t *htdx, char *host, char *xuri, void *func)
     struct uhook_t *uhook;
     if (func) {
         void *pPcre = NULL;
-#ifdef HAVE_PCRE
-        /* [ pcre */
-        int nOffset = -1;
-        const char *pErrMsg = NULL;
-        pPcre = pcre_compile(xuri, 0, &pErrMsg, &nOffset, NULL);
-        if (!pPcre) {
-            chtd_cry(htdx, "set_uhook: pcre_compile() retn: ErrMsg=%s, Offset=%d xuri[%s]", pErrMsg, nOffset, xuri);
-            return 0;
-        }
-        /* ] */
-#endif
+        #ifdef HAVE_PCRE
+            /* [ pcre */
+            int nOffset = -1;
+            const char *pErrMsg = NULL;
+            pPcre = pcre_compile(xuri, 0, &pErrMsg, &nOffset, NULL);
+            if (!pPcre) {
+                chtd_cry(htdx, "set_uhook: pcre_compile() retn: ErrMsg=%s, Offset=%d xuri[%s]", pErrMsg, nOffset, xuri);
+                return 0;
+            }
+            /* ] */
+        #endif
         uhook = uhooks_get(htdx->uhooks, host, xuri);
-        if (uhook) { /* already exists */
-            /* [ update it */
+        if (uhook) { /* already exists, update it */
             uhook->func = func;
             return 1;
-            /* ] */
-        } else {
-            /* [ new */
+        } else { /* new */
             htdx->uhooks = uhooks_add(htdx, host, xuri, func, pPcre);
             return 1;
-            /* ] */
         }
-    } else {
-        /* [ to del */
+    } else { /* to del */
         uhook = uhooks_get(htdx->uhooks, host, xuri);
         if (uhook) {
             htdx->uhooks = uhooks_del(htdx, htdx->uhooks, uhook);
@@ -146,36 +137,34 @@ chtd_set_uhook(struct htdx_t *htdx, char *host, char *xuri, void *func)
         } else {
             return 0;
         }
-        /* ] */
     }
 }
 
 
 struct uhook_t *
 chtd_uhook_match(struct reqs_t *reqs) {
-    struct htdx_t *htdx = reqs->htdx;
-    if (htdx->uhooks) {
+    if (reqs->htdx->uhooks) {
         struct uhook_t *curr, *last;
         char *host, *temp;
         host = strdup(get_http_header(reqs, "Host"));
         temp = strchr(host, ':');
         if (temp) { *temp = 0; };
-        curr = htdx->uhooks;
+        curr = reqs->htdx->uhooks;
         last = curr->prev;
         while (1) {
             /* [ */
             if (strcasecmp(curr->host, host) == 0 || strcasecmp(curr->host, "*") == 0) {
-#ifdef HAVE_PCRE
-                if (pcre_exec(curr->pPcre, NULL, reqs->uri, strlen(reqs->uri), 0, 0, NULL, 0) == 0) {
-                    free(host);
-                    return curr;
-                }
-#else
-                if (strcmp(curr->xuri, reqs->uri) == 0) {
-                    free(host);
-                    return curr;
-                }
-#endif
+                #ifdef HAVE_PCRE
+                    if (pcre_exec(curr->pPcre, NULL, reqs->uri, strlen(reqs->uri), 0, 0, NULL, 0) == 0) {
+                        free(host);
+                        return curr;
+                    }
+                #else
+                    if (strcmp(curr->xuri, reqs->uri) == 0) {
+                        free(host);
+                        return curr;
+                    }
+                #endif
             }
             /* ] */
             if (curr == last) {

@@ -80,23 +80,21 @@ x_memdup(void *m, int n)
 char *
 x_basename(char *path)
 {
-    char *s1 = strrchr(path, '/' );
-    char *s2 = strrchr(path, '\\');
-    char *s3 = (s1 > s2) ? s1 : s2;
-    return s3 ? (s3 + 1) : path;
+    char *p1 = strrchr(path, '/' );
+    char *p2 = strrchr(path, '\\');
+    char *p3 = (p1 > p2) ? p1 : p2;
+    return p3 ? (p3 + 1) : path;
 }
 
 
 char *
 x_ext_name(char *name)
 {
-    char *p;
-    if (!name) {
-        return "";
-    }
-    p = strrchr(name, '.');
-    if (p) {
-        return p++;
+    if (name) {
+        char *p = strrchr(name, '.');
+        if (p) {
+            return p++;
+        }
     }
     return "";
 }
@@ -113,19 +111,18 @@ x_nowstr(void)
 
 
 int
-substr_count(char *str, char *sub)
+substr_count(char *s, char *f)
 {
-    if (str && sub) {
+    if (s && f) {
         int n = 0;
-        int l = strlen(sub);
-        char *p = str;
+        int l = strlen(f);
         while (1) {
-            p = strstr(p, sub);
-            if (!p) {
+            s = strstr(s, f);
+            if (!s) {
                 break;
             }
             n++;
-            p += l;
+            s += l;
         }
         return n;
     }
@@ -148,7 +145,7 @@ str_replace(char *f, char *r, char *s)
     char *bf = calloc(sl + n * (rl - fl) + 1, sizeof(char));
     if (bf) {
         char *p1, *p2;
-        char *p3 = bf;
+        char *bp = bf;
         p1 = s;
         while (1) {
             p2 = strstr(p1, f);
@@ -156,18 +153,19 @@ str_replace(char *f, char *r, char *s)
                 break;
             }
             n = p2 - p1;
-            memcpy(p3, p1, n);
-            p3 += n;
-            memcpy(p3, r, rl);
-            p3 += rl;
+            memcpy(bp, p1, n);
+            bp += n;
+            memcpy(bp, r, rl);
+            bp += rl;
             p1 = p2 + fl;
         }
-        strcpy(p3, p1);
+        strcpy(bp, p1);
     }
     return bf;
 }
 
 
+/*
 int
 is_file(char *path)
 {
@@ -178,6 +176,7 @@ is_file(char *path)
     fclose(f);
     return 1;
 }
+*/
 
 
 int

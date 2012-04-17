@@ -20,7 +20,7 @@ init_wkers(struct htdx_t *htdx)
         wker->w_id = i;
         wker->conn = NULL;
         wker->htdx = htdx;
-        if (wker_create_thread(wker) == 0) {
+        if (wker_create_thread(wker)) {
             wker->status = WK_IDEL;
         } else {
             chtd_cry(htdx, "wker_create_thread() failed!");
@@ -37,7 +37,7 @@ init_wkers(struct htdx_t *htdx)
             htdx->wkers = wker;
         }
     }
-    return 0;
+    return 1;
 }
 
 
@@ -47,7 +47,7 @@ free_wkers(struct htdx_t *htdx)
     if (htdx->wkers) {
         struct wker_t *curr, *last;
         if (htdx->n_worker_thread) {
-            return -1;
+            return 0;
         }
         curr = htdx->wkers;
         last = curr->prev;
@@ -61,7 +61,7 @@ free_wkers(struct htdx_t *htdx)
         free(htdx->wkers);
         htdx->wkers = NULL;
     }
-    return 0;
+    return 1;
 }
 
 
@@ -73,12 +73,12 @@ wker_create_thread(struct wker_t *wker)
     while (maxtry--) {
         if (pthread_create(&t_id, NULL, (void *)worker_thread, wker) == 0) {
             wker->t_id = t_id;
-            return 0;
+            return 1;
         }
         x_msleep(100);
     }
     chtd_cry(wker->htdx, "wker_create_thread() -> pthread_create() failed!");
-    return -1;
+    return 0;
 }
 
 

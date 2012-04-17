@@ -455,6 +455,7 @@ fcgi_tran_stdout(struct fcgi_reqs_t *fcgi_reqs)
             hdrstr = calloc(hdrlen + 1, sizeof(char));
             bufx_get(fcgi_reqs->stdoutbufx, hdrstr, hdrlen);
             fcgi_tran_http_header(fcgi_reqs, hdrstr); /* trans headers */
+            free(hdrstr);
             set_http_header (http_reqs, "Transfer-Encoding", "chunked");
             send_http_header(http_reqs);
             fcgi_reqs->tran_http_header_flag = 1;
@@ -492,7 +493,7 @@ fcgi_tran_stderr(struct fcgi_reqs_t *fcgi_reqs)
             return 0;
         }
     }
-
+    chtd_log(fcgi_reqs->htdx, "FCGI_STDERR: [%s]", bufx_link(fcgi_reqs->stderrbufx));
     fcgi_recv_padding(fcgi_reqs, fcgi_reqs->rp_header.paddingLength);
     return 1;
 }
@@ -626,31 +627,28 @@ fcgi_reqs_proc(struct fcgi_pmgr_t *fcgi_pmgr, struct reqs_t *http_reqs)
     */
     while (loop) {
         if (!fcgi_recv_header(fcgi_reqs)) {
-            chtd_cry(fcgi_reqs->htdx, "fcgi error: fcgi_recv_header");
+            chtd_cry(fcgi_reqs->htdx, "fcgi error: fcgi_recv_header()");
             break;
         }
 
         switch (fcgi_reqs->rp_header.type) {
-        /* STDOUT */
         case FCGI_STDOUT:
             if (!fcgi_tran_stdout(fcgi_reqs)) {
-                chtd_cry(fcgi_reqs->htdx, "fcgi error: fcgi_tran_stdout");
+                chtd_cry(fcgi_reqs->htdx, "fcgi error: fcgi_tran_stdout()");
                 loop = 0;
             }
             break;
 
-        /* STDERR */
         case FCGI_STDERR:
-            if (!fcgi_tran_stdout(fcgi_reqs)) {
-                chtd_cry(fcgi_reqs->htdx, "fcgi error: fcgi_tran_stderr");
+            if (!fcgi_tran_stderr(fcgi_reqs)) {
+                chtd_cry(fcgi_reqs->htdx, "fcgi error: fcgi_tran_stderr()");
                 loop = 0;
             }
             break;
 
-        /* END_REQUEST */
         case FCGI_END_REQUEST:
             if (!fcgi_reqs_done(fcgi_reqs)) {
-                chtd_cry(fcgi_reqs->htdx, "fcgi error: fcgi_reqs_done");
+                chtd_cry(fcgi_reqs->htdx, "fcgi error: fcgi_reqs_done()");
             }
             loop = 0;
             break;

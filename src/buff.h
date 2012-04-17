@@ -22,7 +22,7 @@ struct bufx_t
 {
     int used;
     int base;
-    int toplimit;
+    int maxs; /* maxsize */
     struct bufx_blks_t *blks;
 };
 

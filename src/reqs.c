@@ -59,6 +59,7 @@ reqs_del(struct reqs_t *reqs)
     namevalues_destroy(&reqs->post_vars);
     namevalues_destroy(&reqs->re_headers);
     namevalues_destroy(&reqs->rp_headers);
+    bufx_del(reqs->contbufx);
     free(reqs->reqs_line);
     free(reqs->uri);
     free(reqs->request_path);
@@ -478,6 +479,7 @@ reqs_proc(struct conn_t *conn)
         return 0;
     }
 
+    /* reqs parse */
     if (!reqs_parse(reqs)) {
         conn->keep_alive = 0;
         reqs_throw_status(reqs, 400, ""); /* "400 Bad Request" */
@@ -491,7 +493,7 @@ reqs_proc(struct conn_t *conn)
 
     set_keep_alive(reqs, 1);
 
-    /* [ match uhook */
+    /* match uhook */
     uhook = chtd_uhook_match(reqs);
     if (uhook) {
         if (uhook->func(reqs)) {
@@ -505,9 +507,8 @@ reqs_proc(struct conn_t *conn)
             return 1;
         }
     }
-    /* ] */
 
-    /* [ match vhost */
+    /* match vhost */
     vhost = chtd_vhost_match(reqs);
     if (vhost) {
         if (vhost_proc(reqs, vhost)) {
@@ -518,16 +519,14 @@ reqs_proc(struct conn_t *conn)
             return 1;
         }
     }
-    /* ] */
 
-    /* [ Bad Request */
+    /* Bad Request */
     set_keep_alive(reqs, 0);
     reqs_throw_status(reqs, 400, ""); /* "400 Bad Request" */
     chtd_log(reqs->htdx, "Got a bad request.");
     pthread_mutex_lock(&reqs->htdx->mutex);
     reqs->htdx->nBadReqs++;
     pthread_mutex_unlock(&reqs->htdx->mutex);
-    /* ] */
 
     reqs_del(reqs);
     return 1;

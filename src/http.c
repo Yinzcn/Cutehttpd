@@ -144,7 +144,7 @@ each_http_post(struct reqs_t *reqs, void *func, void *arg1)
 int
 send_http_header(struct reqs_t *reqs)
 {
-    struct bufx_t *bufx = bufx_new(4096, 1024*1024);
+    struct bufx_t *bufx = bufx_new(4096, 1024 * 1024);
     if (!reqs->rp_status_line) {
         set_http_status(reqs, 200); /* "200 OK" */
     }
@@ -166,7 +166,7 @@ send_http_header(struct reqs_t *reqs)
         }
     }
     bufx_put_str(bufx, "\r\n");
-    bufx_get_each(bufx, (void *(*)())reqs_conn_send, reqs);
+    bufx_get_each(bufx, reqs_conn_send, reqs);
     reqs->rp_header_sent = 1;
     bufx_del(bufx);
     return 1;

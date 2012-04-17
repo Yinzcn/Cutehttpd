@@ -90,8 +90,10 @@ char *
 str_replace(char *, char *, char *);
 
 
+/*
 int
 is_file(char *);
+*/
 
 
 int

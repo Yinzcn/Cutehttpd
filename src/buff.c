@@ -9,13 +9,13 @@
 
 
 struct bufx_t *
-bufx_new(int base, int toplimit) {
+bufx_new(int base, int maxs) {
     struct bufx_t *bufx;
     bufx = calloc(1, sizeof(struct bufx_t));
     if (bufx) {
         bufx->used = 0;
         bufx->base = base;
-        bufx->toplimit = toplimit;
+        bufx->maxs = maxs;
         bufx->blks = NULL;
     }
     return bufx;
@@ -52,7 +52,7 @@ bufx_put(struct bufx_t *bufx, char *data, int size)
     if (bufx == NULL || size <= 0) {
         return 0;
     }
-    if (bufx->used + size > bufx->toplimit) {
+    if (bufx->used + size > bufx->maxs) {
         return 0;
     }
     if (bufx->blks) {
@@ -143,7 +143,7 @@ bufx_get(struct bufx_t *bufx, char *buff, int need)
                 step = left;
                 memcpy(bufp, curr->data, step);
                 blk_left = curr->used - step;
-                memcpy(curr->data, curr->data + step, blk_left);
+                memmove(curr->data, curr->data + step, blk_left);
                 curr->used = blk_left;
                 curr->prev = last;
                 last->next = curr;
