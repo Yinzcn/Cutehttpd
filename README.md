@@ -1,4 +1,4 @@
-Cutehttpd 嵌入式 HTTP 服务器
+Cutehttpd - 嵌入式 HTTP 服务器
 ============================
 
 Cutehttpd 是用纯 C 写的一个小巧的嵌入式 http 服务器。Cutehttpd 尽可能将协议分化为对象类，这使得上一层的开发变得更容易，上层调用只需考虑逻辑处理。无请求状态下约占用 2MB 内存，1000 个请求约占用 4MB 内存。可执行文件体积约为 70KB。
@@ -6,12 +6,16 @@ Cutehttpd 是用纯 C 写的一个小巧的嵌入式 http 服务器。Cutehttpd 
 
 特性
 ----
-支持 FastCGI；URI 钩子；目录列表；MIME Type；
+* 支持 FastCGI；
+* URI 钩子，指定 URI 绑定到指定函数处理；
+* 目录列表；
+* MIME Type。
 
 
 计划
 ----
-支持 SSL；动态加载符合标准 JSON 的配置文件。
+* 支持 SSL；
+* 动态加载符合标准 JSON 的配置文件。
 
 
 应用
