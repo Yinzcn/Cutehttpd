@@ -28,7 +28,8 @@ PHP 产品封装；远程监视、控制；以及其他基于 Web 的产品开�
 Cutehttpd 将支持多种编程语言，包括 C(源生支持), C++, Ruby, Lua, C#
 
 下面用 C 语言演示了将如何使用 Cutehttpd：
-{{{
+
+_
 #include "../src/cutehttpd.c"
 
 int
