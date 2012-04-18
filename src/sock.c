@@ -39,10 +39,12 @@ sock_close(struct sock_t *sock)
     if (sock->socket > 0) {
         static char buff[256];
         int o = 1;
-        struct linger l;
+        /*
+		struct linger l;
         l.l_onoff  = 1;
         l.l_linger = 0;
         setsockopt(sock->socket, SOL_SOCKET, SO_LINGER,     (void *)&l, sizeof(l));
+		*/
         setsockopt(sock->socket, SOL_SOCKET, SO_DONTLINGER, (void *)&o, sizeof(o));
         shutdown(sock->socket, SHUT_WR);
         sock_non_blocking(sock);

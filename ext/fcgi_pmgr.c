@@ -44,9 +44,9 @@ fcgi_pmgr_add(struct htdx_t *htdx, char *extname, char *sz_addr, char *sz_port, 
 void
 fcgi_pmgr_del(struct fcgi_pmgr_t *fcgi_pmgr)
 {
-    if (!fcgi_pmgr) {
+    if (fcgi_pmgr == NULL) {
         return;
-    }
+    } else
     if (fcgi_pmgr == fcgi_pmgr->next) {
         fcgi_pmgr->htdx->fcgi_pmgrs = NULL;
         free(fcgi_pmgr);
@@ -67,19 +67,18 @@ struct fcgi_pmgr_t *
 fcgi_pmgr_match(struct htdx_t *htdx, char *extname)
 {
     struct fcgi_pmgr_t *curr, *last;
-    if (htdx->fcgi_pmgrs == NULL) {
-        return NULL;
-    }
-    curr = htdx->fcgi_pmgrs;
-    last = curr->prev;
-    while (1) {
-        if (strcasecmp(curr->cgiextname, extname) == 0) {
-            return curr;
-        }
-        if (curr == last) {
-            break;
-        }
-        curr = curr->next;
+    if (htdx->fcgi_pmgrs) {
+		curr = htdx->fcgi_pmgrs;
+		last = curr->prev;
+		while (1) {
+			if (strcasecmp(curr->cgiextname, extname) == 0) {
+				return curr;
+			}
+			if (curr == last) {
+				break;
+			}
+			curr = curr->next;
+		}
     }
     return NULL;
 }
@@ -90,8 +89,8 @@ fcgi_pmgr_conn(struct fcgi_pmgr_t *fcgi_pmgr, struct fcgi_conn_t *fcgi_conn)
 {
     int bTrue = 1;
     struct sock_t *sock;
-    memcpy(&fcgi_conn->sock.rsa, &fcgi_pmgr->rsa, sizeof(struct usa_t));
     sock = &fcgi_conn->sock;
+    memcpy(&sock->rsa, &fcgi_pmgr->rsa, sizeof(struct usa_t));
     sock->socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock->socket == 0) {
         chtd_cry(fcgi_pmgr->htdx, "ERROR: fcgi_pmgr_conn() -> socket() failed!%d");

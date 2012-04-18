@@ -54,7 +54,7 @@ fcgi_conn_send(struct fcgi_conn_t *fcgi_conn, void *data, int size)
 {
     int done = 0;
     while (done < size) {
-        int retn = send(fcgi_conn->sock.socket, data + done, size - done, 0);
+        int retn = send(fcgi_conn->sock.socket, (char *)data + done, size - done, 0);
         if (retn > 0) {
             done += retn;
         } else {
@@ -71,7 +71,7 @@ fcgi_conn_recv(struct fcgi_conn_t *fcgi_conn, void *buff, int need)
 {
     int done = 0;
     while (done < need) {
-        int retn = recv(fcgi_conn->sock.socket, buff + done, need - done, 0);
+        int retn = recv(fcgi_conn->sock.socket, (char *)buff + done, need - done, 0);
         if (retn > 0) {
             done += retn;
         } else {
