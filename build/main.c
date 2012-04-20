@@ -143,7 +143,7 @@ main(int argc, char *argv[])
         chtd_start() 启动 Cutehttpd 服务
         Cutehttpd 将会在内部创建线程运行
     */
-    if (chtd_start(chtd) == 0) { /* 成功返回 0，失败返回 -1 */
+    if (chtd_start(chtd)) { /* 成功返回 1，失败返回 0 */
         chtd_log(chtd, "Cutehttpd 启动成功!");
     } else {
         chtd_log(chtd, "Cutehttpd 启动失败!");
@@ -157,23 +157,19 @@ main(int argc, char *argv[])
             break;
         case 'p':
             break;
-
         case 0xA:
             printf("%s", chtd_get_status_info(chtd, "text"));
             break;
-
         case 'h':
-#ifdef DEBUG
+            #ifdef DEBUG
             chtd_print_uhooks(chtd);
-#endif
+            #endif
             break;
-
         case 'v':
-#ifdef DEBUG
+            #ifdef DEBUG
             chtd_print_vhosts(chtd);
-#endif
+            #endif
             break;
-
         default:
             break;
         }

@@ -72,12 +72,12 @@ int
 listen_thread(struct htdx_t *htdx)
 {
     /* accept loop */
-    struct sock_t sock;
-    struct timeval tv;
-    int n;
-    fd_set readfds;
     htdx->n_listen_thread = 1;
     while (htdx->status == CHTD_RUNNING) {
+        fd_set readfds;
+        int n;
+        struct sock_t sock;
+        struct timeval tv;
         tv.tv_sec  = 0;
         tv.tv_usec = 1000 * 1000;
         FD_ZERO(&readfds);
@@ -117,13 +117,13 @@ int
 master_thread(struct htdx_t *htdx)
 {
     /* [ Init */
-#ifdef _WIN32
+	#ifdef _WIN32
     WSADATA wsadata;
     if (WSAStartup(MAKEWORD(2, 0), &wsadata)) {
         chtd_cry(htdx, "WSAStartup() failed!");
         return 0;
     }
-#endif
+	#endif
 
     htdx->status = CHTD_STARTUP;
 
@@ -144,7 +144,7 @@ master_thread(struct htdx_t *htdx)
             break;
         }
 
-        //setsockopt(htdx->sock.socket, SOL_SOCKET, SO_REUSEADDR, (void *)&bTrue, sizeof(bTrue));
+        setsockopt(htdx->sock.socket, SOL_SOCKET, SO_REUSEADDR, (void *)&bTrue, sizeof(bTrue));
         setsockopt(htdx->sock.socket, SOL_SOCKET, SO_KEEPALIVE, (void *)&bTrue, sizeof(bTrue));
 
         /* bind() */
@@ -189,6 +189,7 @@ master_thread(struct htdx_t *htdx)
     /* [ Shutdown */
     if (htdx->sock.socket > 0) {
         closesocket(htdx->sock.socket);
+		htdx->sock.socket = -1;
     }
 
     /* broadcast all worker_thread to exit */
@@ -205,9 +206,9 @@ master_thread(struct htdx_t *htdx)
     /* [ Destroy */
     free_wkers (htdx);
     free_squeue(htdx);
-#ifdef _WIN32
+	#ifdef _WIN32
     WSACleanup();
-#endif
+	#endif
     /* ] */
     chtd_cry(htdx, "master_thread() end!");
     htdx->status = CHTD_STOPPED;
@@ -233,21 +234,21 @@ chtd_create(void) {
     htdx->SERVER_SOFTWARE       = SERVER_SOFTWARE;
     snprintf(SERVER_SOFTWARE,
         sizeof(SERVER_SOFTWARE),
-#ifdef DEBUG
+		#ifdef DEBUG
         "Cutehttpd/%s (Built: Debug; %s; %s/%d; %08x%02x;)",
-#else
+		#else
         "Cutehttpd/%s (Built: %s; %s/%d; %08x%02x;)",
-#endif
+		#endif
         CHTD_VERSION,
         BUILDTIME,
         CPER,
         CVER,
         REV_A,
         REV_B >> 24);
-#ifdef PTW32_STATIC_LIB
+	#ifdef PTW32_STATIC_LIB
     pthread_win32_process_attach_np();
     pthread_win32_thread_attach_np();
-#endif
+	#endif
     pthread_mutex_init(&htdx->mutex, NULL);
     return htdx;
 }
@@ -256,19 +257,19 @@ chtd_create(void) {
 int
 chtd_delete(struct htdx_t *htdx)
 {
-    if (htdx->status == CHTD_STOPPED) {
-        free_vhosts(htdx);
-        free_uhooks(htdx);
-        free(htdx->addr);
-        free(htdx->port);
-        pthread_mutex_destroy(&htdx->mutex);
-#ifdef PTW32_STATIC_LIB
-        pthread_win32_thread_detach_np();
-        pthread_win32_process_detach_np();
-#endif
+    if (htdx->status != CHTD_STOPPED) {
         return 0;
     }
-    return -1;
+    free_vhosts(htdx);
+    free_uhooks(htdx);
+    free(htdx->addr);
+    free(htdx->port);
+    pthread_mutex_destroy(&htdx->mutex);
+    #ifdef PTW32_STATIC_LIB
+    pthread_win32_thread_detach_np();
+    pthread_win32_process_detach_np();
+    #endif
+    return 1;
 }
 
 
@@ -281,19 +282,19 @@ chtd_start(struct htdx_t *htdx)
     if (pthread_create(&ptid, NULL, (void *)master_thread, htdx) != 0) {
         chtd_cry(htdx, "create master_thread falied!");
         htdx->status = CHTD_STOPPED;
-        return -1;
+        return 0;
     }
-    return 0;
+    return 1;
 }
 
 
 int
 chtd_stop(struct htdx_t *htdx)
 {
-    if (htdx->status == CHTD_RUNNING) {
-        htdx->status = CHTD_SUSPEND;
+    if (htdx->status != CHTD_RUNNING) {
         return 0;
     }
+    htdx->status = CHTD_SUSPEND;
     return 1;
 }
 

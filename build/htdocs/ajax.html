@@ -63,11 +63,13 @@ function POST_all() {
 <body>
   <input id="u" size="40" value="/uhook/time" />
   <input id="p" size="40" value="a=Alpha&b=Beta&c=Gamma" />
+  <input id="n" size="40" value="4" />
   <input type="button" value="GET_all" onclick="GET_all();" />
   <input type="button" value="GET_1" onclick="xhr_get($('div_1'), $('u').value);" />
   <input type="button" value="POST_all" onclick="POST_all();" />
   <input type="button" value="POST_1" onclick="xhr_post($('div_1'), $('u').value, $('p').value);" />
   <hr />
+  <div id="div_a"></div>
   <div id="div_1"></div>
   <br />
   <div id="div_2"></div>

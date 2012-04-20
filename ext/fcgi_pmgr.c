@@ -68,17 +68,17 @@ fcgi_pmgr_match(struct htdx_t *htdx, char *extname)
 {
     struct fcgi_pmgr_t *curr, *last;
     if (htdx->fcgi_pmgrs) {
-		curr = htdx->fcgi_pmgrs;
-		last = curr->prev;
-		while (1) {
-			if (strcasecmp(curr->cgiextname, extname) == 0) {
-				return curr;
-			}
-			if (curr == last) {
-				break;
-			}
-			curr = curr->next;
-		}
+        curr = htdx->fcgi_pmgrs;
+        last = curr->prev;
+        while (1) {
+            if (strcasecmp(curr->cgiextname, extname) == 0) {
+                return curr;
+            }
+            if (curr == last) {
+                break;
+            }
+            curr = curr->next;
+        }
     }
     return NULL;
 }
@@ -92,7 +92,7 @@ fcgi_pmgr_conn(struct fcgi_pmgr_t *fcgi_pmgr, struct fcgi_conn_t *fcgi_conn)
     sock = &fcgi_conn->sock;
     memcpy(&sock->rsa, &fcgi_pmgr->rsa, sizeof(struct usa_t));
     sock->socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (sock->socket == 0) {
+    if (sock->socket == -1) {
         chtd_cry(fcgi_pmgr->htdx, "ERROR: fcgi_pmgr_conn() -> socket() failed!%d");
         return 0;
     }

@@ -33,7 +33,6 @@ reqs_new(struct conn_t *conn)
 {
     struct reqs_t *reqs;
     if (!conn) {
-        chtd_cry(NULL, "called reqs_new() with NULL conn!");
         return NULL;
     }
     reqs = calloc(1, sizeof(struct reqs_t));
@@ -53,7 +52,6 @@ void
 reqs_del(struct reqs_t *reqs)
 {
     if (!reqs) {
-        chtd_cry(NULL, "called reqs_del() with NULL reqs!");
         return;
     }
     namevalues_destroy(&reqs->post_vars);
