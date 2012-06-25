@@ -74,17 +74,17 @@ listen_thread(struct htdx_t *htdx)
     /* accept loop */
     htdx->n_listen_thread = 1;
     while (htdx->status == CHTD_RUNNING) {
-        fd_set readfds;
+        fd_set rs;
         int n;
         struct sock_t sock;
         struct timeval tv;
         tv.tv_sec  = 0;
         tv.tv_usec = 1000 * 1000;
-        FD_ZERO(&readfds);
-        FD_SET(htdx->sock.socket, &readfds);
-        n = select(htdx->sock.socket + 1, &readfds, NULL, NULL, &tv);
+        FD_ZERO(&rs);
+        FD_SET(htdx->sock.socket, &rs);
+        n = select(htdx->sock.socket + 1, &rs, NULL, NULL, &tv);
         if (n > 0) {
-            if (FD_ISSET(htdx->sock.socket, &readfds)) {
+            if (FD_ISSET(htdx->sock.socket, &rs)) {
                 sock.rsa.len = sizeof(sock.rsa.u);
                 sock.socket = accept(htdx->sock.socket, &sock.rsa.u.sa, (void *)&sock.rsa.len);
                 if (sock.socket <= 0) {
@@ -203,7 +203,7 @@ master_thread(struct htdx_t *htdx)
     }
     /* ] */
 
-    /* [ Destroy */
+    /* [ Cleanup */
     free_wkers (htdx);
     free_squeue(htdx);
 	#ifdef _WIN32
@@ -217,7 +217,8 @@ master_thread(struct htdx_t *htdx)
 
 
 struct htdx_t *
-chtd_create(void) {
+chtd_create(void)
+{
     static char SERVER_SOFTWARE[256] = "";
     struct htdx_t *htdx;
     htdx = calloc(1, sizeof(struct htdx_t));

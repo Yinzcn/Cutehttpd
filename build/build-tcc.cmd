@@ -7,7 +7,7 @@ if not "%REVISION%" == "" set CF=-DREV_A=0x%REVISION:~0,8% -DREV_B=0x%REVISION:~
 if not "%CFLAGS%" == "" set CF=%CF% %CFLAGS%
 if not "%*" == "" set CF=%CF% %*
 
-set tccdir=D:\Projects\tinycc.git\win32
+set tccdir=D:\Projects\tinycc\win32
 set winsdk=D:\MinGW
 
 
